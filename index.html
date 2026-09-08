@@ -52,6 +52,13 @@
         .scenario-btn.baseline .profit { color: #00d9ff; }
         .scenario-btn.optimistic .profit { color: #00ff88; }
         .section-title { font-size: 0.75rem; color: #555; text-transform: uppercase; margin: 20px 0 10px 0; border-bottom: 1px solid #2a3f5f; }
+        .staff-detail { margin: 15px 0 10px 0; font-size: 0.85rem; }
+        .staff-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px; background: #0f3460; border-radius: 8px; }
+        .staff-row span:first-child { width: 100px; font-size: 0.85rem; }
+        .staff-count { width: 50px; padding: 4px; border-radius: 4px; border: 1px solid #2a3f5f; background: #1a1a2e; color: #fff; text-align: center; }
+        .staff-salary { width: 90px; padding: 4px; border-radius: 4px; border: 1px solid #2a3f5f; background: #1a1a2e; color: #fff; text-align: right; }
+        .staff-total { width: 100px; text-align: right; font-weight: 600; color: #00d9ff; font-size: 0.85rem; }
+        .staff-summary { margin-top: 10px; padding: 10px; background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 8px; text-align: right; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -73,6 +80,12 @@
                 <div class="section-title">🏢 Аренда</div>
                 <div class="param"><div class="param-header"><span class="param-label">Аренда</span><span class="param-value" id="valRent">290 000</span></div><input type="range" id="rent" min="0" max="5000000" step="10000" value="290000"></div>
                 <div class="section-title">👥 Персонал</div>
+                <div class="staff-detail">📋 <strong>Детализация персонала</strong></div>
+                <div class="staff-row"><span>Заведующий</span><input type="number" id="staffZavCount" min="0" max="10" value="1" class="staff-count"><input type="number" id="staffZavSalary" min="0" max="500000" step="5000" value="80000" class="staff-salary"><span class="staff-total" id="staffZavTotal">80 000 ₽</span></div>
+                <div class="staff-row"><span>Провизор</span><input type="number" id="staffProvCount" min="0" max="50" value="2" class="staff-count"><input type="number" id="staffProvSalary" min="0" max="500000" step="5000" value="60000" class="staff-salary"><span class="staff-total" id="staffProvTotal">120 000 ₽</span></div>
+                <div class="staff-row"><span>Сборщик</span><input type="number" id="staffSborCount" min="0" max="50" value="2" class="staff-count"><input type="number" id="staffSborSalary" min="0" max="500000" step="5000" value="40000" class="staff-salary"><span class="staff-total" id="staffSborTotal">80 000 ₽</span></div>
+                <div class="staff-row"><span>Грузчик</span><input type="number" id="staffGruzCount" min="0" max="50" value="1" class="staff-count"><input type="number" id="staffGruzSalary" min="0" max="500000" step="5000" value="35000" class="staff-salary"><span class="staff-total" id="staffGruzTotal">35 000 ₽</span></div>
+                <div class="staff-summary">ФОТ (с налогами): <span id="staffTotalFOT">450 000 ₽</span></div>
                 <div class="param"><div class="param-header"><span class="param-label">ФОТ</span><span class="param-value" id="valSalary">450 000</span></div><input type="range" id="salary" min="0" max="5000000" step="25000" value="450000"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Соцвзносы (%)</span><span class="param-value" id="valSocial">30%</span></div><input type="range" id="social" min="0" max="50" step="1" value="30"></div>
                 <div class="section-title">💰 Налоги</div>
@@ -151,6 +164,40 @@
             document.getElementById('valMarketing').textContent = fmt(params.marketing);
             document.getElementById('valOther').textContent = fmt(params.other);
             document.getElementById('valProject').textContent = fmt(params.project);
+            updateStaffDisplay();
+        }
+        function updateStaffDisplay() {
+            const staffData = [
+                { countId: 'staffZavCount', salaryId: 'staffZavSalary', totalId: 'staffZavTotal' },
+                { countId: 'staffProvCount', salaryId: 'staffProvSalary', totalId: 'staffProvTotal' },
+                { countId: 'staffSborCount', salaryId: 'staffSborSalary', totalId: 'staffSborTotal' },
+                { countId: 'staffGruzCount', salaryId: 'staffGruzSalary', totalId: 'staffGruzTotal' }
+            ];
+            let totalSalary = 0;
+            staffData.forEach(item => {
+                const count = parseInt(document.getElementById(item.countId).value) || 0;
+                const salary = parseInt(document.getElementById(item.salaryId).value) || 0;
+                const total = count * salary;
+                totalSalary += total;
+                document.getElementById(item.totalId).textContent = fmt(total) + ' ₽';
+            });
+            const socialRate = params.social / 100;
+            const totalWithSocial = totalSalary * (1 + socialRate);
+            document.getElementById('staffTotalFOT').textContent = fmt(Math.round(totalWithSocial)) + ' ₽';
+            params.salary = totalSalary;
+            document.getElementById('salary').value = totalSalary;
+            document.getElementById('valSalary').textContent = fmt(totalSalary);
+            calculate();
+        }
+        function initStaffListeners() {
+            const staffInputs = ['staffZavCount', 'staffZavSalary', 'staffProvCount', 'staffProvSalary', 'staffSborCount', 'staffSborSalary', 'staffGruzCount', 'staffGruzSalary'];
+            staffInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', updateStaffDisplay);
+                    el.addEventListener('change', updateStaffDisplay);
+                }
+            });
         }
         function calculate() {
             const grossRevenue = params.revenue;
@@ -281,6 +328,7 @@
         });
         updateDisplay();
         calculate();
+        initStaffListeners();
     </script>
 </body>
 </html>
