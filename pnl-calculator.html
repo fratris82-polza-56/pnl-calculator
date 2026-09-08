@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>💊 P&L Дашборд: Аптека-Склад</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); min-height: 100vh; padding: 20px; color: #fff; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { font-size: 2rem; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { color: #888; margin-top: 8px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #2a3f5f; }
+        .kpi-card .icon { font-size: 2rem; margin-bottom: 8px; }
+        .kpi-card .value { font-size: 1.8rem; font-weight: 700; }
+        .kpi-card .label { font-size: 0.85rem; color: #888; }
+        .kpi-card.profit .value { color: #00ff88; }
+        .kpi-card.loss .value { color: #ff4757; }
+        .kpi-card.revenue .value { color: #00d9ff; }
+        .kpi-card.margin .value { color: #ffd93d; }
+        .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 20px; padding: 24px; border: 1px solid #2a3f5f; }
+        .panel h2 { font-size: 1.1rem; margin-bottom: 20px; color: #00d9ff; }
+        .param { margin-bottom: 20px; }
+        .param-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .param-label { font-size: 0.9rem; color: #aaa; }
+        .param-value { font-weight: 600; color: #00d9ff; }
+        input[type="range"] { width: 100%; height: 8px; border-radius: 4px; background: #0f3460; }
+        .quick-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .quick-btn { background: #0f3460; border: 1px solid #2a3f5f; color: #888; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; }
+        .results-table { width: 100%; border-collapse: collapse; }
+        .results-table th, .results-table td { padding: 10px; text-align: left; border-bottom: 1px solid #2a3f5f; }
+        .results-table th { color: #666; font-size: 0.8rem; }
+        .results-table td:last-child { text-align: right; }
+        .bar-container { margin: 16px 0; }
+        .bar-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
+        .bar-track { height: 24px; background: #0f3460; border-radius: 12px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 12px; }
+        .bar-fill.revenue { background: linear-gradient(90deg, #00d9ff, #00b4d8); }
+        .bar-fill.cost { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+        .bar-fill.expenses { background: linear-gradient(90deg, #ffd93d, #f0c000); }
+        .bar-fill.profit { background: linear-gradient(90deg, #00ff88, #00cc6a); }
+        .bar-fill.loss { background: linear-gradient(90deg, #ff4757, #ff3040); }
+        .scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
+        .scenario-btn { background: #0f3460; border: 2px solid #2a3f5f; color: #fff; padding: 16px; border-radius: 12px; cursor: pointer; text-align: center; }
+        .scenario-btn .title { font-weight: 600; margin-bottom: 4px; }
+        .scenario-btn .profit { font-size: 1.1rem; font-weight: 700; }
+        .scenario-btn.pessimistic .profit { color: #ff4757; }
+        .scenario-btn.baseline .profit { color: #00d9ff; }
+        .scenario-btn.optimistic .profit { color: #00ff88; }
+        .section-title { font-size: 0.75rem; color: #555; text-transform: uppercase; margin: 20px 0 10px 0; border-bottom: 1px solid #2a3f5f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>💊 P&L Дашборд: Аптека-Склад</h1><p>Калининградская область • Площадь 500 м² • С доставкой</p></header>
+        <div class="kpi-row">
+            <div class="kpi-card revenue"><div class="icon">📈</div><div class="value" id="kpiRevenue">60 млн ₽</div><div class="label">Годовая выручка</div></div>
+            <div class="kpi-card margin"><div class="icon">💹</div><div class="value" id="kpiMargin">10.7 млн ₽</div><div class="label">Валовая прибыль</div></div>
+            <div class="kpi-card loss" id="kpiProfitCard"><div class="icon">📉</div><div class="value" id="kpiProfit">-1.3 млн ₽</div><div class="label">Операционная прибыль</div></div>
+            <div class="kpi-card" id="kpiRoiCard"><div class="icon">⏱️</div><div class="value" id="kpiRoi">—</div><div class="label">Срок окупаемости</div></div>
+        </div>
+        <div class="main-grid">
+            <div class="panel">
+                <h2>🎚️ Параметры</h2>
+                <div class="section-title">📦 Доходы</div>
+                <div class="param"><div class="param-header"><span class="param-label">Выручка в месяц</span><span class="param-value" id="valRevenue">5 000 000</span></div><input type="range" id="revenue" min="0" max="200000000" step="100000" value="5000000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Наценка (%)</span><span class="param-value" id="valMargin">25%</span></div><input type="range" id="margin" min="0" max="50" step="1" value="25"></div>
+                <div class="section-title">🏢 Аренда</div>
+                <div class="param"><div class="param-header"><span class="param-label">Аренда</span><span class="param-value" id="valRent">290 000</span></div><input type="range" id="rent" min="0" max="5000000" step="10000" value="290000"></div>
+                <div class="section-title">👥 Персонал</div>
+                <div class="param"><div class="param-header"><span class="param-label">ФОТ</span><span class="param-value" id="valSalary">450 000</span></div><input type="range" id="salary" min="0" max="5000000" step="25000" value="450000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Соцвзносы (%)</span><span class="param-value" id="valSocial">30%</span></div><input type="range" id="social" min="0" max="50" step="1" value="30"></div>
+                <div class="section-title">💰 Налоги</div>
+                <div class="param"><div class="param-header"><span class="param-label">Налоги ОСНО+НДС (%)</span><span class="param-value" id="valTax">20%</span></div><input type="range" id="tax" min="0" max="50" step="1" value="20"></div>
+                <div class="section-title">🚚 Операционные</div>
+                <div class="param"><div class="param-header"><span class="param-label">Логистика</span><span class="param-value" id="valLogistics">80 000</span></div><input type="range" id="logistics" min="0" max="5000000" step="5000" value="80000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Коммунальные</span><span class="param-value" id="valUtilities">15 000</span></div><input type="range" id="utilities" min="0" max="200000" step="5000" value="15000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Охрана</span><span class="param-value" id="valSecurity">8 000</span></div><input type="range" id="security" min="0" max="100000" step="1000" value="8000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Материалы</span><span class="param-value" id="valSupplies">12 000</span></div><input type="range" id="supplies" min="0" max="200000" step="1000" value="12000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Маркетинг</span><span class="param-value" id="valMarketing">15 000</span></div><input type="range" id="marketing" min="0" max="300000" step="5000" value="15000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Прочее</span><span class="param-value" id="valOther">0</span></div><input type="range" id="other" min="0" max="500000" step="10000" value="0"></div>
+                <div class="section-title">🏗️ Проектные (на 12 мес)</div>
+                <div class="param"><div class="param-header"><span class="param-label">Проектные расходы</span><span class="param-value" id="valProject">0</span></div><input type="range" id="project" min="0" max="20000000" step="100000" value="0"></div>
+            </div>
+            <div class="panel">
+                <h2>📊 Результаты</h2>
+                <div class="bar-container"><div class="bar-label"><span>Выручка (год)</span><span id="barRevenueVal">60 млн ₽</span></div><div class="bar-track"><div class="bar-fill revenue" id="barRevenue" style="width:100%"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Себестоимость</span><span id="barCostVal">42.9 млн ₽</span></div><div class="bar-track"><div class="bar-fill cost" id="barCost" style="width:71%"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Расходы</span><span id="barExpensesVal">12.1 млн ₽</span></div><div class="bar-track"><div class="bar-fill expenses" id="barExpenses" style="width:20%"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Прибыль</span><span id="barProfitVal">-1.3 млн ₽</span></div><div class="bar-track"><div class="bar-fill loss" id="barProfit" style="width:2%"></div></div></div>
+                <table class="results-table">
+                    <tr><th>Показатель</th><th>Месяц</th><th>Год</th></tr>
+                    <tr><td>Выручка (без НДС)</td><td id="tblRevM">4.17 млн ₽</td><td id="tblRevY">50 млн ₽</td></tr>
+                    <tr><td>Выручка (с НДС)</td><td id="tblRevGrossM">5 млн ₽</td><td id="tblRevGrossY">60 млн ₽</td></tr>
+                    <tr><td>Себестоимость</td><td id="tblCostM">3.33 млн ₽</td><td id="tblCostY">40 млн ₽</td></tr>
+                    <tr><td><strong>Валовая прибыль</strong></td><td id="tblGPM"><strong>833 тыс ₽</strong></td><td id="tblGPY"><strong>10 млн ₽</strong></td></tr>
+                    <tr><td colspan="3" style="background:#1a1a2e;height:4px"></td></tr>
+                    <tr><td>Аренда</td><td id="tblRentM">290 тыс ₽</td><td id="tblRentY">3.48 млн ₽</td></tr>
+                    <tr><td>ФОТ</td><td id="tblSalaryM">450 тыс ₽</td><td id="tblSalaryY">5.4 млн ₽</td></tr>
+                    <tr><td>Соцвзносы</td><td id="tblSocialM">135 тыс ₽</td><td id="tblSocialY">1.62 млн ₽</td></tr>
+                    <tr><td>Логистика</td><td id="tblLogisticsM">80 тыс ₽</td><td id="tblLogisticsY">960 тыс ₽</td></tr>
+                    <tr><td>Коммунальные</td><td id="tblUtilitiesM">15 тыс ₽</td><td id="tblUtilitiesY">180 тыс ₽</td></tr>
+                    <tr><td>Охрана</td><td id="tblSecurityM">8 тыс ₽</td><td id="tblSecurityY">96 тыс ₽</td></tr>
+                    <tr><td>Материалы</td><td id="tblSuppliesM">12 тыс ₽</td><td id="tblSuppliesY">144 тыс ₽</td></tr>
+                    <tr><td>Маркетинг</td><td id="tblMarketingM">15 тыс ₽</td><td id="tblMarketingY">180 тыс ₽</td></tr>
+                    <tr><td colspan="3" style="background:#1a1a2e;height:4px"></td></tr>
+                    <tr><td>Проектные (в мес)</td><td id="tblProjectM">0 ₽</td><td id="tblProjectY">0 ₽</td></tr>
+                    <tr><td><strong>Расходы</strong></td><td id="tblExpM"><strong>1 005 тыс ₽</strong></td><td id="tblExpY"><strong>12.06 млн ₽</strong></td></tr>
+                    <tr id="tblProfitRow"><td><strong>Операционная прибыль</strong></td><td id="tblProfitM"><strong class="loss">-112 тыс ₽</strong></td><td id="tblProfitY"><strong class="loss">-1.34 млн ₽</strong></td></tr>
+                </table>
+                <div class="scenarios">
+                    <div class="scenario-btn pessimistic" onclick="loadScenario('pessimistic')"><div class="title">😰 Пессимистичный</div><div class="profit" id="scenPess">-5.2 млн ₽</div></div>
+                    <div class="scenario-btn baseline" onclick="loadScenario('baseline')"><div class="title">📊 Базовый</div><div class="profit" id="scenBase">-1.3 млн ₽</div></div>
+                    <div class="scenario-btn optimistic" onclick="loadScenario('optimistic')"><div class="title">🚀 Оптимистичный</div><div class="profit" id="scenOptim">+13.7 млн ₽</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const DEFAULT_INVESTMENT = 10000000;
+        let params = {revenue: 5000000, margin: 25, rent: 290000, salary: 450000, social: 30, tax: 20, logistics: 80000, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, other: 0, project: 0};
+
+        function fmt(n) { return n.toLocaleString('ru-RU'); }
+        function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
+
+        function setSlider(id, v) {
+            document.getElementById(id).value = v;
+            params[id] = parseFloat(v);
+            updateDisplay();
+            calculate();
+        }
+        function updateDisplay() {
+            document.getElementById('valRevenue').textContent = fmt(params.revenue);
+            document.getElementById('valMargin').textContent = params.margin + '%';
+            document.getElementById('valRent').textContent = fmt(params.rent);
+            document.getElementById('valSalary').textContent = fmt(params.salary);
+            document.getElementById('valSocial').textContent = params.social + '%';
+            document.getElementById('valTax').textContent = params.tax + '%';
+            document.getElementById('valLogistics').textContent = fmt(params.logistics);
+            document.getElementById('valUtilities').textContent = fmt(params.utilities);
+            document.getElementById('valSecurity').textContent = fmt(params.security);
+            document.getElementById('valSupplies').textContent = fmt(params.supplies);
+            document.getElementById('valMarketing').textContent = fmt(params.marketing);
+            document.getElementById('valOther').textContent = fmt(params.other);
+            document.getElementById('valProject').textContent = fmt(params.project);
+        }
+        function calculate() {
+            const grossRevenue = params.revenue;
+            const taxRate = params.tax / 100;
+            const netRevenue = grossRevenue / (1 + taxRate);
+            const marginRate = params.margin / 100;
+            const costOfGoods = netRevenue / (1 + marginRate);
+            const grossProfit = netRevenue - costOfGoods;
+            const operatingExpenses = params.rent + params.salary + (params.salary * params.social / 100) + params.logistics + params.utilities + params.security + params.supplies + params.marketing + params.other + (params.project / 12);
+            const opProfit = grossProfit - operatingExpenses;
+            const opProfitYear = opProfit * 12;
+            const grossRevenueYear = grossRevenue * 12;
+
+            document.getElementById('kpiRevenue').textContent = fmtS(grossRevenueYear);
+            document.getElementById('kpiMargin').textContent = fmtS(grossProfit * 12);
+            document.getElementById('kpiProfit').textContent = fmtS(opProfitYear);
+            document.getElementById('kpiProfitCard').className = 'kpi-card ' + (opProfitYear >= 0 ? 'profit' : 'loss');
+
+            const roiEl = document.getElementById('kpiRoi'), roiCard = document.getElementById('kpiRoiCard');
+            if (opProfitYear > 0) {
+                const roiYears = DEFAULT_INVESTMENT / opProfitYear;
+                roiEl.textContent = roiYears < 1 ? Math.round(roiYears * 12) + ' мес' : roiYears.toFixed(1) + ' года';
+                roiCard.className = 'kpi-card profit';
+            } else {
+                roiEl.textContent = '—';
+                roiCard.className = 'kpi-card';
+            }
+
+            const maxVal = Math.max(grossRevenueYear, costOfGoods * 12, operatingExpenses * 12, Math.abs(opProfitYear));
+            document.getElementById('barRevenue').style.width = (grossRevenueYear / maxVal * 100) + '%';
+            document.getElementById('barCost').style.width = (costOfGoods * 12 / maxVal * 100) + '%';
+            document.getElementById('barExpenses').style.width = (operatingExpenses * 12 / maxVal * 100) + '%';
+            const barProfit = document.getElementById('barProfit');
+            barProfit.style.width = (Math.abs(opProfitYear) / maxVal * 100) + '%';
+            barProfit.className = 'bar-fill ' + (opProfitYear >= 0 ? 'profit' : 'loss');
+            document.getElementById('barRevenueVal').textContent = fmtS(grossRevenueYear);
+            document.getElementById('barCostVal').textContent = fmtS(costOfGoods * 12);
+            document.getElementById('barExpensesVal').textContent = fmtS(operatingExpenses * 12);
+            document.getElementById('barProfitVal').textContent = fmtS(opProfitYear);
+
+            document.getElementById('tblRevM').textContent = fmt(Math.round(netRevenue)) + ' ₽';
+            document.getElementById('tblRevY').textContent = fmt(Math.round(netRevenue * 12)) + ' ₽';
+            document.getElementById('tblRevGrossM').textContent = fmt(grossRevenue) + ' ₽';
+            document.getElementById('tblRevGrossY').textContent = fmt(grossRevenueYear) + ' ₽';
+            document.getElementById('tblCostM').textContent = fmt(Math.round(costOfGoods)) + ' ₽';
+            document.getElementById('tblCostY').textContent = fmt(Math.round(costOfGoods * 12)) + ' ₽';
+            document.getElementById('tblGPM').innerHTML = '<strong>' + fmt(Math.round(grossProfit)) + ' ₽</strong>';
+            document.getElementById('tblGPY').innerHTML = '<strong>' + fmt(Math.round(grossProfit * 12)) + ' ₽</strong>';
+            document.getElementById('tblRentM').textContent = fmt(params.rent) + ' ₽';
+            document.getElementById('tblRentY').textContent = fmt(params.rent * 12) + ' ₽';
+            document.getElementById('tblSalaryM').textContent = fmt(params.salary) + ' ₽';
+            document.getElementById('tblSalaryY').textContent = fmt(params.salary * 12) + ' ₽';
+            document.getElementById('tblSocialM').textContent = fmt(Math.round(params.salary * params.social / 100)) + ' ₽';
+            document.getElementById('tblSocialY').textContent = fmt(Math.round(params.salary * params.social / 100 * 12)) + ' ₽';
+            document.getElementById('tblLogisticsM').textContent = fmt(params.logistics) + ' ₽';
+            document.getElementById('tblLogisticsY').textContent = fmt(params.logistics * 12) + ' ₽';
+            document.getElementById('tblUtilitiesM').textContent = fmt(params.utilities) + ' ₽';
+            document.getElementById('tblUtilitiesY').textContent = fmt(params.utilities * 12) + ' ₽';
+            document.getElementById('tblSecurityM').textContent = fmt(params.security) + ' ₽';
+            document.getElementById('tblSecurityY').textContent = fmt(params.security * 12) + ' ₽';
+            document.getElementById('tblSuppliesM').textContent = fmt(params.supplies) + ' ₽';
+            document.getElementById('tblSuppliesY').textContent = fmt(params.supplies * 12) + ' ₽';
+            document.getElementById('tblMarketingM').textContent = fmt(params.marketing) + ' ₽';
+            document.getElementById('tblMarketingY').textContent = fmt(params.marketing * 12) + ' ₽';
+            document.getElementById('tblProjectM').textContent = fmt(Math.round(params.project / 12)) + ' ₽';
+            document.getElementById('tblProjectY').textContent = fmt(params.project) + ' ₽';
+            document.getElementById('tblExpM').innerHTML = '<strong>' + fmt(Math.round(operatingExpenses)) + ' ₽</strong>';
+            document.getElementById('tblExpY').innerHTML = '<strong>' + fmt(Math.round(operatingExpenses * 12)) + ' ₽</strong>';
+
+            const profitClass = opProfit >= 0 ? 'profit' : 'loss';
+            const profitSign = opProfit >= 0 ? '' : '-';
+            document.getElementById('tblProfitM').innerHTML = '<strong class="' + profitClass + '">' + profitSign + fmt(Math.abs(Math.round(opProfit))) + ' ₽</strong>';
+            document.getElementById('tblProfitY').innerHTML = '<strong class="' + profitClass + '">' + profitSign + fmt(Math.abs(Math.round(opProfitYear))) + ' ₽</strong>';
+            document.getElementById('tblProfitRow').className = profitClass;
+            updateScenarios();
+        }
+        function updateScenarios() {
+            const s = {
+                pess: {revenue: 3000000, rent: 350000, margin: 20, salary: 500000, social: 30, logistics: 100000, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000},
+                base: {revenue: 5000000, rent: 290000, margin: 25, salary: 450000, social: 30, logistics: 80000, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000},
+                opt: {revenue: 10000000, rent: 200000, margin: 30, salary: 400000, social: 30, logistics: 50000, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000}
+            };
+            ['Pess', 'Base', 'Opt'].forEach(k => {
+                const d = s[k.toLowerCase()];
+                const netR = d.revenue / 1.2;
+                const cost = netR / (1 + d.margin / 100);
+                const gp = netR - cost;
+                const exp = d.rent + d.salary + d.salary * d.social/100 + d.logistics + d.utilities + d.security + d.supplies + d.marketing;
+                const op = (gp - exp) * 12;
+                const el = document.getElementById('scen' + k);
+                if (el) el.textContent = (op >= 0 ? '+' : '') + fmtS(op);
+            });
+        }
+        function loadScenario(t) {
+            const presets = {
+                pessimistic: {revenue: 3000000, rent: 350000, margin: 20, salary: 500000, social: 30, logistics: 100000, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000},
+                baseline: {revenue: 5000000, rent: 290000, margin: 25, salary: 450000, social: 30, logistics: 80000, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000},
+                optimistic: {revenue: 10000000, rent: 200000, margin: 30, salary: 400000, social: 30, logistics: 50000, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000}
+            };
+            Object.keys(presets[t]).forEach(k => setSlider(k, presets[t][k]));
+        }
+        document.querySelectorAll('input[type="range"]').forEach(s => {
+            s.addEventListener('input', function() {
+                params[this.id] = parseFloat(this.value);
+                updateDisplay();
+                calculate();
+            });
+        });
+        updateDisplay();
+        calculate();
+    </script>
+</body>
+</html>
