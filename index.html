@@ -476,20 +476,20 @@
         }
         document.querySelectorAll('input[type="range"]').forEach(s => {
             s.addEventListener('input', function() {
-                params[this.id] = parseFloat(this.id) === 'revenue' ? parseFloat(this.value) : parseFloat(this.value);
-                // Синхронизация детализации выручки с основным слайдером
+                // Синхронизация детализации выручки с основным слайдером ДО расчёта
                 if (this.id === 'revenue') {
                     const total = parseFloat(this.value);
                     const oldTotal = params.revenueWarehouse + params.revenueRetail;
-                    if (oldTotal > 0) {
+                    if (oldTotal > 0 && oldTotal !== total) {
                         const ratio = params.revenueWarehouse / oldTotal;
                         params.revenueWarehouse = Math.round(total * ratio);
                         params.revenueRetail = total - params.revenueWarehouse;
                         document.getElementById('revenueWarehouse').value = params.revenueWarehouse;
                         document.getElementById('revenueRetail').value = params.revenueRetail;
                     }
+                    params.revenue = total;
                 }
-                if (this.id === 'margin') {
+                else if (this.id === 'margin') {
                     const total = params.revenueWarehouse + params.revenueRetail;
                     if (total > 0) {
                         const avgMargin = parseFloat(this.value);
@@ -499,6 +499,10 @@
                         document.getElementById('marginWarehouse').value = params.marginWarehouse;
                         document.getElementById('marginRetail').value = params.marginRetail;
                     }
+                    params.margin = parseFloat(this.value);
+                }
+                else {
+                    params[this.id] = parseFloat(this.value);
                 }
                 // Обновляем итоговую строку
                 const totalRev = params.revenueWarehouse + params.revenueRetail;
