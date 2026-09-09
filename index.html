@@ -339,18 +339,22 @@
             // Обновляем основные слайдеры
             const revenueSlider = document.getElementById('revenue');
             const marginSlider = document.getElementById('margin');
-            revenueSlider.value = totalRev;
-            marginSlider.value = avgMargin;
-            // Обновляем визуальное отображение ползунков
-            revenueSlider.setAttribute('value', totalRev);
-            marginSlider.setAttribute('value', avgMargin);
-            // Меняем стиль для принудительного перерисовки
-            revenueSlider.style.flex = 'none';
-            marginSlider.style.flex = 'none';
-            setTimeout(function() {
-                revenueSlider.style.flex = '';
-                marginSlider.style.flex = '';
-            }, 10);
+            
+            // Используем requestAnimationFrame для визуального обновления
+            requestAnimationFrame(function() {
+                revenueSlider.value = totalRev;
+                marginSlider.value = avgMargin;
+                
+                // Принудительная перерисовка
+                revenueSlider.style.display = 'none';
+                revenueSlider.offsetHeight; // триггер reflow
+                revenueSlider.style.display = '';
+                
+                marginSlider.style.display = 'none';
+                marginSlider.offsetHeight;
+                marginSlider.style.display = '';
+            });
+            
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
