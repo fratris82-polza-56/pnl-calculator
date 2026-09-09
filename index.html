@@ -59,6 +59,9 @@
         .staff-salary { width: 90px; padding: 4px; border-radius: 4px; border: 1px solid #2a3f5f; background: #1a1a2e; color: #fff; text-align: right; }
         .staff-total { width: 100px; text-align: right; font-weight: 600; color: #00d9ff; font-size: 0.85rem; }
         .staff-summary { margin-top: 10px; padding: 10px; background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 8px; text-align: right; font-weight: 600; }
+        .share-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+        .share-bar .ecom { background: linear-gradient(90deg, #a855f7, #7c3aed); }
+        .share-bar .retail { background: linear-gradient(90deg, #00d9ff, #0099cc); }
     </style>
 </head>
 <body>
@@ -76,6 +79,8 @@
                 <h2>🎚️ Параметры</h2>
                 <div class="section-title">📦 Доходы</div>
                 <div class="param"><div class="param-header"><span class="param-label">Выручка в месяц (ИТОГО)</span><span class="param-value" id="valRevenue">5 000 000</span></div><input type="range" id="revenue" min="0" max="500000000" step="10000" value="5000000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">📊 Доля ECOM / Розница</span><span class="param-value" id="valEcomShare">0% ECOM</span></div><input type="range" id="ecomShare" min="0" max="100" step="1" value="0"></div>
+                <div class="share-bar"><div class="ecom" id="shareBarEcom" style="width:0%"></div><div class="retail" id="shareBarRetail" style="width:100%"></div></div>
                 <div class="param"><div class="param-header"><span class="param-label">Наценка (ИТОГО, %)</span><span class="param-value" id="valMargin">25%</span></div><input type="range" id="margin" min="0" max="50" step="1" value="25"></div>
                 <div class="section-title">📊 Детализация выручки</div>
                 <div class="param"><div class="param-header"><span class="param-label">Выручка склад</span><span class="param-value" id="valRevenueWarehouse">3 500 000</span></div><input type="range" id="revenueWarehouse" min="0" max="500000000" step="10000" value="3500000"></div>
@@ -263,6 +268,12 @@
                     el.addEventListener('change', updateRevenueDetail);
                 }
             });
+            // Слайдер долей ECOM/Розница
+            const ecomShareEl = document.getElementById('ecomShare');
+            if (ecomShareEl) {
+                ecomShareEl.addEventListener('input', handleEcomShareChange);
+                ecomShareEl.addEventListener('change', handleEcomShareChange);
+            }
         }
         function updateRevenueDetail() {
             const revWarehouse = parseFloat(document.getElementById('revenueWarehouse').value) || 0;
@@ -274,6 +285,9 @@
             
             const totalRev = revWarehouse + revRetail + revEcom;
             const avgMargin = totalRev > 0 ? ((revWarehouse * margWarehouse) + (revRetail * margRetail) + (revEcom * margEcom)) / totalRev : 0;
+            
+            // Обновляем визуализацию долей
+            updateEcomShareDisplay(revRetail, revEcom);
             
             document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
             document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
@@ -301,6 +315,40 @@
             document.getElementById('valMarginEcom').textContent = margEcom + '%';
             
             calculate();
+        }
+        function handleEcomShareChange() {
+            const share = parseFloat(document.getElementById('ecomShare').value) || 0;
+            const totalRetailEcom = params.revenueRetail + params.revenueEcom;
+            
+            // Если общая сумма 0, ничего не делаем
+            if (totalRetailEcom === 0) return;
+            
+            const newEcom = totalRetailEcom * share / 100;
+            const newRetail = totalRetailEcom - newEcom;
+            
+            params.revenueEcom = newEcom;
+            params.revenueRetail = newRetail;
+            
+            document.getElementById('revenueEcom').value = newEcom;
+            document.getElementById('revenueRetail').value = newRetail;
+            
+            updateRevenueDetail();
+        }
+        function updateEcomShareDisplay(retail, ecom) {
+            const total = retail + ecom;
+            if (total === 0) {
+                document.getElementById('valEcomShare').textContent = '0% ECOM';
+                document.getElementById('shareBarEcom').style.width = '0%';
+                document.getElementById('shareBarRetail').style.width = '100%';
+                return;
+            }
+            const share = Math.round(ecom / total * 100);
+            document.getElementById('valEcomShare').textContent = share + '% ECOM / ' + (100 - share) + '% Розница';
+            document.getElementById('shareBarEcom').style.width = share + '%';
+            document.getElementById('shareBarRetail').style.width = (100 - share) + '%';
+            
+            // Синхронизируем слайдер
+            document.getElementById('ecomShare').value = share;
         }
         function calculate() {
             // Вычисляем общую выручку из детализации
