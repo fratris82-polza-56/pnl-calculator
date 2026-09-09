@@ -55,6 +55,44 @@
         .pie-legend { font-size: 0.7rem; }
         .share-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 6px; }
         
+        /* Mobile 5" */
+        @media (max-width: 480px) {
+            body { padding: 6px; }
+            header { margin-bottom: 8px; }
+            header h1 { font-size: 1rem; }
+            .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 8px; }
+            .kpi-card { padding: 6px; border-radius: 6px; }
+            .kpi-card .icon { font-size: 1rem; }
+            .kpi-card .value { font-size: 0.75rem; }
+            .kpi-card .label { font-size: 0.5rem; }
+            .kpi-card .sub-value { font-size: 0.45rem; }
+            .main-grid { gap: 6px; }
+            .panel { padding: 8px; border-radius: 10px; }
+            .panel h2 { font-size: 0.8rem; margin-bottom: 8px; }
+            .param { margin-bottom: 6px; }
+            .param-header { margin-bottom: 3px; }
+            .param-label { font-size: 0.55rem; }
+            .param-value { font-size: 0.65rem; }
+            input[type="range"] { height: 3px; }
+            .quick-btns { gap: 3px; margin-top: 3px; }
+            .quick-btn { padding: 2px 5px; font-size: 0.5rem; }
+            .results-table { font-size: 0.55rem; }
+            .bar-track { height: 10px; }
+            .scenarios { gap: 4px; margin-top: 6px; }
+            .scenario-btn { padding: 6px; }
+            .scenario-btn .title { font-size: 0.65rem; }
+            .scenario-btn .profit { font-size: 0.8rem; }
+            .section-title { font-size: 0.5rem; }
+            .staff-row { gap: 3px; margin-bottom: 3px; padding: 3px; font-size: 0.55rem; }
+            .staff-row span:first-child { width: 40px; font-size: 0.5rem; }
+            .staff-count { width: 24px; padding: 1px; font-size: 0.5rem; }
+            .staff-salary { width: 40px; }
+            .staff-total { width: 45px; font-size: 0.5rem; }
+            .pie-chart-container { gap: 6px; margin-top: 6px; }
+            #revenuePieChart { width: 50px !important; height: 50px !important; }
+            .pie-legend { font-size: 0.5rem; }
+        }
+        
         /* Desktop styles */
         @media (min-width: 768px) {
             body { padding: 20px; }
