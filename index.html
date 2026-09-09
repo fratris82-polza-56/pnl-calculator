@@ -646,41 +646,11 @@
             s.addEventListener('input', function() {
                 // Синхронизация детализации выручки с основным слайдером
                 if (this.id === 'revenue') {
-                    const total = parseFloat(this.value);
-                    const oldTotal = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
-                    if (oldTotal > 0 && oldTotal !== total) {
-                        const ratioW = params.revenueWarehouse / oldTotal;
-                        const ratioR = params.revenueRetail / oldTotal;
-                        const ratioE = params.revenueEcom / oldTotal;
-                        params.revenueWarehouse = Math.round(total * ratioW);
-                        params.revenueRetail = Math.round(total * ratioR);
-                        params.revenueEcom = Math.round(total * ratioE);
-                        document.getElementById('revenueWarehouse').value = params.revenueWarehouse;
-                        document.getElementById('revenueRetail').value = params.revenueRetail;
-                        document.getElementById('revenueEcom').value = params.revenueEcom;
-                    }
-                    params.revenue = total;
+                    // Только обновляем params, НЕ трогаем детализацию
+                    params.revenue = parseFloat(this.value);
                 }
                 else if (this.id === 'margin') {
-                    // Средневзвешенная наценка по трём каналам
-                    const totalRev = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
-                    if (totalRev > 0) {
-                        const avgMargin = parseFloat(this.value);
-                        // Распределяем пропорционально выручке каналов
-                        const ratioW = params.revenueWarehouse / totalRev;
-                        const ratioR = params.revenueRetail / totalRev;
-                        const ratioE = params.revenueEcom / totalRev;
-                        params.marginWarehouse = Math.round(avgMargin * ratioW / (ratioW || 1) * (ratioW > 0 ? 1 : 0)) || avgMargin;
-                        params.marginRetail = Math.round(avgMargin * ratioR / (ratioR || 1) * (ratioR > 0 ? 1 : 0)) || avgMargin;
-                        params.marginEcom = Math.round(avgMargin * ratioE / (ratioE || 1) * (ratioE > 0 ? 1 : 0)) || avgMargin;
-                        // Просто устанавливаем всем каналам одинаковую наценку = средней
-                        params.marginWarehouse = avgMargin;
-                        params.marginRetail = avgMargin;
-                        params.marginEcom = avgMargin;
-                        document.getElementById('marginWarehouse').value = avgMargin;
-                        document.getElementById('marginRetail').value = avgMargin;
-                        document.getElementById('marginEcom').value = avgMargin;
-                    }
+                    // Только обновляем params, НЕ трогаем детализацию
                     params.margin = parseFloat(this.value);
                 }
                 else {
