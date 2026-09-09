@@ -8,11 +8,13 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Montserrat', -apple-system, sans-serif; background: linear-gradient(135deg, #e0e9f7); min-height: 100vh; padding: 10px; color: #161e25; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .sticky-header { position: sticky; top: 0; z-index: 100; background: #e0e9f7; padding: 10px 15px 5px; margin: 0 -15px; }
-        .sticky-header.unpinned { position: static; }
+        .sticky-header { position: static; top: 0; z-index: 100; background: #e0e9f7; padding: 10px 15px 5px; margin: 0 -15px; }
+        .sticky-header.pinned { position: sticky; }
         .header-row { display: flex; justify-content: space-between; align-items: center; }
-        .pin-btn { background: #5383c7; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-family: Montserrat, sans-serif; }
-        .pin-btn:hover { background: #4a75b3; }
+        .pin-btn { background: #6dc47b; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-family: Montserrat, sans-serif; }
+        .pin-btn:hover { background: #5ab368; }
+        .pin-btn.pinned { background: #5383c7; }
+        .pin-btn.pinned:hover { background: #4a75b3; }
         .pin-btn.unpinned { background: #6dc47b; }
         header { text-align: center; margin-bottom: 20px; }
         header h1 { font-size: 1.4rem; color: #5383c7; }
@@ -194,7 +196,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="sticky-header" id="stickyHeader"><div class="header-row"><header><h1><svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M120 60C120 65.5301 117.758 70.5369 114.131 74.1638C110.51 77.7907 105.503 80.0325 99.9727 80.0325H80.0274V99.9726C80.0274 111.033 71.0653 120 60 120C48.9347 120 39.9727 111.033 39.9727 99.9726V80.0325H59.9692C65.4993 80.0325 70.5062 77.7907 74.1331 74.1638C77.7548 70.5369 79.9966 65.5301 79.9966 60C79.9966 48.9398 71.0346 39.9726 59.9692 39.9726H39.9727V20.0274C39.9727 8.96717 48.9398 0 60 0C65.5301 0 70.537 2.24179 74.1638 5.86867C77.7856 9.49042 80.0274 14.4973 80.0274 20.0274V39.9726H99.9727C111.033 39.9726 120 48.9398 120 60Z" fill="#5383c7"/><path d="M79.9966 60C79.9966 65.5301 77.7548 70.537 74.1331 74.1638C70.5062 77.7907 65.4993 80.0325 59.9692 80.0325H39.9727V39.9727H59.9692C71.0346 39.9727 79.9966 48.9398 79.9966 60Z" fill="white"/><path d="M39.9726 39.9727V80.0325H20.0325C8.96717 80.0325 0 71.0602 0 60C0 48.9398 8.96717 39.9727 20.0325 39.9727H39.9726Z" fill="#5383c7"/></svg> P&L Калькулятор</h1></header><button class="pin-btn" id="pinBtn" onclick="togglePin()">📌 Закрепить</button></div>
+        <div class="sticky-header unpinned" id="stickyHeader"><div class="header-row"><header><h1><svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M120 60C120 65.5301 117.758 70.5369 114.131 74.1638C110.51 77.7907 105.503 80.0325 99.9727 80.0325H80.0274V99.9726C80.0274 111.033 71.0653 120 60 120C48.9347 120 39.9727 111.033 39.9727 99.9726V80.0325H59.9692C65.4993 80.0325 70.5062 77.7907 74.1331 74.1638C77.7548 70.5369 79.9966 65.5301 79.9966 60C79.9966 48.9398 71.0346 39.9726 59.9692 39.9726H39.9727V20.0274C39.9727 8.96717 48.9398 0 60 0C65.5301 0 70.537 2.24179 74.1638 5.86867C77.7856 9.49042 80.0274 14.4973 80.0274 20.0274V39.9726H99.9727C111.033 39.9726 120 48.9398 120 60Z" fill="#5383c7"/><path d="M79.9966 60C79.9966 65.5301 77.7548 70.537 74.1331 74.1638C70.5062 77.7907 65.4993 80.0325 59.9692 80.0325H39.9727V39.9727H59.9692C71.0346 39.9727 79.9966 48.9398 79.9966 60Z" fill="white"/><path d="M39.9726 39.9727V80.0325H20.0325C8.96717 80.0325 0 71.0602 0 60C0 48.9398 8.96717 39.9727 20.0325 39.9727H39.9726Z" fill="#5383c7"/></svg> P&L Калькулятор</h1></header><button class="pin-btn unpinned" id="pinBtn" onclick="togglePin()">📌 Отпустить</button></div>
         <div class="kpi-row">
             <div class="kpi-card revenue"><div class="icon">📈</div><div class="value" id="kpiRevenue">60 млн ₽</div><div class="label">Годовая выручка</div><div class="sub-value" id="kpiRevenueM">5 млн ₽/мес</div></div>
             <div class="kpi-card margin"><div class="icon">💹</div><div class="value" id="kpiMargin">10.7 млн ₽</div><div class="label">Валовая прибыль</div><div class="sub-value" id="kpiMarginM">892 тыс ₽/мес</div></div>
@@ -359,11 +361,19 @@
         function togglePin() {
             const header = document.getElementById('stickyHeader');
             const btn = document.getElementById('pinBtn');
-            header.classList.toggle('unpinned');
-            btn.classList.toggle('unpinned');
-            if (header.classList.contains('unpinned')) {
+            const isPinned = header.classList.contains('pinned');
+            
+            if (isPinned) {
+                header.classList.remove('pinned');
+                header.classList.add('unpinned');
+                btn.classList.remove('pinned');
+                btn.classList.add('unpinned');
                 btn.innerHTML = '📌 Отпустить';
             } else {
+                header.classList.remove('unpinned');
+                header.classList.add('pinned');
+                btn.classList.remove('unpinned');
+                btn.classList.add('pinned');
                 btn.innerHTML = '📌 Закрепить';
             }
         }
