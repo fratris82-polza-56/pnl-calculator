@@ -291,7 +291,7 @@
             }
         }
         function updateRevenueDetail() {
-            console.log('updateRevenueDetail called');
+            alert('updateRevenueDetail called!');
             const revWarehouse = parseFloat(document.getElementById('revenueWarehouse').value) || 0;
             let revRetail = parseFloat(document.getElementById('revenueRetail').value) || 0;
             let revEcom = parseFloat(document.getElementById('revenueEcom').value) || 0;
@@ -713,10 +713,23 @@
         calculate();
         initStaffListeners();
         
-        // Синхронизируем верхние слайдеры с детализацией после загрузки всех слушателей
+        // Регистрируем обработчики для детализации выручки
         setTimeout(function() {
+            const revenueInputs = ['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'];
+            revenueInputs.forEach(function(id) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', function() {
+                        updateRevenueDetail();
+                    });
+                    el.addEventListener('change', function() {
+                        updateRevenueDetail();
+                    });
+                }
+            });
+            // Синхронизируем при загрузке
             updateRevenueDetail();
-        }, 100);
+        }, 200);
     </script>
 </body>
 </html>
