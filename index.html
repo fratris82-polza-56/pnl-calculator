@@ -268,11 +268,18 @@
                 }
             });
             // Детализация выручки
+            let isUpdatingRevenue = false;
+            let activeRevenueInput = null;
             const revenueInputs = ['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'];
             revenueInputs.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    el.addEventListener('input', updateRevenueDetail);
+                    el.addEventListener('input', function() {
+                        if (isUpdatingRevenue) return;
+                        if (id === 'revenueEcom') activeRevenueInput = 'revenueEcom';
+                        else if (id === 'revenueRetail') activeRevenueInput = 'revenueRetail';
+                        updateRevenueDetail();
+                    });
                     el.addEventListener('change', updateRevenueDetail);
                 }
             });
@@ -285,11 +292,30 @@
         }
         function updateRevenueDetail() {
             const revWarehouse = parseFloat(document.getElementById('revenueWarehouse').value) || 0;
+            let revRetail = parseFloat(document.getElementById('revenueRetail').value) || 0;
+            let revEcom = parseFloat(document.getElementById('revenueEcom').value) || 0;
             const margWarehouse = parseFloat(document.getElementById('marginWarehouse').value) || 0;
-            const revRetail = parseFloat(document.getElementById('revenueRetail').value) || 0;
             const margRetail = parseFloat(document.getElementById('marginRetail').value) || 0;
-            const revEcom = parseFloat(document.getElementById('revenueEcom').value) || 0;
             const margEcom = parseFloat(document.getElementById('marginEcom').value) || 0;
+            
+            // Пропорциональное перераспределение между ECOM и розницей
+            if (!isUpdatingRevenue) {
+                isUpdatingRevenue = true;
+                const totalRetailEcom = revRetail + revEcom;
+                if (activeRevenueInput === 'revenueEcom' && totalRetailEcom > 0) {
+                    const oldEcom = params.revenueEcom || 0;
+                    const diff = revEcom - oldEcom;
+                    revRetail = Math.max(0, revRetail - diff);
+                    document.getElementById('revenueRetail').value = revRetail;
+                } else if (activeRevenueInput === 'revenueRetail' && totalRetailEcom > 0) {
+                    const oldRetail = params.revenueRetail || 0;
+                    const diff = revRetail - oldRetail;
+                    revEcom = Math.max(0, revEcom - diff);
+                    document.getElementById('revenueEcom').value = revEcom;
+                }
+                activeRevenueInput = null;
+                isUpdatingRevenue = false;
+            }
             
             const totalRev = revWarehouse + revRetail + revEcom;
             const avgMargin = totalRev > 0 ? ((revWarehouse * margWarehouse) + (revRetail * margRetail) + (revEcom * margEcom)) / totalRev : 0;
