@@ -337,24 +337,8 @@
             params.marginEcom = margEcom;
             
             // Обновляем основные слайдеры
-            const revenueSlider = document.getElementById('revenue');
-            const marginSlider = document.getElementById('margin');
-            
-            // Используем requestAnimationFrame для визуального обновления
-            requestAnimationFrame(function() {
-                revenueSlider.value = totalRev;
-                marginSlider.value = avgMargin;
-                
-                // Принудительная перерисовка
-                revenueSlider.style.display = 'none';
-                revenueSlider.offsetHeight; // триггер reflow
-                revenueSlider.style.display = '';
-                
-                marginSlider.style.display = 'none';
-                marginSlider.offsetHeight;
-                marginSlider.style.display = '';
-            });
-            
+            document.getElementById('revenue').value = totalRev;
+            document.getElementById('margin').value = avgMargin;
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
