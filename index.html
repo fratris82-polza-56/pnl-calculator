@@ -108,6 +108,7 @@
             .staff-salary::-webkit-inner-spin-button,
             .staff-salary::-webkit-outer-spin-button { opacity: 0.5; }
             .staff-total { width: 45px; font-size: 0.5rem; }
+            .staff-arrow { width: 18px; height: 18px; font-size: 0.5rem; }
             .pie-chart-container { gap: 6px; margin-top: 6px; }
             #revenuePieChart { width: 50px !important; height: 50px !important; }
             .pie-legend { font-size: 0.5rem; }
@@ -191,6 +192,8 @@
         .staff-count { width: 50px; padding: 4px; border-radius: 4px; border: 1px solid #eff2f7; background: #eff2f7; color: #161e25; text-align: center; font-family: Montserrat, sans-serif; accent-color: #000000; }
         .staff-salary { width: 90px; padding: 4px; border-radius: 4px; border: 1px solid #eff2f7; background: #eff2f7; color: #161e25; text-align: right; font-family: Montserrat, sans-serif; accent-color: #000000; }
         .staff-total { width: 100px; text-align: right; font-weight: 600; color: #5383c7; font-size: 0.85rem; }
+        .staff-arrow { background: #fff; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; color: #5383c7; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .staff-arrow:hover { background: #e0e9f7; }
         .staff-summary { margin-top: 10px; padding: 10px; background: #fff; border-radius: 8px; text-align: right; font-weight: 600; }
         .share-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
         .share-bar .ecom { background: linear-gradient(90deg, #a855f7, #7c3aed); }
@@ -238,14 +241,14 @@
                 <div class="param"><div class="param-header"><span class="param-label">ФОТ</span><span class="param-value" id="valSalary">450 000</span></div><input type="range" id="salary" min="0" max="5000000" step="25000" value="450000"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Соцвзносы (%)</span><span class="param-value" id="valSocial">30%</span></div><input type="range" id="social" min="0" max="50" step="0.01" value="30"></div>
                 <div class="staff-detail"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> <strong>Детализация персонала</strong></div>
-                <div class="staff-row"><span>Заведующий</span><input type="number" id="staffZavCount" min="0" max="10" value="1" class="staff-count"><input type="number" id="staffZavSalary" min="0" max="500000" step="5000" value="80000" class="staff-salary"><span class="staff-total" id="staffZavTotal">80 000 ₽</span></div>
-                <div class="staff-row"><span>Провизор</span><input type="number" id="staffProvCount" min="0" max="50" value="2" class="staff-count"><input type="number" id="staffProvSalary" min="0" max="500000" step="5000" value="60000" class="staff-salary"><span class="staff-total" id="staffProvTotal">120 000 ₽</span></div>
-                <div class="staff-row"><span>Сборщик</span><input type="number" id="staffSborCount" min="0" max="50" value="2" class="staff-count"><input type="number" id="staffSborSalary" min="0" max="500000" step="5000" value="40000" class="staff-salary"><span class="staff-total" id="staffSborTotal">80 000 ₽</span></div>
-                <div class="staff-row"><span>Грузчик</span><input type="number" id="staffGruzCount" min="0" max="50" value="1" class="staff-count"><input type="number" id="staffGruzSalary" min="0" max="500000" step="5000" value="35000" class="staff-salary"><span class="staff-total" id="staffGruzTotal">35 000 ₽</span></div>
-                <div class="staff-row"><span>Товаровед</span><input type="number" id="staffTovarCount" min="0" max="50" value="1" class="staff-count"><input type="number" id="staffTovarSalary" min="0" max="500000" step="5000" value="50000" class="staff-salary"><span class="staff-total" id="staffTovarTotal">50 000 ₽</span></div>
-                <div class="staff-row"><span>Уборщица</span><input type="number" id="staffUborCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffUborSalary" min="0" max="500000" step="5000" value="35000" class="staff-salary"><span class="staff-total" id="staffUborTotal">0 ₽</span></div>
-                <div class="staff-row"><span>Водитель</span><input type="number" id="staffVodCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffVodSalary" min="0" max="500000" step="5000" value="50000" class="staff-salary"><span class="staff-total" id="staffVodTotal">0 ₽</span></div>
-                <div class="staff-row"><span>Экспедитор</span><input type="number" id="staffExpCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffExpSalary" min="0" max="500000" step="5000" value="45000" class="staff-salary"><span class="staff-total" id="staffExpTotal">0 ₽</span></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Zav', -1)">◀</button><span>Заведующий</span><input type="number" id="staffZavCount" min="0" max="10" value="1" class="staff-count"><input type="number" id="staffZavSalary" min="0" max="500000" step="5000" value="80000" class="staff-salary"><span class="staff-total" id="staffZavTotal">80 000 ₽</span><button class="staff-arrow" onclick="adjustStaff('Zav', 1)">▶</button></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Prov', -1)">◀</button><span>Провизор</span><input type="number" id="staffProvCount" min="0" max="50" value="2" class="staff-count"><input type="number" id="staffProvSalary" min="0" max="500000" step="5000" value="60000" class="staff-salary"><span class="staff-total" id="staffProvTotal">120 000 ₽</span><button class="staff-arrow" onclick="adjustStaff('Prov', 1)">▶</button></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Sbor', -1)">◀</button><span>Сборщик</span><input type="number" id="staffSborCount" min="0" max="50" value="2" class="staff-count"><input type="number" id="staffSborSalary" min="0" max="500000" step="5000" value="40000" class="staff-salary"><span class="staff-total" id="staffSborTotal">80 000 ₽</span><button class="staff-arrow" onclick="adjustStaff('Sbor', 1)">▶</button></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Gruz', -1)">◀</button><span>Грузчик</span><input type="number" id="staffGruzCount" min="0" max="50" value="1" class="staff-count"><input type="number" id="staffGruzSalary" min="0" max="500000" step="5000" value="35000" class="staff-salary"><span class="staff-total" id="staffGruzTotal">35 000 ₽</span><button class="staff-arrow" onclick="adjustStaff('Gruz', 1)">▶</button></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Tovar', -1)">◀</button><span>Товаровед</span><input type="number" id="staffTovarCount" min="0" max="50" value="1" class="staff-count"><input type="number" id="staffTovarSalary" min="0" max="500000" step="5000" value="50000" class="staff-salary"><span class="staff-total" id="staffTovarTotal">50 000 ₽</span><button class="staff-arrow" onclick="adjustStaff('Tovar', 1)">▶</button></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Ubor', -1)">◀</button><span>Уборщица</span><input type="number" id="staffUborCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffUborSalary" min="0" max="500000" step="5000" value="35000" class="staff-salary"><span class="staff-total" id="staffUborTotal">0 ₽</span><button class="staff-arrow" onclick="adjustStaff('Ubor', 1)">▶</button></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Vod', -1)">◀</button><span>Водитель</span><input type="number" id="staffVodCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffVodSalary" min="0" max="500000" step="5000" value="50000" class="staff-salary"><span class="staff-total" id="staffVodTotal">0 ₽</span><button class="staff-arrow" onclick="adjustStaff('Vod', 1)">▶</button></div>
+                <div class="staff-row"><button class="staff-arrow" onclick="adjustStaff('Exp', -1)">◀</button><span>Экспедитор</span><input type="number" id="staffExpCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffExpSalary" min="0" max="500000" step="5000" value="45000" class="staff-salary"><span class="staff-total" id="staffExpTotal">0 ₽</span><button class="staff-arrow" onclick="adjustStaff('Exp', 1)">▶</button></div>
                 <div class="staff-summary">ФОТ (с налогами): <span id="staffTotalFOT">450 000 ₽</span></div>
                 <div class="section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Налоги</div>
                 <div class="param"><div class="param-header"><span class="param-label">Налоги ОСНО+НДС (%)</span><span class="param-value" id="valTax">20%</span></div><input type="range" id="tax" min="0" max="50" step="1" value="20"></div>
@@ -427,6 +430,17 @@
             document.getElementById('valDepreciation').textContent = fmt(params.depreciation);
             document.getElementById('valProject').textContent = fmt(params.project);
             updateStaffDisplay();
+        }
+        function adjustStaff(role, delta) {
+            const countEl = document.getElementById('staff' + role + 'Count');
+            if (countEl) {
+                let newVal = parseInt(countEl.value || 0) + delta;
+                const min = parseInt(countEl.getAttribute('min')) || 0;
+                const max = parseInt(countEl.getAttribute('max')) || 100;
+                newVal = Math.max(min, Math.min(max, newVal));
+                countEl.value = newVal;
+                updateStaffDisplay();
+            }
         }
         function updateStaffDisplay() {
             const staffData = [
