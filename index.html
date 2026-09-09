@@ -336,9 +336,7 @@
             params.revenueEcom = revEcom;
             params.marginEcom = margEcom;
             
-            // Обновляем основные слайдеры (без запуска их обработчиков)
-            document.getElementById('revenue').dataset.fromDetail = 'true';
-            document.getElementById('margin').dataset.fromDetail = 'true';
+            // Обновляем основные слайдеры
             document.getElementById('revenue').value = totalRev;
             document.getElementById('margin').value = avgMargin;
             document.getElementById('valRevenue').textContent = fmt(totalRev);
@@ -646,11 +644,6 @@
         document.querySelectorAll('input[type="range"]').forEach(s => {
             let isUpdatingFromDetail = false;
             s.addEventListener('input', function() {
-                if (this.dataset.fromDetail === 'true') {
-                    delete this.dataset.fromDetail;
-                    return;
-                }
-                
                 // Синхронизация детализации выручки с основным слайдером
                 if (this.id === 'revenue') {
                     const total = parseFloat(this.value);
