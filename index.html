@@ -466,7 +466,34 @@
         }
         document.querySelectorAll('input[type="range"]').forEach(s => {
             s.addEventListener('input', function() {
-                params[this.id] = parseFloat(this.value);
+                params[this.id] = parseFloat(this.id) === 'revenue' ? parseFloat(this.value) : parseFloat(this.value);
+                // Синхронизация детализации выручки с основным слайдером
+                if (this.id === 'revenue') {
+                    const total = parseFloat(this.value);
+                    const oldTotal = params.revenueWarehouse + params.revenueRetail;
+                    if (oldTotal > 0) {
+                        // Пропорционально распределяем
+                        const ratio = params.revenueWarehouse / oldTotal;
+                        params.revenueWarehouse = Math.round(total * ratio);
+                        params.revenueRetail = total - params.revenueWarehouse;
+                        document.getElementById('revenueWarehouse').value = params.revenueWarehouse;
+                        document.getElementById('revenueRetail').value = params.revenueRetail;
+                    }
+                }
+                if (this.id === 'margin') {
+                    // Пересчитываем среднюю наценку
+                    const total = params.revenueWarehouse + params.revenueRetail;
+                    if (total > 0) {
+                        const avgMargin = parseFloat(this.value);
+                        // Распределяем пропорционально выручке
+                        const ratio = params.revenueWarehouse / total;
+                        params.marginWarehouse = Math.round(avgMargin * ratio);
+                        params.marginRetail = avgMargin - params.marginWarehouse;
+                        document.getElementById('marginWarehouse').value = params.marginWarehouse;
+                        document.getElementById('marginRetail').value = params.marginRetail;
+                    }
+                }
+                updateRevenueDetail();
                 updateDisplay();
                 calculate();
             });
