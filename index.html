@@ -686,6 +686,7 @@
         
         // Регистрируем обработчики для детализации выручки
         setTimeout(function() {
+            console.log('Setting up revenue input listeners');
             const revenueInputs = ['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'];
             revenueInputs.forEach(function(id) {
                 const el = document.getElementById(id);
