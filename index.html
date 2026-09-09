@@ -75,8 +75,8 @@
             <div class="kpi-card" id="kpiRoiCard"><div class="icon">⏱️</div><div class="value" id="kpiRoi">—</div><div class="label">Срок окупаемости</div><div class="sub-value sub-gray" id="kpiRoiM">—/мес</div></div>
         </div>
         <div class="main-grid">
-            <div class="panel">
-                <h2>🎚️ Параметры</h2>
+            <div class="panel" id="paramsPanel">
+                <h2>🎚️ Параметры <button id="lockBtn" onclick="toggleLock()" style="float:right;background:#0f3460;border:1px solid #2a3f5f;color:#00d9ff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;">🔓 Разблокировано</button></h2>
                 <div class="section-title">📦 Доходы</div>
                 <div class="param"><div class="param-header"><span class="param-label">Выручка в месяц (ИТОГО)</span><span class="param-value" id="valRevenue">0</span></div><input type="range" id="revenue" min="0" max="500000000" step="10000" value="0"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Наценка (ИТОГО, %)</span><span class="param-value" id="valMargin">25%</span></div><input type="range" id="margin" min="0" max="50" step="1" value="25"></div>
@@ -205,6 +205,27 @@
             params[id] = parseFloat(v);
             updateDisplay();
             calculate();
+        }
+        
+        let isLocked = false;
+        function toggleLock() {
+            isLocked = !isLocked;
+            const btn = document.getElementById('lockBtn');
+            const inputs = document.querySelectorAll('#paramsPanel input');
+            
+            if (isLocked) {
+                btn.innerHTML = '🔒 Зафиксировано';
+                btn.style.background = '#1a4a2a';
+                btn.style.borderColor = '#00ff88';
+                btn.style.color = '#00ff88';
+                inputs.forEach(input => input.disabled = true);
+            } else {
+                btn.innerHTML = '🔓 Разблокировано';
+                btn.style.background = '#0f3460';
+                btn.style.borderColor = '#2a3f5f';
+                btn.style.color = '#00d9ff';
+                inputs.forEach(input => input.disabled = false);
+            }
         }
         function updateDisplay() {
             document.getElementById('valRevenue').textContent = fmt(params.revenue);
