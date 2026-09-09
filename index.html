@@ -181,7 +181,6 @@
             <div class="kpi-card margin"><div class="icon">💹</div><div class="value" id="kpiMargin">10.7 млн ₽</div><div class="label">Валовая прибыль</div><div class="sub-value" id="kpiMarginM">892 тыс ₽/мес</div></div>
             <div class="kpi-card loss" id="kpiProfitCard"><div class="icon">📉</div><div class="value" id="kpiProfit">-1.3 млн ₽</div><div class="label">Операционная прибыль</div><div class="sub-value" id="kpiProfitM">-112 тыс ₽/мес</div></div>
             <div class="kpi-card" id="kpiNetProfitCard"><div class="icon">💰</div><div class="value" id="kpiNetProfit">—</div><div class="label">Чистая прибыль</div><div class="sub-value" id="kpiNetProfitM">—/мес</div></div>
-            <div class="kpi-card" id="kpiEbitdaCard"><div class="icon">📊</div><div class="value" id="kpiEbitda">—</div><div class="label">EBITDA</div><div class="sub-value" id="kpiEbitdaM">—/мес</div></div>
             <div class="kpi-card" id="kpiRoiCard"><div class="icon">⏱️</div><div class="value" id="kpiRoi">—</div><div class="label">Срок окупаемости</div><div class="sub-value sub-gray" id="kpiRoiM">—/мес</div></div>
         </div>
         <div class="main-grid">
@@ -632,11 +631,8 @@
             document.getElementById('kpiNetProfitCard').className = 'kpi-card ' + (netProfitYear >= 0 ? 'profit' : 'loss');
             
             // EBITDA = Операционная прибыль + Амортизация
+            // (скрыто, используется для расчётов)
             const ebitda = opProfit + (params.depreciation || 0);
-            const ebitdaYear = ebitda * 12;
-            document.getElementById('kpiEbitda').textContent = fmtS(ebitdaYear);
-            document.getElementById('kpiEbitdaM').textContent = fmtS(ebitda) + '/мес';
-            document.getElementById('kpiEbitdaCard').className = 'kpi-card ' + (ebitdaYear >= 0 ? 'profit' : 'loss');
 
             const roiEl = document.getElementById('kpiRoi'), roiCard = document.getElementById('kpiRoiCard'), roiMEl = document.getElementById('kpiRoiM');
             if (opProfitYear > 0) {
