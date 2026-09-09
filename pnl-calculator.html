@@ -77,9 +77,11 @@
                 <div class="section-title">📦 Доходы</div>
                 <div class="param"><div class="param-header"><span class="param-label">Выручка в месяц (ИТОГО)</span><span class="param-value" id="valRevenue">5 000 000</span></div><input type="range" id="revenue" min="0" max="200000000" step="100000" value="5000000"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Наценка (ИТОГО, %)</span><span class="param-value" id="valMargin">25%</span></div><input type="range" id="margin" min="0" max="50" step="1" value="25"></div>
-                <div class="staff-detail">📊 <strong>Детализация выручки</strong></div>
-                <div class="staff-row"><span>Склад</span><input type="number" id="revenueWarehouse" min="0" max="100000000" step="50000" value="3500000" class="staff-count"><input type="number" id="marginWarehouse" min="0" max="100" step="1" value="15" class="staff-salary"><span class="staff-total" id="marginWarehouseVal">15%</span></div>
-                <div class="staff-row"><span>Розница</span><input type="number" id="revenueRetail" min="0" max="100000000" step="50000" value="1500000" class="staff-count"><input type="number" id="marginRetail" min="0" max="100" step="1" value="50" class="staff-salary"><span class="staff-total" id="marginRetailVal">50%</span></div>
+                <div class="section-title">📊 Детализация выручки</div>
+                <div class="param"><div class="param-header"><span class="param-label">Выручка склад</span><span class="param-value" id="valRevenueWarehouse">3 500 000</span></div><input type="range" id="revenueWarehouse" min="0" max="200000000" step="50000" value="3500000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Наценка склад (%)</span><span class="param-value" id="valMarginWarehouse">15%</span></div><input type="range" id="marginWarehouse" min="0" max="100" step="1" value="15"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Выручка розница</span><span class="param-value" id="valRevenueRetail">1 500 000</span></div><input type="range" id="revenueRetail" min="0" max="200000000" step="50000" value="1500000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Наценка розница (%)</span><span class="param-value" id="valMarginRetail">50%</span></div><input type="range" id="marginRetail" min="0" max="100" step="1" value="50"></div>
                 <div class="staff-summary">Итого: <span id="totalRevenueDetail">5 000 000 ₽</span> | Средняя наценка: <span id="avgMarginDetail">25%</span></div>
                 <div class="section-title">🏢 Аренда</div>
                 <div class="param"><div class="param-header"><span class="param-label">Аренда</span><span class="param-value" id="valRent">290 000</span></div><input type="range" id="rent" min="0" max="5000000" step="10000" value="290000"></div>
@@ -185,6 +187,10 @@
         function updateDisplay() {
             document.getElementById('valRevenue').textContent = fmt(params.revenue);
             document.getElementById('valMargin').textContent = params.margin + '%';
+            document.getElementById('valRevenueWarehouse').textContent = fmt(params.revenueWarehouse);
+            document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse + '%';
+            document.getElementById('valRevenueRetail').textContent = fmt(params.revenueRetail);
+            document.getElementById('valMarginRetail').textContent = params.marginRetail + '%';
             document.getElementById('valRent').textContent = fmt(params.rent);
             document.getElementById('valSalary').textContent = fmt(params.salary);
             document.getElementById('valSocial').textContent = params.social + '%';
@@ -259,12 +265,10 @@
             const totalRev = revWarehouse + revRetail;
             const avgMargin = totalRev > 0 ? ((revWarehouse * margWarehouse) + (revRetail * margRetail)) / totalRev : 0;
             
-            document.getElementById('marginWarehouseVal').textContent = margWarehouse + '%';
-            document.getElementById('marginRetailVal').textContent = margRetail + '%';
             document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
             document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
             
-            // Обновляем основные слайдеры
+            // Обновляем параметры
             params.revenue = totalRev;
             params.margin = avgMargin;
             params.revenueWarehouse = revWarehouse;
@@ -272,15 +276,21 @@
             params.revenueRetail = revRetail;
             params.marginRetail = margRetail;
             
+            // Обновляем основные слайдеры
             document.getElementById('revenue').value = totalRev;
             document.getElementById('margin').value = avgMargin;
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
+            document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
+            document.getElementById('valMarginWarehouse').textContent = margWarehouse + '%';
+            document.getElementById('valRevenueRetail').textContent = fmt(revRetail);
+            document.getElementById('valMarginRetail').textContent = margRetail + '%';
             
             calculate();
         }
         function calculate() {
-            const grossRevenue = params.revenue;
+            // Вычисляем общую выручку из детализации
+            const grossRevenue = params.revenueWarehouse + params.revenueRetail;
             const taxRate = params.tax / 100;
             
             // Расчёт по складу
@@ -472,7 +482,6 @@
                     const total = parseFloat(this.value);
                     const oldTotal = params.revenueWarehouse + params.revenueRetail;
                     if (oldTotal > 0) {
-                        // Пропорционально распределяем
                         const ratio = params.revenueWarehouse / oldTotal;
                         params.revenueWarehouse = Math.round(total * ratio);
                         params.revenueRetail = total - params.revenueWarehouse;
@@ -481,11 +490,9 @@
                     }
                 }
                 if (this.id === 'margin') {
-                    // Пересчитываем среднюю наценку
                     const total = params.revenueWarehouse + params.revenueRetail;
                     if (total > 0) {
                         const avgMargin = parseFloat(this.value);
-                        // Распределяем пропорционально выручке
                         const ratio = params.revenueWarehouse / total;
                         params.marginWarehouse = Math.round(avgMargin * ratio);
                         params.marginRetail = avgMargin - params.marginWarehouse;
@@ -493,7 +500,11 @@
                         document.getElementById('marginRetail').value = params.marginRetail;
                     }
                 }
-                updateRevenueDetail();
+                // Обновляем итоговую строку
+                const totalRev = params.revenueWarehouse + params.revenueRetail;
+                const avgMargin = totalRev > 0 ? ((params.revenueWarehouse * params.marginWarehouse) + (params.revenueRetail * params.marginRetail)) / totalRev : 0;
+                document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
+                document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
                 updateDisplay();
                 calculate();
             });
