@@ -181,6 +181,7 @@
             <div class="kpi-card margin"><div class="icon">💹</div><div class="value" id="kpiMargin">10.7 млн ₽</div><div class="label">Валовая прибыль</div><div class="sub-value" id="kpiMarginM">892 тыс ₽/мес</div></div>
             <div class="kpi-card loss" id="kpiProfitCard"><div class="icon">📉</div><div class="value" id="kpiProfit">-1.3 млн ₽</div><div class="label">Операционная прибыль</div><div class="sub-value" id="kpiProfitM">-112 тыс ₽/мес</div></div>
             <div class="kpi-card" id="kpiNetProfitCard"><div class="icon">💰</div><div class="value" id="kpiNetProfit">—</div><div class="label">Чистая прибыль</div><div class="sub-value" id="kpiNetProfitM">—/мес</div></div>
+            <div class="kpi-card" id="kpiEbitdaCard"><div class="icon">📊</div><div class="value" id="kpiEbitda">—</div><div class="label">EBITDA</div><div class="sub-value" id="kpiEbitdaM">—/мес</div></div>
             <div class="kpi-card" id="kpiRoiCard"><div class="icon">⏱️</div><div class="value" id="kpiRoi">—</div><div class="label">Срок окупаемости</div><div class="sub-value sub-gray" id="kpiRoiM">—/мес</div></div>
         </div>
         <div class="main-grid">
@@ -244,6 +245,7 @@
                 <div class="section-title">📉 Потери и доходы</div>
                 <div class="param"><div class="param-header"><span class="param-label">Бой/порча товара (% от себест.)</span><span class="param-value" id="valSpoilage">1%</span></div><input type="range" id="spoilage" min="0" max="10" step="0.1" value="1"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Бонусы от поставщиков</span><span class="param-value" id="valVendorBonus">0</span></div><input type="range" id="vendorBonus" min="0" max="1000000" step="10000" value="0"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Амортизация (в месяц)</span><span class="param-value" id="valDepreciation">0</span></div><input type="range" id="depreciation" min="0" max="500000" step="5000" value="0"></div>
                 <div class="section-title">🏗️ Проектные (на 12 мес)</div>
                 <div class="param"><div class="param-header"><span class="param-label">Проектные расходы</span><span class="param-value" id="valProject">0</span></div><input type="range" id="project" min="0" max="20000000" step="100000" value="0"></div>
             </div>
@@ -304,7 +306,7 @@
     </div>
     <script>
         const DEFAULT_INVESTMENT = 10000000;
-        let params = {revenue: 0, margin: 25, revenueWarehouse: 0, marginWarehouse: 15, revenueRetail: 0, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, tax: 20, profitTax: 20, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, other: 0, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, project: 0};
+        let params = {revenue: 0, margin: 25, revenueWarehouse: 0, marginWarehouse: 15, revenueRetail: 0, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, tax: 20, profitTax: 20, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, other: 0, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, depreciation: 0, project: 0};
 
         function fmt(n) { return n.toLocaleString('ru-RU'); }
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
@@ -364,6 +366,7 @@
             document.getElementById('valTraining').textContent = fmt(params.training);
             document.getElementById('valSpoilage').textContent = params.spoilage + '%';
             document.getElementById('valVendorBonus').textContent = fmt(params.vendorBonus);
+            document.getElementById('valDepreciation').textContent = fmt(params.depreciation);
             document.getElementById('valProject').textContent = fmt(params.project);
             updateStaffDisplay();
         }
@@ -609,7 +612,7 @@
             const spoilageCost = costOfGoods * params.spoilage / 100;
             const acquiringCost = grossRevenue * params.acquiring / 100;
             const vendorBonus = params.vendorBonus;
-            const operatingExpenses = params.rent + params.salary + (params.salary * params.social / 100) + logisticsCost + params.utilities + params.security + params.supplies + params.marketing + params.other + params.communication + params.software + params.insurance + params.accounting + params.training + spoilageCost + acquiringCost + (params.project / 12) - vendorBonus;
+            const operatingExpenses = params.rent + params.salary + (params.salary * params.social / 100) + logisticsCost + params.utilities + params.security + params.supplies + params.marketing + params.other + params.communication + params.software + params.insurance + params.accounting + params.training + spoilageCost + acquiringCost + (params.project / 12) - vendorBonus + (params.depreciation || 0);
             const opProfit = grossProfit - operatingExpenses;
             const netProfit = opProfit > 0 ? opProfit * (1 - params.profitTax / 100) : opProfit;
             const opProfitYear = opProfit * 12;
@@ -627,6 +630,13 @@
             document.getElementById('kpiNetProfit').textContent = fmtS(netProfitYear);
             document.getElementById('kpiNetProfitM').textContent = fmtS(netProfit) + '/мес';
             document.getElementById('kpiNetProfitCard').className = 'kpi-card ' + (netProfitYear >= 0 ? 'profit' : 'loss');
+            
+            // EBITDA = Операционная прибыль + Амортизация
+            const ebitda = opProfit + (params.depreciation || 0);
+            const ebitdaYear = ebitda * 12;
+            document.getElementById('kpiEbitda').textContent = fmtS(ebitdaYear);
+            document.getElementById('kpiEbitdaM').textContent = fmtS(ebitda) + '/мес';
+            document.getElementById('kpiEbitdaCard').className = 'kpi-card ' + (ebitdaYear >= 0 ? 'profit' : 'loss');
 
             const roiEl = document.getElementById('kpiRoi'), roiCard = document.getElementById('kpiRoiCard'), roiMEl = document.getElementById('kpiRoiM');
             if (opProfitYear > 0) {
