@@ -352,7 +352,7 @@
         }
         function calculate() {
             // Вычисляем общую выручку из детализации
-            const grossRevenue = params.revenueWarehouse + params.revenueRetail;
+            const grossRevenue = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
             const taxRate = params.tax / 100;
             
             // Расчёт по складу
@@ -592,7 +592,7 @@
                     params[this.id] = parseFloat(this.value);
                 }
                 // Обновляем итоговую строку
-                const totalRev = params.revenueWarehouse + params.revenueRetail;
+                const totalRev = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
                 const avgMargin = totalRev > 0 ? ((params.revenueWarehouse * params.marginWarehouse) + (params.revenueRetail * params.marginRetail) + (params.revenueEcom * params.marginEcom)) / totalRev : 0;
                 document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
                 document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
