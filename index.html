@@ -337,8 +337,13 @@
             params.marginEcom = margEcom;
             
             // Обновляем основные слайдеры
-            document.getElementById('revenue').value = totalRev;
-            document.getElementById('margin').value = avgMargin;
+            const revenueSlider = document.getElementById('revenue');
+            const marginSlider = document.getElementById('margin');
+            revenueSlider.value = totalRev;
+            marginSlider.value = avgMargin;
+            // Принудительно обновляем визуал
+            revenueSlider.dispatchEvent(new Event('change'));
+            marginSlider.dispatchEvent(new Event('change'));
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
@@ -711,6 +716,8 @@
         updateDisplay();
         calculate();
         initStaffListeners();
+        // Синхронизируем верхние слайдеры с детализацией при загрузке
+        updateRevenueDetail();
     </script>
 </body>
 </html>
