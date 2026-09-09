@@ -294,16 +294,16 @@
             const taxRate = params.tax / 100;
             
             // Расчёт по складу
-            const grossRevenueWarehouse = params.revenueWarehouse || grossRevenue * 0.7;
+            const grossRevenueWarehouse = params.revenueWarehouse;
             const netRevenueWarehouse = grossRevenueWarehouse / (1 + taxRate);
-            const marginRateWarehouse = (params.marginWarehouse || 15) / 100;
+            const marginRateWarehouse = params.marginWarehouse / 100;
             const costOfGoodsWarehouse = netRevenueWarehouse / (1 + marginRateWarehouse);
             const grossProfitWarehouse = netRevenueWarehouse - costOfGoodsWarehouse;
             
             // Расчёт по рознице
-            const grossRevenueRetail = params.revenueRetail || grossRevenue * 0.3;
+            const grossRevenueRetail = params.revenueRetail;
             const netRevenueRetail = grossRevenueRetail / (1 + taxRate);
-            const marginRateRetail = (params.marginRetail || 50) / 100;
+            const marginRateRetail = params.marginRetail / 100;
             const costOfGoodsRetail = netRevenueRetail / (1 + marginRateRetail);
             const grossProfitRetail = netRevenueRetail - costOfGoodsRetail;
             
