@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>💊 P&L Дашборд: Аптека-Склад</title>
+    <title>📊 P&L Дашборд: Проекты</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, sans-serif; background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460); min-height: 100vh; padding: 20px; color: #fff; }
@@ -63,7 +63,7 @@
 </head>
 <body>
     <div class="container">
-        <header><h1>💊 P&L Дашборд: Аптека-Склад</h1><p>Калининградская область • Площадь 500 м² • С доставкой</p></header>
+        <header><h1>📊 P&L Дашборд: Проекты</h1></header>
         <div class="kpi-row">
             <div class="kpi-card revenue"><div class="icon">📈</div><div class="value" id="kpiRevenue">60 млн ₽</div><div class="label">Годовая выручка</div><div class="sub-value" id="kpiRevenueM">5 млн ₽/мес</div></div>
             <div class="kpi-card margin"><div class="icon">💹</div><div class="value" id="kpiMargin">10.7 млн ₽</div><div class="label">Валовая прибыль</div><div class="sub-value" id="kpiMarginM">892 тыс ₽/мес</div></div>
@@ -82,6 +82,8 @@
                 <div class="param"><div class="param-header"><span class="param-label">Наценка склад (%)</span><span class="param-value" id="valMarginWarehouse">15%</span></div><input type="range" id="marginWarehouse" min="0" max="100" step="1" value="15"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Выручка розница</span><span class="param-value" id="valRevenueRetail">1 500 000</span></div><input type="range" id="revenueRetail" min="0" max="500000000" step="50000" value="1500000"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Наценка розница (%)</span><span class="param-value" id="valMarginRetail">50%</span></div><input type="range" id="marginRetail" min="0" max="100" step="1" value="50"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Выручка ECOM</span><span class="param-value" id="valRevenueEcom">0</span></div><input type="range" id="revenueEcom" min="0" max="500000000" step="50000" value="0"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Наценка ECOM (%)</span><span class="param-value" id="valMarginEcom">30%</span></div><input type="range" id="marginEcom" min="0" max="100" step="1" value="30"></div>
                 <div class="staff-summary">Итого: <span id="totalRevenueDetail">5 000 000 ₽</span> | Средняя наценка: <span id="avgMarginDetail">25%</span></div>
                 <div class="section-title">🏢 Аренда</div>
                 <div class="param"><div class="param-header"><span class="param-label">Аренда</span><span class="param-value" id="valRent">290 000</span></div><input type="range" id="rent" min="0" max="5000000" step="10000" value="290000"></div>
@@ -136,6 +138,10 @@
                     <tr><td> Выручка розница (с НДС)</td><td id="tblRevRetailM">1.25 млн ₽</td><td id="tblRevRetailY">15 млн ₽</td></tr>
                     <tr><td> Себестоимость розница</td><td id="tblCostRetailM">708 тыс ₽</td><td id="tblCostRetailY">8.5 млн ₽</td></tr>
                     <tr><td> Валовая прибыль розница</td><td id="tblGPRetailM" style="color:#00ff88"><strong>333 тыс ₽</strong></td><td id="tblGPRetailY" style="color:#00ff88"><strong>4 млн ₽</strong></td></tr>
+                    <tr style="background:#1a2a3a"><td colspan="3"><strong>🌐 ECOM</strong></td></tr>
+                    <tr><td> Выручка ECOM (с НДС)</td><td id="tblRevEcomM">—</td><td id="tblRevEcomY">—</td></tr>
+                    <tr><td> Себестоимость ECOM</td><td id="tblCostEcomM">—</td><td id="tblCostEcomY">—</td></tr>
+                    <tr><td> Валовая прибыль ECOM</td><td id="tblGPEcomM" style="color:#ffd93d"><strong>—</strong></td><td id="tblGPEcomY" style="color:#ffd93d"><strong>—</strong></td></tr>
                     <tr><td colspan="3" style="background:#1a1a2e;height:4px"></td></tr>
                     <tr><td>Выручка (без НДС)</td><td id="tblRevM">4.17 млн ₽</td><td id="tblRevY">50 млн ₽</td></tr>
                     <tr><td>Выручка (с НДС)</td><td id="tblRevGrossM">5 млн ₽</td><td id="tblRevGrossY">60 млн ₽</td></tr>
@@ -173,7 +179,7 @@
     </div>
     <script>
         const DEFAULT_INVESTMENT = 10000000;
-        let params = {revenue: 5000000, margin: 25, revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, rent: 290000, salary: 450000, social: 30, tax: 20, profitTax: 20, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, other: 0, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, project: 0};
+        let params = {revenue: 5000000, margin: 25, revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, tax: 20, profitTax: 20, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, other: 0, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, project: 0};
 
         function fmt(n) { return n.toLocaleString('ru-RU'); }
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
@@ -191,6 +197,8 @@
             document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse + '%';
             document.getElementById('valRevenueRetail').textContent = fmt(params.revenueRetail);
             document.getElementById('valMarginRetail').textContent = params.marginRetail + '%';
+            document.getElementById('valRevenueEcom').textContent = fmt(params.revenueEcom);
+            document.getElementById('valMarginEcom').textContent = params.marginEcom + '%';
             document.getElementById('valRent').textContent = fmt(params.rent);
             document.getElementById('valSalary').textContent = fmt(params.salary);
             document.getElementById('valSocial').textContent = params.social + '%';
@@ -247,7 +255,7 @@
                 }
             });
             // Детализация выручки
-            const revenueInputs = ['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail'];
+            const revenueInputs = ['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'];
             revenueInputs.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
@@ -261,9 +269,11 @@
             const margWarehouse = parseFloat(document.getElementById('marginWarehouse').value) || 0;
             const revRetail = parseFloat(document.getElementById('revenueRetail').value) || 0;
             const margRetail = parseFloat(document.getElementById('marginRetail').value) || 0;
+            const revEcom = parseFloat(document.getElementById('revenueEcom').value) || 0;
+            const margEcom = parseFloat(document.getElementById('marginEcom').value) || 0;
             
-            const totalRev = revWarehouse + revRetail;
-            const avgMargin = totalRev > 0 ? ((revWarehouse * margWarehouse) + (revRetail * margRetail)) / totalRev : 0;
+            const totalRev = revWarehouse + revRetail + revEcom;
+            const avgMargin = totalRev > 0 ? ((revWarehouse * margWarehouse) + (revRetail * margRetail) + (revEcom * margEcom)) / totalRev : 0;
             
             document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
             document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
@@ -275,6 +285,8 @@
             params.marginWarehouse = margWarehouse;
             params.revenueRetail = revRetail;
             params.marginRetail = margRetail;
+            params.revenueEcom = revEcom;
+            params.marginEcom = margEcom;
             
             // Обновляем основные слайдеры
             document.getElementById('revenue').value = totalRev;
@@ -285,6 +297,8 @@
             document.getElementById('valMarginWarehouse').textContent = margWarehouse + '%';
             document.getElementById('valRevenueRetail').textContent = fmt(revRetail);
             document.getElementById('valMarginRetail').textContent = margRetail + '%';
+            document.getElementById('valRevenueEcom').textContent = fmt(revEcom);
+            document.getElementById('valMarginEcom').textContent = margEcom + '%';
             
             calculate();
         }
@@ -307,10 +321,17 @@
             const costOfGoodsRetail = netRevenueRetail / (1 + marginRateRetail);
             const grossProfitRetail = netRevenueRetail - costOfGoodsRetail;
             
+            // Расчёт по ECOM
+            const grossRevenueEcom = params.revenueEcom;
+            const netRevenueEcom = grossRevenueEcom / (1 + taxRate);
+            const marginRateEcom = params.marginEcom / 100;
+            const costOfGoodsEcom = netRevenueEcom / (1 + marginRateEcom);
+            const grossProfitEcom = netRevenueEcom - costOfGoodsEcom;
+            
             // Итого
-            const netRevenue = netRevenueWarehouse + netRevenueRetail;
-            const costOfGoods = costOfGoodsWarehouse + costOfGoodsRetail;
-            const grossProfit = grossProfitWarehouse + grossProfitRetail;
+            const netRevenue = netRevenueWarehouse + netRevenueRetail + netRevenueEcom;
+            const costOfGoods = costOfGoodsWarehouse + costOfGoodsRetail + costOfGoodsEcom;
+            const grossProfit = grossProfitWarehouse + grossProfitRetail + grossProfitEcom;
             const logisticsCost = costOfGoods * params.logistics / 100;
             const spoilageCost = costOfGoods * params.spoilage / 100;
             const acquiringCost = grossRevenue * params.acquiring / 100;
@@ -376,6 +397,12 @@
             document.getElementById('tblCostRetailY').textContent = fmt(Math.round(costOfGoodsRetail * 12)) + ' ₽';
             document.getElementById('tblGPRetailM').innerHTML = '<strong>' + fmt(Math.round(grossProfitRetail)) + ' ₽</strong>';
             document.getElementById('tblGPRetailY').innerHTML = '<strong>' + fmt(Math.round(grossProfitRetail * 12)) + ' ₽</strong>';
+            document.getElementById('tblRevEcomM').textContent = fmt(Math.round(grossRevenueEcom)) + ' ₽';
+            document.getElementById('tblRevEcomY').textContent = fmt(Math.round(grossRevenueEcom * 12)) + ' ₽';
+            document.getElementById('tblCostEcomM').textContent = fmt(Math.round(costOfGoodsEcom)) + ' ₽';
+            document.getElementById('tblCostEcomY').textContent = fmt(Math.round(costOfGoodsEcom * 12)) + ' ₽';
+            document.getElementById('tblGPEcomM').innerHTML = '<strong>' + fmt(Math.round(grossProfitEcom)) + ' ₽</strong>';
+            document.getElementById('tblGPEcomY').innerHTML = '<strong>' + fmt(Math.round(grossProfitEcom * 12)) + ' ₽</strong>';
             document.getElementById('tblCostM').textContent = fmt(Math.round(costOfGoods)) + ' ₽';
             document.getElementById('tblCostY').textContent = fmt(Math.round(costOfGoods * 12)) + ' ₽';
             document.getElementById('tblGPM').innerHTML = '<strong>' + fmt(Math.round(grossProfit)) + ' ₽</strong>';
@@ -430,9 +457,9 @@
         }
         function updateScenarios() {
             const s = {
-                pess: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0, profitTax: 20},
-                base: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, profitTax: 20},
-                opt: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000, profitTax: 20}
+                pess: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, revenueEcom: 0, marginEcom: 30, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0, profitTax: 20},
+                base: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, profitTax: 20},
+                opt: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, revenueEcom: 0, marginEcom: 30, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000, profitTax: 20}
             };
             const taxRate = 0.2;
             ['Pess', 'Base', 'Opt'].forEach(k => {
@@ -443,11 +470,14 @@
                 const revRetail = d.revenueRetail / (1 + taxRate);
                 const costRetail = revRetail / (1 + d.marginRetail / 100);
                 const gpRetail = revRetail - costRetail;
-                const gp = gpWarehouse + gpRetail;
-                const costOfGoods = costWarehouse + costRetail;
+                const revEcom = (d.revenueEcom || 0) / (1 + taxRate);
+                const costEcom = revEcom / (1 + (d.marginEcom || 30) / 100);
+                const gpEcom = revEcom - costEcom;
+                const gp = gpWarehouse + gpRetail + gpEcom;
+                const costOfGoods = costWarehouse + costRetail + costEcom;
                 const logisticsCost = costOfGoods * 0.05;
                 const spoilageCost = costOfGoods * 0.01;
-                const acquiringCost = (d.revenueWarehouse + d.revenueRetail) * 0.015;
+                const acquiringCost = (d.revenueWarehouse + d.revenueRetail + (d.revenueEcom || 0)) * 0.015;
                 const exp = d.rent + d.salary + d.salary * d.social/100 + logisticsCost + d.utilities + d.security + d.supplies + d.marketing + d.communication + d.software + d.insurance + d.accounting + d.training + spoilageCost + acquiringCost - d.vendorBonus;
                 const op = (gp - exp) * 12;
                 const el = document.getElementById('scen' + k);
@@ -456,9 +486,9 @@
         }
         function loadScenario(t) {
             const presets = {
-                pessimistic: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0, profitTax: 20},
-                baseline: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, profitTax: 20},
-                optimistic: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000, profitTax: 20}
+                pessimistic: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, revenueEcom: 0, marginEcom: 30, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0, profitTax: 20},
+                baseline: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, profitTax: 20},
+                optimistic: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, revenueEcom: 0, marginEcom: 30, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000, profitTax: 20}
             };
             const p = presets[t];
             // Устанавливаем детализацию выручки
@@ -466,10 +496,12 @@
             document.getElementById('marginWarehouse').value = p.marginWarehouse;
             document.getElementById('revenueRetail').value = p.revenueRetail;
             document.getElementById('marginRetail').value = p.marginRetail;
+            document.getElementById('revenueEcom').value = p.revenueEcom;
+            document.getElementById('marginEcom').value = p.marginEcom;
             updateRevenueDetail();
             // Устанавливаем остальные параметры
             Object.keys(p).forEach(k => {
-                if (!['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail'].includes(k)) {
+                if (!['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'].includes(k)) {
                     setSlider(k, p[k]);
                 }
             });
@@ -479,24 +511,31 @@
                 // Синхронизация детализации выручки с основным слайдером ДО расчёта
                 if (this.id === 'revenue') {
                     const total = parseFloat(this.value);
-                    const oldTotal = params.revenueWarehouse + params.revenueRetail;
+                    const oldTotal = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
                     if (oldTotal > 0 && oldTotal !== total) {
-                        const ratio = params.revenueWarehouse / oldTotal;
-                        params.revenueWarehouse = Math.round(total * ratio);
-                        params.revenueRetail = total - params.revenueWarehouse;
+                        const ratioW = params.revenueWarehouse / oldTotal;
+                        const ratioR = params.revenueRetail / oldTotal;
+                        params.revenueWarehouse = Math.round(total * ratioW);
+                        params.revenueRetail = Math.round(total * ratioR);
+                        params.revenueEcom = total - params.revenueWarehouse - params.revenueRetail;
                         document.getElementById('revenueWarehouse').value = params.revenueWarehouse;
                         document.getElementById('revenueRetail').value = params.revenueRetail;
+                        document.getElementById('revenueEcom').value = params.revenueEcom;
                     }
                     params.revenue = total;
                 }
                 else if (this.id === 'margin') {
-                    const total = params.revenueWarehouse + params.revenueRetail;
+                    const total = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
                     if (total > 0) {
                         const avgMargin = parseFloat(this.value);
-                        const ratio = params.revenueWarehouse / total;
-                        params.marginWarehouse = Math.round(avgMargin * ratio);
-                        params.marginRetail = avgMargin - params.marginWarehouse;
+                        const ratioW = params.revenueWarehouse / total;
+                        const ratioR = params.revenueRetail / total;
+                        params.marginWarehouse = Math.round(avgMargin * ratioW);
+                        params.marginRetail = Math.round(avgMargin * ratioR);
+                        params.marginEcom = avgMargin - params.marginWarehouse - params.marginRetail;
                         document.getElementById('marginWarehouse').value = params.marginWarehouse;
+                        document.getElementById('marginRetail').value = params.marginRetail;
+                        document.getElementById('marginEcom').value = params.marginEcom;
                         document.getElementById('marginRetail').value = params.marginRetail;
                     }
                     params.margin = parseFloat(this.value);
@@ -506,7 +545,7 @@
                 }
                 // Обновляем итоговую строку
                 const totalRev = params.revenueWarehouse + params.revenueRetail;
-                const avgMargin = totalRev > 0 ? ((params.revenueWarehouse * params.marginWarehouse) + (params.revenueRetail * params.marginRetail)) / totalRev : 0;
+                const avgMargin = totalRev > 0 ? ((params.revenueWarehouse * params.marginWarehouse) + (params.revenueRetail * params.marginRetail) + (params.revenueEcom * params.marginEcom)) / totalRev : 0;
                 document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
                 document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
                 updateDisplay();
