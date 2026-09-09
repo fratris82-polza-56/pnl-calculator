@@ -341,9 +341,16 @@
             const marginSlider = document.getElementById('margin');
             revenueSlider.value = totalRev;
             marginSlider.value = avgMargin;
-            // Принудительно обновляем визуал
-            revenueSlider.dispatchEvent(new Event('change'));
-            marginSlider.dispatchEvent(new Event('change'));
+            // Обновляем визуальное отображение ползунков
+            revenueSlider.setAttribute('value', totalRev);
+            marginSlider.setAttribute('value', avgMargin);
+            // Меняем стиль для принудительного перерисовки
+            revenueSlider.style.flex = 'none';
+            marginSlider.style.flex = 'none';
+            setTimeout(function() {
+                revenueSlider.style.flex = '';
+                marginSlider.style.flex = '';
+            }, 10);
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
