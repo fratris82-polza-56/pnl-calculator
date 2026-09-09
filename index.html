@@ -716,8 +716,11 @@
         updateDisplay();
         calculate();
         initStaffListeners();
-        // Синхронизируем верхние слайдеры с детализацией при загрузке
-        updateRevenueDetail();
+        
+        // Синхронизируем верхние слайдеры с детализацией после загрузки всех слушателей
+        setTimeout(function() {
+            updateRevenueDetail();
+        }, 100);
     </script>
 </body>
 </html>
