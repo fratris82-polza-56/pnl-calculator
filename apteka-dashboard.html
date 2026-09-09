@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💊 P&L Дашборд: Аптека-Склад</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px; color: #fff; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 24px; }
+        header h1 { font-size: 1.8rem; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { color: #888; margin-top: 8px; }
+        
+        .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+        @media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+        .kpi-card { background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #2a3f5f; }
+        .kpi-card .icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .kpi-card .value { font-size: 1.3rem; font-weight: 700; }
+        .kpi-card .label { font-size: 0.75rem; color: #888; margin-top: 2px; }
+        .kpi-card.profit .value { color: #00ff88; }
+        .kpi-card.loss .value { color: #ff4757; }
+        
+        .main-grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; }
+        @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+        
+        .panel { background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 16px; padding: 20px; border: 1px solid #2a3f5f; }
+        .panel h2 { font-size: 1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: #00d9ff; }
+        
+        .param { margin-bottom: 14px; }
+        .param-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .param-label { font-size: 0.85rem; color: #aaa; }
+        .param-value { font-weight: 600; color: #00d9ff; font-size: 0.9rem; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: #0f3460; outline: none; -webkit-appearance: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, #00d9ff, #00ff88); cursor: pointer; }
+        
+        .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+        .quick-btn { background: #0f3460; border: 1px solid #2a3f5f; color: #888; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+        .quick-btn:hover { background: #00d9ff; color: #000; }
+        
+        .results-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .results-table th, .results-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #2a3f5f; }
+        .results-table th { color: #666; font-size: 0.75rem; }
+        .results-table td:last-child, .results-table th:last-child { text-align: right; }
+        .results-table .profit td { color: #00ff88; }
+        .results-table .loss td { color: #ff4757; }
+        
+        .bar-container { margin: 10px 0; }
+        .bar-label { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.8rem; }
+        .bar-track { height: 18px; background: #0f3460; border-radius: 9px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 9px; transition: width 0.3s; }
+        .bar-fill.revenue { background: linear-gradient(90deg, #00d9ff, #00b4d8); }
+        .bar-fill.cost { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+        .bar-fill.expenses { background: linear-gradient(90deg, #ffd93d, #f0c000); }
+        .bar-fill.profit { background: linear-gradient(90deg, #00ff88, #00cc6a); }
+        .bar-fill.loss { background: linear-gradient(90deg, #ff4757, #ff3040); }
+        
+        .year-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+        .year-btn { background: #0f3460; border: 1px solid #2a3f5f; color: #888; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+        .year-btn.active { background: #00d9ff; color: #000; }
+        
+        .expenses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .expense-item { background: #0f3460; padding: 10px 12px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 0.8rem; }
+        .expense-item .name { color: #aaa; }
+        .expense-item .val { color: #00d9ff; font-weight: 500; }
+        
+        .scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+        .scenario-btn { background: #0f3460; border: 2px solid #2a3f5f; color: #fff; padding: 12px; border-radius: 10px; cursor: pointer; text-align: center; }
+        .scenario-btn:hover { border-color: #00d9ff; }
+        .scenario-btn.pessimistic:hover { border-color: #ff4757; }
+        .scenario-btn.optimistic:hover { border-color: #00ff88; }
+        .scenario-btn .title { font-weight: 600; font-size: 0.85rem; }
+        .scenario-btn .profit { font-size: 1rem; font-weight: 700; margin-top: 4px; }
+        .scenario-btn.pessimistic .profit { color: #ff4757; }
+        .scenario-btn.baseline .profit { color: #00d9ff; }
+        .scenario-btn.optimistic .profit { color: #00ff88; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💊 P&L Дашборд: Аптека-Склад</h1>
+            <p>Калининградская область • Площадь 500 м² • С доставкой</p>
+        </header>
+        
+        <div class="kpi-row">
+            <div class="kpi-card"><div class="icon">📈</div><div class="value" id="kpiRevenue">60 млн</div><div class="label">Выручка</div></div>
+            <div class="kpi-card"><div class="icon">💹</div><div class="value" id="kpiGP">15 млн</div><div class="label">Валовая прибыль</div></div>
+            <div class="kpi-card"><div class="icon">📊</div><div class="value" id="kpiExpenses">17.5 млн</div><div class="label">Расходы</div></div>
+            <div class="kpi-card loss" id="kpiProfitCard"><div class="icon">💰</div><div class="value" id="kpiProfit">-2.46 млн</div><div class="label">Прибыль</div></div>
+            <div class="kpi-card"><div class="icon">⏱️</div><div class="value" id="kpiRoi">4.5 г</div><div class="label">Окупаемость</div></div>
+        </div>
+        
+        <div class="year-selector">
+            <button class="year-btn active" onclick="setYear(1)">Год 1</button>
+            <button class="year-btn" onclick="setYear(2)">Год 2</button>
+            <button class="year-btn" onclick="setYear(3)">Год 3</button>
+            <button class="year-btn" onclick="setYear(4)">Год 4</button>
+            <button class="year-btn" onclick="setYear(5)">Год 5</button>
+        </div>
+        
+        <div class="main-grid">
+            <div class="panel">
+                <h2>🎚️ Параметры</h2>
+                <div class="param"><div class="param-header"><span class="param-label">Аренда</span><span class="param-value" id="valRent">290 000 ₽</span></div><input type="range" id="rent" min="100000" max="500000" step="10000" value="290000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Выручка в месяц</span><span class="param-value" id="valRevenue">5 000 000 ₽</span></div><input type="range" id="revenue" min="2000000" max="15000000" step="100000" value="5000000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Наценка</span><span class="param-value" id="valMargin">25%</span></div><input type="range" id="margin" min="15" max="40" step="1" value="25"></div>
+                <div class="param"><div class="param-header"><span class="param-label">ФОТ</span><span class="param-value" id="valSalary">450 000 ₽</span></div><input type="range" id="salary" min="200000" max="800000" step="25000" value="450000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Логистика</span><span class="param-value" id="valLogistics">80 000 ₽</span></div><input type="range" id="logistics" min="30000" max="200000" step="5000" value="80000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Маркетинг</span><span class="param-value" id="valMarketing">40 000 ₽</span></div><input type="range" id="marketing" min="10000" max="150000" step="5000" value="40000"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Прочее</span><span class="param-value" id="valOther">50 000 ₽</span></div><input type="range" id="other" min="20000" max="200000" step="5000" value="50000"></div>
+                
+                <div class="quick-btns">
+                    <button class="quick-btn" onclick="loadScenario('pessimistic')">😰 Пессимистичный</button>
+                    <button class="quick-btn" onclick="loadScenario('baseline')">📊 Базовый</button>
+                    <button class="quick-btn" onclick="loadScenario('optimistic')">🚀 Оптимистичный</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📊 Результаты (Год <span id="yearLabel">1</span>)</h2>
+                <div class="bar-container"><div class="bar-label"><span>Выручка</span><span id="barRevenueVal">60 млн</span></div><div class="bar-track"><div class="bar-fill revenue" id="barRevenue" style="width:100%"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Себестоимость</span><span id="barCostVal">45 млн</span></div><div class="bar-track"><div class="bar-fill cost" id="barCost" style="width:75%"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Расходы</span><span id="barExpensesVal">17.5 млн</span></div><div class="bar-track"><div class="bar-fill expenses" id="barExpenses" style="width:29%"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Прибыль</span><span id="barProfitVal">-2.46 млн</span></div><div class="bar-track"><div class="bar-fill loss" id="barProfit" style="width:4%"></div></div></div>
+                
+                <table class="results-table" style="margin-top: 12px;">
+                    <tr><th>Показатель</th><th>Месяц</th><th>Год</th></tr>
+                    <tr><td>Выручка</td><td id="tblRevM">5 000 000 ₽</td><td id="tblRevY">60 000 000 ₽</td></tr>
+                    <tr><td>Себестоимость</td><td id="tblCostM">3 750 000 ₽</td><td id="tblCostY">45 000 000 ₽</td></tr>
+                    <tr><td><strong>Валовая прибыль</strong></td><td id="tblGPM"><strong>1 250 000 ₽</strong></td><td id="tblGPY"><strong>15 000 000 ₽</strong></td></tr>
+                    <tr><td>Расходы</td><td id="tblExpM">1 455 000 ₽</td><td id="tblExpY">17 460 000 ₽</td></tr>
+                    <tr id="tblProfitRow"><td><strong>Прибыль</strong></td><td id="tblProfitM"><strong class="loss">-205 000 ₽</strong></td><td id="tblProfitY"><strong class="loss">-2 460 000 ₽</strong></td></tr>
+                </table>
+                
+                <h2 style="margin-top: 16px;">💸 Статьи расходов</h2>
+                <div class="expenses-grid" id="expensesGrid">
+                    <div class="expense-item"><span class="name">Аренда</span><span class="val" id="expRent">3 480 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">ФОТ</span><span class="val" id="expSalary">5 400 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Налоги</span><span class="val" id="expTaxes">3 600 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Соцвзносы</span><span class="val" id="expSocial">1 620 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Коммунальные</span><span class="val" id="expUtils">480 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Логистика</span><span class="val" id="expLogistics">960 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Охрана</span><span class="val" id="expSecurity">180 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Материалы</span><span class="val" id="expMaterials">420 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Маркетинг</span><span class="val" id="expMarketing">480 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Связь/ПО</span><span class="val" id="expIT">240 000 ₽</span></div>
+                    <div class="expense-item"><span class="name">Прочее</span><span class="val" id="expOther">600 000 ₽</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentYear = 1;
+        let params = { rent: 290000, revenue: 5000000, margin: 25, salary: 450000, logistics: 80000, marketing: 40000, other: 50000 };
+        
+        const inflation = [1, 1.08, 1.1664, 1.2597, 1.3605];
+        
+        function formatM(num) { return (num / 1000000).toFixed(2) + ' млн'; }
+        function formatMoney(num) { return num.toLocaleString('ru-RU') + ' ₽'; }
+        
+        function setSlider(id, value) {
+            document.getElementById(id).value = value;
+            params[id] = value;
+            updateDisplay();
+            calculate();
+        }
+        
+        function updateDisplay() {
+            document.getElementById('valRent').textContent = formatMoney(params.rent);
+            document.getElementById('valRevenue').textContent = formatMoney(params.revenue);
+            document.getElementById('valMargin').textContent = params.margin + '%';
+            document.getElementById('valSalary').textContent = formatMoney(params.salary);
+            document.getElementById('valLogistics').textContent = formatMoney(params.logistics);
+            document.getElementById('valMarketing').textContent = formatMoney(params.marketing);
+            document.getElementById('valOther').textContent = formatMoney(params.other);
+        }
+        
+        function setYear(y) {
+            currentYear = y;
+            document.querySelectorAll('.year-btn').forEach((btn, i) => btn.classList.toggle('active', i + 1 === y));
+            document.getElementById('yearLabel').textContent = y;
+            calculate();
+        }
+        
+        function calculate() {
+            const inf = inflation[currentYear - 1];
+            const r = params.revenue;
+            const m = params.margin / 100;
+            const cost = r * (1 - m);
+            const gp = r * m;
+            
+            const rent = params.rent * 12 * inf;
+            const salary = params.salary * 12 * inf;
+            const logistics = params.logistics * 12 * inf;
+            const marketing = params.marketing * 12 * inf;
+            const other = params.other * 12 * inf;
+            
+            const taxes = r * 12 * 0.06 * inf;
+            const social = salary * 0.3;
+            const utils = 40000 * 12 * inf;
+            const security = 15000 * 12 * inf;
+            const materials = 35000 * 12 * inf;
+            const it = 20000 * 12 * inf;
+            
+            const expenses = rent + salary + taxes + social + utils + logistics + security + materials + marketing + it + other;
+            const opProfit = (gp * 12) - expenses;
+            
+            document.getElementById('kpiRevenue').textContent = formatM(r * 12);
+            document.getElementById('kpiGP').textContent = formatM(gp * 12);
+            document.getElementById('kpiExpenses').textContent = formatM(expenses);
+            document.getElementById('kpiProfit').textContent = formatM(opProfit);
+            
+            const roi = opProfit > 0 ? (10 / opProfit).toFixed(1) + ' г' : opProfit > -2000000 ? '4.5 г' : '>7 лет';
+            document.getElementById('kpiRoi').textContent = roi;
+            
+            const profitCard = document.getElementById('kpiProfitCard');
+            profitCard.className = 'kpi-card ' + (opProfit >= 0 ? 'profit' : 'loss');
+            
+            const maxVal = Math.max(r * 12, cost * 12, expenses, Math.abs(opProfit));
+            document.getElementById('barRevenue').style.width = (r * 12 / maxVal * 100) + '%';
+            document.getElementById('barCost').style.width = (cost * 12 / maxVal * 100) + '%';
+            document.getElementById('barExpenses').style.width = (expenses / maxVal * 100) + '%';
+            
+            const pb = document.getElementById('barProfit');
+            pb.style.width = (Math.abs(opProfit) / maxVal * 100) + '%';
+            pb.className = 'bar-fill ' + (opProfit >= 0 ? 'profit' : 'loss');
+            
+            document.getElementById('barRevenueVal').textContent = formatM(r * 12);
+            document.getElementById('barCostVal').textContent = formatM(cost * 12);
+            document.getElementById('barExpensesVal').textContent = formatM(expenses);
+            document.getElementById('barProfitVal').textContent = formatM(opProfit);
+            
+            document.getElementById('tblRevM').textContent = formatMoney(r);
+            document.getElementById('tblRevY').textContent = formatMoney(r * 12);
+            document.getElementById('tblCostM').textContent = formatMoney(cost);
+            document.getElementById('tblCostY').textContent = formatMoney(cost * 12);
+            document.getElementById('tblGPM').textContent = formatMoney(gp);
+            document.getElementById('tblGPY').textContent = formatMoney(gp * 12);
+            document.getElementById('tblExpM').textContent = formatMoney(expenses / 12);
+            document.getElementById('tblExpY').textContent = formatMoney(expenses);
+            
+            const pc = opProfit >= 0 ? 'profit' : 'loss';
+            document.getElementById('tblProfitM').innerHTML = '<strong class="' + pc + '">' + formatMoney(opProfit / 12) + '</strong>';
+            document.getElementById('tblProfitY').innerHTML = '<strong class="' + pc + '">' + formatMoney(opProfit) + '</strong>';
+            document.getElementById('tblProfitRow').className = pc;
+            
+            document.getElementById('expRent').textContent = formatMoney(rent);
+            document.getElementById('expSalary').textContent = formatMoney(salary);
+            document.getElementById('expTaxes').textContent = formatMoney(taxes);
+            document.getElementById('expSocial').textContent = formatMoney(social);
+            document.getElementById('expUtils').textContent = formatMoney(utils);
+            document.getElementById('expLogistics').textContent = formatMoney(logistics);
+            document.getElementById('expSecurity').textContent = formatMoney(security);
+            document.getElementById('expMaterials').textContent = formatMoney(materials);
+            document.getElementById('expMarketing').textContent = formatMoney(marketing);
+            document.getElementById('expIT').textContent = formatMoney(it);
+            document.getElementById('expOther').textContent = formatMoney(other);
+        }
+        
+        function loadScenario(type) {
+            if (type === 'pessimistic') {
+                setSlider('revenue', 4000000); setSlider('rent', 350000); setSlider('margin', 20); setSlider('salary', 500000);
+                setSlider('logistics', 100000); setSlider('marketing', 30000); setSlider('other', 80000);
+            } else if (type === 'baseline') {
+                setSlider('revenue', 5000000); setSlider('rent', 290000); setSlider('margin', 25); setSlider('salary', 450000);
+                setSlider('logistics', 80000); setSlider('marketing', 40000); setSlider('other', 50000);
+            } else {
+                setSlider('revenue', 8000000); setSlider('rent', 220000); setSlider('margin', 30); setSlider('salary', 400000);
+                setSlider('logistics', 60000); setSlider('marketing', 60000); setSlider('other', 30000);
+            }
+        }
+        
+        document.querySelectorAll('input[type="range"]').forEach(s => {
+            s.addEventListener('input', function() {
+                params[this.id] = parseInt(this.value);
+                updateDisplay();
+                calculate();
+            });
+        });
+        
+        updateDisplay();
+        calculate();
+    </script>
+</body>
+</html>

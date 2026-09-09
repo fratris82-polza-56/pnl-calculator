@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Аптека "Юбилейная" — Аналитика</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; padding: 20px; color: #fff; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 24px; }
+        header h1 { font-size: 1.8rem; background: linear-gradient(90deg, #00d9ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        header p { color: #888; margin-top: 8px; }
+        .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+        @media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 700px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+        .kpi-card { background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #2a3f5f; }
+        .kpi-card .icon { font-size: 1.5rem; margin-bottom: 4px; }
+        .kpi-card .value { font-size: 1.3rem; font-weight: 700; }
+        .kpi-card .label { font-size: 0.75rem; color: #888; margin-top: 2px; }
+        .channel-section { margin-bottom: 24px; }
+        .channel-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #2a3f5f; }
+        .channel-header h2 { font-size: 1.2rem; margin: 0; }
+        .channel-header.total { border-color: #00d9ff; }
+        .channel-header.retail { border-color: #00ff88; }
+        .channel-header.iz { border-color: #ffd93d; }
+        .charts-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        @media (max-width: 1100px) { .charts-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
+        .chart-panel { background: linear-gradient(145deg, #1e2a4a, #16213e); border-radius: 16px; padding: 20px; border: 1px solid #2a3f5f; }
+        .chart-panel h3 { font-size: 0.9rem; margin-bottom: 16px; color: #00d9ff; }
+        .full-width { grid-column: 1 / -1; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        table th, table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #2a3f5f; }
+        table th { color: #666; font-size: 0.7rem; }
+        table td:last-child, table th:last-child { text-align: right; }
+        .profit td { color: #00ff88; }
+        .loss td { color: #ff4757; }
+        .forecast td { color: #ffd93d; font-style: italic; }
+        .footer { text-align: center; color: #666; font-size: 0.75rem; margin-top: 20px; }
+        .share-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+        .share-bar .retail { background: #00ff88; }
+        .share-bar .iz { background: #ffd93d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💊 Аптека "Юбилейная" — Аналитика</h1>
+            <p>Динамика 2023-2026 (с прогнозом Sep-Dec 2026)</p>
+        </header>
+        
+        <div class="channel-section">
+            <div class="channel-header total"><h2>📊 ОБЩИЕ ПОКАЗАТЕЛИ</h2></div>
+            <div class="kpi-row">
+                <div class="kpi-card"><div class="icon">📈</div><div class="value" style="color:#00d9ff">45.6 млн ₽</div><div class="label">Выручка 2023</div></div>
+                <div class="kpi-card"><div class="icon">📉</div><div class="value" style="color:#ff4757">41.3 млн ₽</div><div class="label">Выручка 2024</div></div>
+                <div class="kpi-card"><div class="icon">📊</div><div class="value" style="color:#ffd93d">40.9 млн ₽</div><div class="label">Выручка 2025</div></div>
+                <div class="kpi-card"><div class="icon">🎯</div><div class="value" style="color:#00ff88">47.2 млн ₽</div><div class="label">Выручка 2026</div></div>
+                <div class="kpi-card"><div class="icon">🧾</div><div class="value" style="color:#00d9ff">38,125</div><div class="label">Чеков 2026</div></div>
+            </div>
+        </div>
+        
+        <div class="channel-section">
+            <div class="channel-header retail"><h2>🏪 РОЗНИЦА</h2></div>
+            <div class="kpi-row">
+                <div class="kpi-card"><div class="icon">📈</div><div class="value" style="color:#00ff88">44.7 млн ₽</div><div class="label">Выручка 2023</div></div>
+                <div class="kpi-card"><div class="icon">📉</div><div class="value" style="color:#ff4757">38.6 млн ₽</div><div class="label">Выручка 2024</div></div>
+                <div class="kpi-card"><div class="icon">📊</div><div class="value" style="color:#ffd93d">35.0 млн ₽</div><div class="label">Выручка 2025</div></div>
+                <div class="kpi-card"><div class="icon">🎯</div><div class="value" style="color:#00ff88">33.9 млн ₽</div><div class="label">Выручка 2026</div></div>
+                <div class="kpi-card"><div class="icon">🧾</div><div class="value" style="color:#00d9ff">35,470</div><div class="label">Чеков 2026</div></div>
+            </div>
+        </div>
+        
+        <div class="channel-section">
+            <div class="channel-header iz"><h2>🌐 ИНТЕРНЕТ-ЗАКАЗЫ (ИЗ)</h2></div>
+            <div class="kpi-row">
+                <div class="kpi-card"><div class="icon">🚀</div><div class="value" style="color:#ffd93d">0.87 млн ₽</div><div class="label">Выручка 2023</div></div>
+                <div class="kpi-card"><div class="icon">📈</div><div class="value" style="color:#00ff88">2.69 млн ₽</div><div class="label">Выручка 2024</div></div>
+                <div class="kpi-card"><div class="icon">📊</div><div class="value" style="color:#ffd93d">5.98 млн ₽</div><div class="label">Выручка 2025</div></div>
+                <div class="kpi-card"><div class="icon">⚡</div><div class="value" style="color:#ffd93d">13.3 млн ₽</div><div class="label">Выручка 2026</div></div>
+                <div class="kpi-card"><div class="icon">🧾</div><div class="value" style="color:#00d9ff">2,655</div><div class="label">Чеков 2026</div></div>
+            </div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="chart-panel"><h3>📈 Выручка по годам</h3><canvas id="revenueChart"></canvas></div>
+            <div class="chart-panel"><h3>🧾 Количество чеков</h3><canvas id="checksChart"></canvas></div>
+            <div class="chart-panel"><h3>💰 Средний чек</h3><canvas id="avgCheckChart"></canvas></div>
+            <div class="chart-panel"><h3>📊 Выручка по каналам</h3><canvas id="revenueChannelChart"></canvas></div>
+            <div class="chart-panel"><h3>📈 Доля ИЗ в выручке</h3><canvas id="shareChart"></canvas></div>
+            <div class="chart-panel"><h3>🏪 Розница — Месячная динамика</h3><canvas id="retailMonthlyChart"></canvas></div>
+            <div class="chart-panel"><h3>🌐 ИЗ — Месячная динамика</h3><canvas id="izMonthlyChart"></canvas></div>
+            <div class="chart-panel full-width"><h3>📅 Прогноз Sep-Dec 2026</h3><canvas id="forecastChart"></canvas></div>
+        </div>
+        
+        <div class="chart-panel">
+            <h3>📋 Сводная таблица по каналам</h3>
+            <table>
+                <thead><tr><th>Год</th><th>Канал</th><th>Выручка</th><th>Прибыль</th><th>Маржа</th><th>Чеков</th><th>Ср. чек</th><th>Доля</th></tr></thead>
+                <tbody>
+                    <tr><td rowspan="2">2023</td><td>🏪 Розница</td><td>44,741,134 ₽</td><td>9,724,494 ₽</td><td>21.7%</td><td>60,293</td><td>742 ₽</td><td>98.1%</td></tr>
+                    <tr><td>🌐 ИЗ</td><td>869,053 ₽</td><td>59,465 ₽</td><td>6.8%</td><td>512</td><td>1,697 ₽</td><td>1.9%</td></tr>
+                    <tr><td rowspan="2">2024</td><td>🏪 Розница</td><td>38,635,542 ₽</td><td>8,904,765 ₽</td><td>23.0%</td><td>42,659</td><td>906 ₽</td><td>93.5%</td></tr>
+                    <tr><td>🌐 ИЗ</td><td>2,691,148 ₽</td><td>134,352 ₽</td><td>5.0%</td><td>1,594</td><td>1,688 ₽</td><td>6.5%</td></tr>
+                    <tr><td rowspan="2">2025</td><td>🏪 Розница</td><td>34,963,344 ₽</td><td>7,974,876 ₽</td><td>22.8%</td><td>36,764</td><td>951 ₽</td><td>85.4%</td></tr>
+                    <tr><td>🌐 ИЗ</td><td>5,983,183 ₽</td><td>344,013 ₽</td><td>5.7%</td><td>2,957</td><td>2,023 ₽</td><td>14.6%</td></tr>
+                    <tr class="profit"><td rowspan="2">2026*</td><td>🏪 Розница</td><td>33,896,460 ₽</td><td>7,287,759 ₽</td><td>21.5%</td><td>35,471</td><td>956 ₽</td><td>71.9%</td></tr>
+                    <tr class="profit"><td>🌐 ИЗ</td><td>13,254,833 ₽</td><td>594,742 ₽</td><td>4.5%</td><td>2,655</td><td>4,992 ₽</td><td>28.1%</td></tr>
+                </tbody>
+            </table>
+            <p style="color:#ffd93d;font-size:0.7rem;margin-top:8px;">* 2026 — факт Jan-Aug + прогноз Sep-Dec</p>
+        </div>
+        
+        <div class="chart-panel">
+            <h3>📈 Динамика доли ИЗ в выручке</h3>
+            <div class="share-bar"><div class="retail" style="width:71.9%"></div><div class="iz" style="width:28.1%"></div></div>
+            <table>
+                <thead><tr><th>Год</th><th>Розница</th><th>ИЗ</th><th>Δ к пред. году</th></tr></thead>
+                <tbody>
+                    <tr><td>2023</td><td style="color:#00ff88">98.1%</td><td style="color:#ffd93d">1.9%</td><td>—</td></tr>
+                    <tr><td>2024</td><td style="color:#00ff88">93.5%</td><td style="color:#ffd93d">6.5%</td><td style="color:#00ff88">+4.6%</td></tr>
+                    <tr><td>2025</td><td style="color:#00ff88">85.4%</td><td style="color:#ffd93d">14.6%</td><td style="color:#00ff88">+8.1%</td></tr>
+                    <tr><td>2026*</td><td style="color:#00ff88">71.9%</td><td style="color:#ffd93d">28.1%</td><td style="color:#00ff88">+13.5%</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">Данные: Оборотная ведомость "Юбилейный" • ИЗ = Интернет-заказы • *прогноз Sep-Dec 2026</div>
+    </div>
+    
+    <script>
+        Chart.defaults.color = '#888';
+        Chart.defaults.borderColor = '#2a3f5f';
+        const years = ['2023', '2024', '2025', '2026*'];
+        
+        const totalRevenue = [45.6, 41.3, 40.9, 47.2];
+        const retailRevenue = [44.7, 38.6, 35.0, 33.9];
+        const izRevenue = [0.87, 2.69, 5.98, 13.25];
+        
+        const totalChecks = [60805, 44253, 39721, 38125];
+        const retailChecks = [60293, 42659, 36764, 35471];
+        const izChecks = [512, 1594, 2957, 2655];
+        
+        const totalAvgCheck = [750, 934, 1031, 1237];
+        const retailAvgCheck = [742, 906, 951, 956];
+        const izAvgCheck = [1697, 1688, 2023, 4992];
+        
+        new Chart(document.getElementById('revenueChart'), { type: 'bar', data: { labels: years, datasets: [{ label: 'Выручка (млн ₽)', data: totalRevenue, backgroundColor: '#00d9ff', borderRadius: 8 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { min: 30, max: 50 } } } });
+        new Chart(document.getElementById('checksChart'), { type: 'bar', data: { labels: years, datasets: [{ label: 'Чеков', data: totalChecks, backgroundColor: '#ff6b6b', borderRadius: 8 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { min: 20000, max: 70000 } } } });
+        new Chart(document.getElementById('avgCheckChart'), { type: 'line', data: { labels: years, datasets: [{ label: 'Ср. чек (₽)', data: totalAvgCheck, borderColor: '#ffd93d', fill: true, tension: 0.3, pointBackgroundColor: '#ffd93d', pointRadius: 6 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { min: 500, max: 1500 } } } });
+        new Chart(document.getElementById('revenueChannelChart'), { type: 'bar', data: { labels: years, datasets: [{ label: 'Розница', data: retailRevenue, backgroundColor: '#00ff88' }, { label: 'ИЗ', data: izRevenue, backgroundColor: '#ffd93d' }] }, options: { plugins: { legend: { position: 'top' } }, scales: { y: { min: 0, max: 50 } } } });
+        new Chart(document.getElementById('shareChart'), { type: 'line', data: { labels: years, datasets: [{ label: 'Доля ИЗ (%)', data: [1.9, 6.5, 14.6, 28.1], borderColor: '#ffd93d', fill: true, tension: 0.3, pointBackgroundColor: '#ffd93d', pointRadius: 6 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 35 } } } });
+        
+        const months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+        new Chart(document.getElementById('retailMonthlyChart'), { type: 'line', data: { labels: months, datasets: [
+            { label: '2023', data: [3.69,3.90,4.21,3.81,3.79,3.54,3.16,3.53,3.31,3.75,3.70,4.35], borderColor: '#00d9ff', tension: 0.3 },
+            { label: '2024', data: [3.44,3.70,3.68,3.68,3.15,2.76,2.63,2.86,2.95,3.41,3.02,3.36], borderColor: '#00ff88', tension: 0.3 },
+            { label: '2025', data: [2.52,2.75,3.28,2.93,2.77,2.65,2.52,2.82,2.95,3.33,3.11,3.34], borderColor: '#ffd93d', tension: 0.3 },
+            { label: '2026*', data: [2.86,2.97,3.47,3.28,2.69,2.66,2.71,2.66,0.82,3.37,3.06,3.35], borderColor: '#ff6b6b', tension: 0.3, borderDash: [5,5] }
+        ] }, options: { plugins: { legend: { position: 'top' } }, scales: { y: { min: 0, max: 5 } } } });
+        
+        new Chart(document.getElementById('izMonthlyChart'), { type: 'line', data: { labels: months, datasets: [
+            { label: '2023', data: [0.07,0.07,0.11,0.03,0.06,0.03,0.05,0.03,0.06,0.12,0.17,0.14], borderColor: '#00d9ff', tension: 0.3 },
+            { label: '2024', data: [0.15,0.19,0.23,0.22,0.20,0.22,0.25,0.24,0.26,0.28,0.28,0.28], borderColor: '#00ff88', tension: 0.3 },
+            { label: '2025', data: [0.31,0.34,0.40,0.37,0.35,0.35,0.34,0.38,0.40,0.48,0.42,0.44], borderColor: '#ffd93d', tension: 0.3 },
+            { label: '2026*', data: [0.87,1.07,0.99,2.75,1.94,2.74,1.15,0.44,0.11,0.36,0.36,0.47], borderColor: '#ff6b6b', tension: 0.3, borderDash: [5,5] }
+        ] }, options: { plugins: { legend: { position: 'top' } }, scales: { y: { min: 0, max: 3 } } } });
+        
+        new Chart(document.getElementById('forecastChart'), { type: 'bar', data: { labels: ['Сен 26','Окт 26','Ноя 26','Дек 26'], datasets: [
+            { label: 'Розница', data: [0.82,3.37,3.06,3.35], backgroundColor: '#00ff88' },
+            { label: 'ИЗ', data: [0.11,0.36,0.36,0.47], backgroundColor: '#ffd93d' }
+        ] }, options: { plugins: { legend: { position: 'top' } }, scales: { y: { min: 0, max: 4 } } } });
+    </script>
+</body>
+</html>
