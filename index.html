@@ -110,6 +110,8 @@
                 <div class="staff-row"><span>Грузчик</span><input type="number" id="staffGruzCount" min="0" max="50" value="1" class="staff-count"><input type="number" id="staffGruzSalary" min="0" max="500000" step="5000" value="35000" class="staff-salary"><span class="staff-total" id="staffGruzTotal">35 000 ₽</span></div>
                 <div class="staff-row"><span>Товаровед</span><input type="number" id="staffTovarCount" min="0" max="50" value="1" class="staff-count"><input type="number" id="staffTovarSalary" min="0" max="500000" step="5000" value="50000" class="staff-salary"><span class="staff-total" id="staffTovarTotal">50 000 ₽</span></div>
                 <div class="staff-row"><span>Уборщица</span><input type="number" id="staffUborCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffUborSalary" min="0" max="500000" step="5000" value="35000" class="staff-salary"><span class="staff-total" id="staffUborTotal">0 ₽</span></div>
+                <div class="staff-row"><span>Водитель</span><input type="number" id="staffVodCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffVodSalary" min="0" max="500000" step="5000" value="50000" class="staff-salary"><span class="staff-total" id="staffVodTotal">0 ₽</span></div>
+                <div class="staff-row"><span>Экспедитор</span><input type="number" id="staffExpCount" min="0" max="50" value="0" class="staff-count"><input type="number" id="staffExpSalary" min="0" max="500000" step="5000" value="45000" class="staff-salary"><span class="staff-total" id="staffExpTotal">0 ₽</span></div>
                 <div class="staff-summary">ФОТ (с налогами): <span id="staffTotalFOT">450 000 ₽</span></div>
                 <div class="section-title">💰 Налоги</div>
                 <div class="param"><div class="param-header"><span class="param-label">Налоги ОСНО+НДС (%)</span><span class="param-value" id="valTax">20%</span></div><input type="range" id="tax" min="0" max="50" step="1" value="20"></div>
@@ -242,7 +244,9 @@
                 { countId: 'staffSborCount', salaryId: 'staffSborSalary', totalId: 'staffSborTotal' },
                 { countId: 'staffGruzCount', salaryId: 'staffGruzSalary', totalId: 'staffGruzTotal' },
                 { countId: 'staffTovarCount', salaryId: 'staffTovarSalary', totalId: 'staffTovarTotal' },
-                { countId: 'staffUborCount', salaryId: 'staffUborSalary', totalId: 'staffUborTotal' }
+                { countId: 'staffUborCount', salaryId: 'staffUborSalary', totalId: 'staffUborTotal' },
+                { countId: 'staffVodCount', salaryId: 'staffVodSalary', totalId: 'staffVodTotal' },
+                { countId: 'staffExpCount', salaryId: 'staffExpSalary', totalId: 'staffExpTotal' }
             ];
             let totalSalary = 0;
             staffData.forEach(item => {
@@ -261,7 +265,7 @@
             calculate();
         }
         function initStaffListeners() {
-            const staffInputs = ['staffZavCount', 'staffZavSalary', 'staffProvCount', 'staffProvSalary', 'staffSborCount', 'staffSborSalary', 'staffGruzCount', 'staffGruzSalary', 'staffTovarCount', 'staffTovarSalary', 'staffUborCount', 'staffUborSalary'];
+            const staffInputs = ['staffZavCount', 'staffZavSalary', 'staffProvCount', 'staffProvSalary', 'staffSborCount', 'staffSborSalary', 'staffGruzCount', 'staffGruzSalary', 'staffTovarCount', 'staffTovarSalary', 'staffUborCount', 'staffUborSalary', 'staffVodCount', 'staffVodSalary', 'staffExpCount', 'staffExpSalary'];
             staffInputs.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
