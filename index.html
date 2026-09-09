@@ -183,6 +183,7 @@
         .share-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
         .share-bar .ecom { background: linear-gradient(90deg, #a855f7, #7c3aed); }
         .share-bar .retail { background: linear-gradient(90deg, #5383c7, #0099cc); }
+        #paramsPanel input:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -197,7 +198,7 @@
         </div>
         <div class="main-grid">
             <div class="panel" id="paramsPanel">
-                <h2>🎚️ Параметры</h2>
+                <h2>🎚️ Параметры <button id="lockBtn" onclick="toggleLock()" style="float:right;background:#5383c7;color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;font-family:Montserrat,sans-serif;">🔒 Закрепить</button></h2>
                 <div class="section-title">📦 Доходы</div>
                 <div class="param"><div class="param-header"><span class="param-label">Выручка в месяц (ИТОГО)</span><span class="param-value" id="valRevenue">0</span></div><input type="range" id="revenue" min="0" max="500000000" step="10000" value="0"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Наценка (ИТОГО, %)</span><span class="param-value" id="valMargin">25%</span></div><input type="range" id="margin" min="0" max="50" step="1" value="25"></div>
@@ -775,6 +776,18 @@
                 if (el) el.textContent = (op >= 0 ? '+' : '') + fmtS(op);
             });
         }
+        let slidersLocked = false;
+        function toggleLock() {
+            slidersLocked = !slidersLocked;
+            const btn = document.getElementById('lockBtn');
+            const inputs = document.querySelectorAll('#paramsPanel input[type="range"], #paramsPanel input[type="number"]');
+            inputs.forEach(input => {
+                input.disabled = slidersLocked;
+            });
+            btn.textContent = slidersLocked ? '🔓 Разблокировать' : '🔒 Закрепить';
+            btn.style.background = slidersLocked ? '#6dc47b' : '#5383c7';
+        }
+        
         function loadScenario(t) {
             const presets = {
                 pessimistic: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, revenueEcom: 0, marginEcom: 30, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0, profitTax: 20},
