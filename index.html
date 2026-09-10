@@ -571,20 +571,30 @@
         const MARGIN_ECOM = MARKUP_ECOM / (1 + MARKUP_ECOM/100);
 
         function calcBreakeven() {
-            // Берём доли из фактических данных
+            // Берём доли каналов из фактических данных (включая склад)
             const totalRevenue = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
-            const ecomShare = totalRevenue > 0 ? (params.revenueEcom / totalRevenue) * 100 : 0;
+            const wShare = totalRevenue > 0 ? (params.revenueWarehouse / totalRevenue) * 100 : 0;
             const retailShare = totalRevenue > 0 ? (params.revenueRetail / totalRevenue) * 100 : 0;
+            const ecomShare = totalRevenue > 0 ? (params.revenueEcom / totalRevenue) * 100 : 0;
             
-            // Средняя маржа
-            const avgMargin = (retailShare/100 * MARGIN_RETAIL) + (ecomShare/100 * MARGIN_ECOM);
-            // Средняя наценка
-            const avgMarkup = (retailShare/100 * MARKUP_RETAIL) + (ecomShare/100 * MARKUP_ECOM);
+            // Фактические маржи из слайдеров, взвешенные по долям выручки
+            const marginW = params.marginWarehouse / 100;
+            const marginR = params.marginRetail / 100;
+            const marginE = params.marginEcom / 100;
+            const avgMargin = (wShare/100 * marginW) + (retailShare/100 * marginR) + (ecomShare/100 * marginE);
             
-            // Если маржа = 0, сбрасываем значения на 0
-            if (avgMargin <= 0 || avgMarkup <= 0) {
-                document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
-                document.getElementById('beAvgMarkup').textContent = '0%';
+            // Наценка из маржи: markup = margin / (1 - margin)
+            const markupW = marginW < 1 ? marginW / (1 - marginW) : 0;
+            const markupR = marginR < 1 ? marginR / (1 - marginR) : 0;
+            const markupE = marginE < 1 ? marginE / (1 - marginE) : 0;
+            const avgMarkup = (wShare/100 * markupW) + (retailShare/100 * markupR) + (ecomShare/100 * markupE);
+            
+            // Обновляем доли и наценку всегда
+            document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
+            document.getElementById('beAvgMarkup').textContent = (avgMarkup * 100).toFixed(1) + '%';
+            
+            // Если средняя маржа = 0 (нет выручки или наценки), окупаемость = 0
+            if (avgMargin <= 0) {
                 document.getElementById('beRevenue').textContent = '0 млн ₽/год';
                 document.getElementById('beRevenueM').textContent = '0 млн ₽';
                 return;
@@ -594,8 +604,6 @@
             const breakevenRevenue = currentExpensesYear / avgMargin;
             
             // Обновляем UI
-            document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
-            document.getElementById('beAvgMarkup').textContent = avgMarkup.toFixed(1) + '%';
             document.getElementById('beRevenue').textContent = (breakevenRevenue/1000000).toFixed(1) + ' млн ₽/год';
             document.getElementById('beRevenueM').textContent = (breakevenRevenue/12/1000000).toFixed(2) + ' млн ₽';
         }
