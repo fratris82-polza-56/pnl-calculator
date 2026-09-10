@@ -40,7 +40,7 @@
         .param-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
         .param-label { font-size: 0.75rem; color: #161e25; }
         .param-value { font-weight: 600; color: #5383c7; font-size: 0.85rem; }
-        input[type="range"] { width: 100%; height: 8px; border-radius: 4px; background: #5383c7; -webkit-appearance: none; }
+        input[type="range"] { width: 100%; height: 8px; border-radius: 4px; background: #e0e9f7; -webkit-appearance: none; }
             input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid #5383c7; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
             input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border-radius: 50%; background: #fff; border: 2px solid #5383c7; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
         .quick-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
@@ -597,8 +597,6 @@
             document.getElementById('valVendorBonus').textContent = fmt(params.vendorBonus);
             document.getElementById('valDepreciation').textContent = fmt(params.depreciation);
             document.getElementById('valProject').textContent = fmt(params.project);
-            // Обновляем заполнение всех слайдеров
-            document.querySelectorAll('input[type="range"]').forEach(s => updateSliderFillCustom(s));
             updateStaffDisplay();
         }
         function adjustStaff(role, field, delta) {
@@ -728,10 +726,6 @@
             // Обновляем основные слайдеры
             document.getElementById('revenue').value = totalRev;
             document.getElementById('margin').value = avgMargin;
-            
-            // Обновляем заполнение дорожки
-            updateSliderFillCustom(document.getElementById('revenue'));
-            updateSliderFillCustom(document.getElementById('margin'));
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
@@ -777,7 +771,6 @@
             
             // Синхронизируем слайдер
             document.getElementById('ecomShare').value = share;
-            updateSliderFillCustom(document.getElementById('ecomShare'));
         }
         function drawRevenuePieChart() {
             const canvas = document.getElementById('revenuePieChart');
@@ -1169,20 +1162,15 @@
             updateStaffDisplay();
             calculate();
         }
-        // Глобальная функция обновления заполнения дорожки
-        function updateSliderFillCustom(slider) {
-            const min = parseFloat(slider.min) || 0;
-            const max = parseFloat(slider.max) || 100;
-            const val = parseFloat(slider.value);
-            const percent = ((val - min) / (max - min)) * 100;
-            slider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
-        }
-        
         document.querySelectorAll('input[type="range"]').forEach(s => {
             let isUpdatingFromDetail = false;
             // Обновление заполнения дорожки
             const updateSliderFill = () => {
-                updateSliderFillCustom(s);
+                const min = parseFloat(s.min) || 0;
+                const max = parseFloat(s.max) || 100;
+                const val = parseFloat(s.value);
+                const percent = ((val - min) / (max - min)) * 100;
+                s.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
             };
             updateSliderFill();
             s.addEventListener('input', function() {
