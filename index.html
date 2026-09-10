@@ -772,7 +772,7 @@
             
             // Обновляем основные слайдеры
             document.getElementById('revenue').value = totalRev;
-            document.getElementById('margin').value = avgMargin;
+            document.getElementById('margin').value = Math.round(avgMargin);
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
@@ -1261,19 +1261,25 @@
                 document.getElementById('valMarginEcom').textContent = params.marginEcom + '%';
                 
                 // Обновляем итоговую строку и слайдеры ИТОГО
-                const totalRev = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
-                const avgMargin = totalRev > 0 ? ((params.revenueWarehouse * params.marginWarehouse) + (params.revenueRetail * params.marginRetail) + (params.revenueEcom * params.marginEcom)) / totalRev : 0;
-                document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
-                document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
-                document.getElementById('revenue').value = totalRev;
-                document.getElementById('margin').value = Math.round(avgMargin);
-                document.getElementById('valRevenue').textContent = fmt(totalRev);
-                document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
-                // Обновляем слайдеры ИТОГО
-                const revSlider = document.getElementById('revenue');
-                const margSlider = document.getElementById('margin');
-                revSlider.value = totalRev;
-                margSlider.value = Math.round(avgMargin);
+                // ВАЖНО: слайдеры ИТОГО обновляем ТОЛЬКО если изменяется детализация
+                // Если изменяется сам слайдер ИТОГО - НЕ перезаписываем его значениями из деталей
+                const isDetailSlider = ['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'].includes(this.id);
+                
+                if (isDetailSlider) {
+                    const totalRev = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
+                    const avgMargin = totalRev > 0 ? ((params.revenueWarehouse * params.marginWarehouse) + (params.revenueRetail * params.marginRetail) + (params.revenueEcom * params.marginEcom)) / totalRev : 0;
+                    document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
+                    document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
+                    document.getElementById('revenue').value = totalRev;
+                    document.getElementById('margin').value = Math.round(avgMargin);
+                    document.getElementById('valRevenue').textContent = fmt(totalRev);
+                    document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
+                    // Обновляем слайдеры ИТОГО
+                    const revSlider = document.getElementById('revenue');
+                    const margSlider = document.getElementById('margin');
+                    revSlider.value = totalRev;
+                    margSlider.value = Math.round(avgMargin);
+                }
                 // Обновляем заливку
                 setTimeout(function() {
                     updateSliderFillById('revenue');
