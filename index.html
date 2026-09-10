@@ -585,6 +585,17 @@
             const avgMargin = (retailShare/100 * MARGIN_RETAIL) + (ecomShare/100 * MARGIN_ECOM);
             // Средняя наценка
             const avgMarkup = (retailShare/100 * MARKUP_RETAIL) + (ecomShare/100 * MARKUP_ECOM);
+            
+            // Если маржа = 0, сбрасываем значения на 0
+            if (avgMargin <= 0 || avgMarkup <= 0) {
+                document.getElementById('valBreakevenEcom').textContent = ecomShare + '% ECOM';
+                document.getElementById('beRetailShare').textContent = retailShare + '%';
+                document.getElementById('beAvgMarkup').textContent = '0%';
+                document.getElementById('beRevenue').textContent = '0 млн ₽/год';
+                document.getElementById('beRevenueM').textContent = '0 млн ₽';
+                return;
+            }
+            
             // Выручка для окупаемости
             const breakevenRevenue = EXPENSES_YEAR / avgMargin;
             
