@@ -1347,12 +1347,38 @@
             s.addEventListener('input', function() {
                 // Синхронизация детализации выручки с основным слайдером
                 if (this.id === 'revenue') {
-                    // Только обновляем params, НЕ трогаем детализацию
-                    params.revenue = parseFloat(this.value);
+                    const val = parseFloat(this.value);
+                    params.revenue = val;
+                    // Синхронизируем детализацию (весь доход в склад)
+                    params.revenueWarehouse = val;
+                    params.revenueRetail = 0;
+                    params.revenueEcom = 0;
+                    document.getElementById('revenueWarehouse').value = val;
+                    document.getElementById('revenueRetail').value = 0;
+                    document.getElementById('revenueEcom').value = 0;
+                    document.getElementById('valRevenueWarehouse').textContent = fmt(val);
+                    document.getElementById('valRevenueRetail').textContent = fmt(0);
+                    document.getElementById('valRevenueEcom').textContent = fmt(0);
+                    updateSliderFillById('revenueWarehouse');
+                    updateSliderFillById('revenueRetail');
+                    updateSliderFillById('revenueEcom');
                 }
                 else if (this.id === 'margin') {
-                    // Только обновляем params, НЕ трогаем детализацию
-                    params.margin = parseFloat(this.value);
+                    const val = parseFloat(this.value);
+                    params.margin = val;
+                    // Синхронизируем наценку на все каналы
+                    params.marginWarehouse = val;
+                    params.marginRetail = val;
+                    params.marginEcom = val;
+                    document.getElementById('marginWarehouse').value = val;
+                    document.getElementById('marginRetail').value = val;
+                    document.getElementById('marginEcom').value = val;
+                    document.getElementById('valMarginWarehouse').textContent = val + '%';
+                    document.getElementById('valMarginRetail').textContent = val + '%';
+                    document.getElementById('valMarginEcom').textContent = val + '%';
+                    updateSliderFillById('marginWarehouse');
+                    updateSliderFillById('marginRetail');
+                    updateSliderFillById('marginEcom');
                 }
                 else {
                     params[this.id] = parseFloat(this.value);
