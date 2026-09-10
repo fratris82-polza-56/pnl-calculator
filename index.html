@@ -977,29 +977,62 @@
             updateScenarios();
         }
         function updateScenarios() {
-            const s = {
-                pess: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, revenueEcom: 0, marginEcom: 30, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0, profitTax: 20},
-                base: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, profitTax: 20},
-                opt: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, revenueEcom: 0, marginEcom: 30, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000, profitTax: 20}
+            // Сценарии теперь используют текущие значения слайдеров (params)
+            // Если все основные значения = 0, показываем 0 ₽
+            const isZero = params.revenueWarehouse === 0 && params.revenueRetail === 0 && params.revenueEcom === 0;
+            
+            if (isZero) {
+                ['Pess', 'Base', 'Opt'].forEach(k => {
+                    const el = document.getElementById('scen' + k);
+                    if (el) el.textContent = '0 ₽';
+                });
+                return;
+            }
+            
+            // Множители для сценариев
+            const multipliers = {
+                Pess: {rev: 0.6, margin: 0.8, rent: 1.2, salary: 1.15, cost: 1.15},  // -40% выручка, -20% маржа, +15-20% расходы
+                Base: {rev: 1, margin: 1, rent: 1, salary: 1, cost: 1},                 // текущие значения
+                Opt: {rev: 1.5, margin: 1.15, rent: 0.8, salary: 0.9, cost: 0.85}      // +50% выручка, +15% маржа, -15% расходы
             };
+            
             const taxRate = 0.2;
+            
             ['Pess', 'Base', 'Opt'].forEach(k => {
-                const d = s[k.toLowerCase()];
-                const revWarehouse = d.revenueWarehouse / (1 + taxRate);
-                const costWarehouse = revWarehouse / (1 + d.marginWarehouse / 100);
+                const m = multipliers[k];
+                const revWarehouse = (params.revenueWarehouse * m.rev) / (1 + taxRate);
+                const costWarehouse = revWarehouse / (1 + (params.marginWarehouse * m.margin) / 100);
                 const gpWarehouse = revWarehouse - costWarehouse;
-                const revRetail = d.revenueRetail / (1 + taxRate);
-                const costRetail = revRetail / (1 + d.marginRetail / 100);
+                
+                const revRetail = (params.revenueRetail * m.rev) / (1 + taxRate);
+                const costRetail = revRetail / (1 + (params.marginRetail * m.margin) / 100);
                 const gpRetail = revRetail - costRetail;
-                const revEcom = (d.revenueEcom || 0) / (1 + taxRate);
-                const costEcom = revEcom / (1 + (d.marginEcom || 30) / 100);
+                
+                const revEcom = (params.revenueEcom * m.rev) / (1 + taxRate);
+                const costEcom = revEcom / (1 + (params.marginEcom * m.margin) / 100);
                 const gpEcom = revEcom - costEcom;
+                
                 const gp = gpWarehouse + gpRetail + gpEcom;
                 const costOfGoods = costWarehouse + costRetail + costEcom;
-                const logisticsCost = costOfGoods * 0.05;
-                const spoilageCost = costOfGoods * 0.01;
-                const acquiringCost = (d.revenueWarehouse + d.revenueRetail + (d.revenueEcom || 0)) * 0.015;
-                const exp = d.rent + d.salary + d.salary * d.social/100 + logisticsCost + d.utilities + d.security + d.supplies + d.marketing + d.communication + d.software + d.insurance + d.accounting + d.training + spoilageCost + acquiringCost - d.vendorBonus;
+                
+                const logisticsCost = costOfGoods * (params.logistics / 100) * m.cost;
+                const spoilageCost = costOfGoods * (params.spoilage / 100) * m.cost;
+                const acquiringCost = (params.revenueWarehouse * m.rev + params.revenueRetail * m.rev + params.revenueEcom * m.rev) * (params.acquiring / 100) * (params.acquiringShare / 100);
+                
+                const rent = params.rent * m.rent;
+                const salary = params.salary * m.salary;
+                const utilities = params.utilities * m.cost;
+                const security = params.security * m.cost;
+                const supplies = params.supplies * m.cost;
+                const marketing = params.marketing * m.cost;
+                const communication = params.communication * m.cost;
+                const software = params.software * m.cost;
+                const insurance = params.insurance * m.cost;
+                const accounting = params.accounting * m.cost;
+                const training = params.training * m.cost;
+                const vendorBonus = params.vendorBonus * m.rev;
+                
+                const exp = rent + salary + salary * params.social/100 + logisticsCost + utilities + security + supplies + marketing + communication + software + insurance + accounting + training + spoilageCost + acquiringCost - vendorBonus;
                 const op = (gp - exp) * 12;
                 const el = document.getElementById('scen' + k);
                 if (el) el.textContent = (op >= 0 ? '+' : '') + fmtS(op);
@@ -1083,10 +1116,11 @@
         }
         
         function loadScenario(t) {
+            // Загружает предустановленные значения в слайдеры
             const presets = {
-                pessimistic: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, revenueEcom: 0, marginEcom: 30, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0, profitTax: 20},
-                baseline: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, profitTax: 20},
-                optimistic: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, revenueEcom: 0, marginEcom: 30, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000, profitTax: 20}
+                pessimistic: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, revenueEcom: 0, marginEcom: 30, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0},
+                baseline: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0},
+                optimistic: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, revenueEcom: 0, marginEcom: 30, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000}
             };
             const p = presets[t];
             // Устанавливаем детализацию выручки
@@ -1100,9 +1134,28 @@
             // Устанавливаем остальные параметры
             Object.keys(p).forEach(k => {
                 if (!['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'].includes(k)) {
-                    setSlider(k, p[k]);
+                    const el = document.getElementById(k);
+                    if (el) {
+                        el.value = p[k];
+                        params[k] = p[k];
+                    }
                 }
             });
+            // Обновить отображение всех значений
+            ['Revenue', 'Margin', 'RevenueWarehouse', 'MarginWarehouse', 'RevenueRetail', 'MarginRetail', 'RevenueEcom', 'MarginEcom', 'Rent', 'Salary', 'Social', 'Logistics', 'Utilities', 'Security', 'Supplies', 'Marketing', 'Other', 'Communication', 'Software', 'Acquiring', 'AcquiringShare', 'Insurance', 'Accounting', 'Training', 'Spoilage', 'VendorBonus'].forEach(id => {
+                const el = document.getElementById('val' + id);
+                if (el) {
+                    const key = id.charAt(0).toLowerCase() + id.slice(1);
+                    const val = params[key];
+                    if (id.includes('Margin') || id === 'Social' || id === 'Logistics' || id === 'Acquiring' || id === 'AcquiringShare' || id === 'Spoilage') {
+                        el.textContent = val + '%';
+                    } else {
+                        el.textContent = fmt(val);
+                    }
+                }
+            });
+            updateStaffDisplay();
+            calculate();
         }
         document.querySelectorAll('input[type="range"]').forEach(s => {
             let isUpdatingFromDetail = false;
