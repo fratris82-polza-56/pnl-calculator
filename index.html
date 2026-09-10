@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><svg width="16" height="16" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M120 60C120 65.5301 117.758 70.5369 114.131 74.1638C110.51 77.7907 105.503 80.0325 99.9727 80.0325H80.0274V99.9726C80.0274 111.033 71.0653 120 60 120C48.9347 120 39.9727 111.033 39.9727 99.9726V80.0325H59.9692C65.4993 80.0325 70.5062 77.7907 74.1331 74.1638C77.7548 70.5369 79.9966 65.5301 79.9966 60C79.9966 48.9398 71.0346 39.9726 59.9692 39.9726H39.9727V20.0274C39.9727 8.96717 48.9398 0 60 0C65.5301 0 70.537 2.24179 74.1638 5.86867C77.7856 9.49042 80.0274 14.4973 80.0274 20.0274V39.9726H99.9727C111.033 39.9726 120 48.9398 120 60Z" fill="#5383c7"/><path d="M79.9966 60C79.9966 65.5301 77.7548 70.537 74.1331 74.1638C70.5062 77.7907 65.4993 80.0325 59.9692 80.0325H39.9727V39.9727H59.9692C71.0346 39.9727 79.9966 48.9398 79.9966 60Z" fill="white"/><path d="M39.9726 39.9727V80.0325H20.0325C8.96717 80.0325 0 71.0602 0 60C0 48.9398 8.96717 39.9727 20.0325 39.9727H39.9726Z" fill="#5383c7"/></svg> P&L Калькулятор</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -41,7 +41,7 @@
         body.pdf-export .quick-btns { gap: 3px; margin-top: 3px; }
         body.pdf-export .quick-btn { padding: 2px 5px; font-size: 0.5rem; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .sticky-header { position: static; top: 0; z-index: 100; background: #e0e9f7; padding: 10px 15px 5px; margin: 0 -15px; }
+        .sticky-header { position: static; top: 0; z-index: 100; background: #e0e9f7; padding: 10px 10px 5px; margin: 0 -10px; }
         .sticky-header.pinned { position: sticky; }
         .header-row { display: flex; justify-content: space-between; align-items: center; }
         .pin-btn { background: #6dc47b; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-family: Montserrat, sans-serif; }
@@ -97,6 +97,7 @@
         .staff-detail { margin: 10px 0 8px 0; font-size: 0.8rem; }
         .staff-row { display: flex; align-items: center; gap: 0; margin-bottom: 6px; padding: 6px; background: #5383c7; border-radius: 6px; font-size: 0.75rem; color: #fff; }
         .staff-arrow, .staff-count, .staff-salary { flex-shrink: 0; }
+        .staff-arrow { width: 24px; height: 24px; font-size: 0.7rem; }
         .staff-row .staff-arrow { margin: 0 2px; }
         .staff-row .staff-arrow + input { margin-left: 2px; }
         .staff-row input + .staff-arrow { margin-left: 2px; }
@@ -115,7 +116,7 @@
         .staff-total { width: 90px; text-align: center; font-weight: 700; color: #fff; font-size: 0.9rem; flex-shrink: 0; }
         .staff-summary { margin-top: 8px; padding: 8px; background: #fff; border-radius: 6px; text-align: right; font-weight: 600; font-size: 0.8rem; }
         .pie-chart-container { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-        #revenuePieChart { width: 320px !important; height: 320px !important; }
+        #revenuePieChart { width: 200px !important; height: 200px !important; }
         .pie-legend { font-size: 0.7rem; color: #1a3a5c; }
         .share-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 6px; }
         
@@ -140,7 +141,7 @@
             input[type="range"] { height: 6px; }
             .quick-btns { gap: 3px; margin-top: 3px; }
             .quick-btn { padding: 2px 5px; font-size: 0.5rem; }
-            .results-table { font-size: 0.55rem; }
+            .results-table { font-size: 0.65rem; }
             .bar-track { height: 10px; }
             .scenarios { gap: 4px; margin-top: 6px; }
             .scenario-btn { padding: 6px; }
@@ -167,8 +168,14 @@
             .staff-total { width: 55px; text-align: center; font-size: 0.6rem; color: #fff; font-weight: 700; flex-shrink: 0; }
             .staff-arrow { width: 18px; height: 18px; font-size: 0.5rem; }
             .pie-chart-container { gap: 6px; margin-top: 6px; }
-            #revenuePieChart { width: 50px !important; height: 50px !important; }
-            .pie-legend { font-size: 0.5rem; color: #1a3a5c; }
+            #revenuePieChart { width: 200px !important; height: 200px !important; }
+            .pie-legend { font-size: 0.65rem !important; color: #1a3a5c; }
+            .sticky-header { margin: 0 -6px; padding: 8px 6px 4px; }
+            .header-row { flex-direction: column; align-items: stretch; gap: 8px; }
+            .header-row > div { flex-wrap: wrap; justify-content: center; }
+            .header-row .pin-btn { padding: 8px 10px; }
+            .panel { overflow-x: auto; }
+            .results-table { min-width: 420px; }
         }
         
         /* Desktop styles */
@@ -233,45 +240,17 @@
             .pie-legend { font-size: 0.85rem; color: #1a3a5c; }
             .share-bar { height: 8px; border-radius: 4px; margin-top: 8px; }
         }
-        .results-table { width: 100%; border-collapse: collapse; }
-        .results-table th, .results-table td { padding: 10px; text-align: left; border-bottom: 1px solid #eff2f7; }
-        .results-table th { color: #666; font-size: 0.8rem; }
-        .results-table td:last-child { text-align: right; }
-        .bar-container { margin: 16px 0; }
-        .bar-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
-        .bar-track { height: 24px; background: #5383c7; border-radius: 12px; overflow: hidden; }
         .bar-fill { height: 100%; border-radius: 12px; }
         .bar-fill.revenue { background: linear-gradient(90deg, #5383c7, #00b4d8); }
         .bar-fill.cost { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
         .bar-fill.expenses { background: linear-gradient(90deg, #f78d37, #f0c000); }
         .bar-fill.profit { background: linear-gradient(90deg, #6dc47b, #00cc6a); }
         .bar-fill.loss { background: linear-gradient(90deg, #ee6242, #ff3040); }
-        .scenarios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
-        .scenario-btn { background: #5383c7; border: 2px solid #eff2f7; color: #161e25; padding: 16px; border-radius: 12px; cursor: pointer; text-align: center; }
-        .scenario-btn .title { font-weight: 600; margin-bottom: 4px; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .scenario-btn .profit { font-size: 1.1rem; font-weight: 700; color: #fff; }
         .scenario-btn.pessimistic .profit { color: #f78d37; }
         .scenario-btn.baseline .profit { color: #fff; }
         .scenario-btn.optimistic .profit { color: #6dc47b; }
-        .section-title { font-size: 0.75rem; color: #5383c7; text-transform: uppercase; margin: 20px 0 10px 0; border-bottom: 1px solid #eff2f7; }
-        .staff-detail { margin: 15px 0 10px 0; font-size: 0.85rem; }
-        .staff-row { display: flex; align-items: center; gap: 0; margin-bottom: 8px; padding: 8px; background: #5383c7; border-radius: 8px; color: #fff; }
-        .staff-arrow, .staff-count, .staff-salary { flex-shrink: 0; }
-        .staff-row .staff-arrow { margin: 0 3px; }
-        .staff-row .staff-arrow + input { margin-left: 3px; }
-        .staff-row input + .staff-arrow { margin-left: 3px; }
-        .staff-row .staff-count + .staff-arrow { margin-left: 12px; }
-        .staff-row .staff-total { flex-shrink: 0; }
-        .staff-row .staff-net { flex-shrink: 0; color: #90caf9; font-size: 0.9rem; font-weight: 600; margin-left: 10px; }
-        .staff-row span:first-child { width: 110px; font-size: 0.95rem; font-weight: 700; flex-shrink: 0; text-align: left; }
-        .staff-row .staff-controls { display: flex; align-items: center; flex: 1; gap: 0; justify-content: flex-start; }
-        .staff-count { width: 50px; padding: 4px; border-radius: 4px; border: 1px solid #eff2f7; background: #eff2f7; color: #161e25; text-align: center; font-size: 0.9rem; font-weight: 700; font-family: Montserrat, sans-serif; -moz-appearance: textfield; }
-        .staff-salary { width: 90px; padding: 4px; border-radius: 4px; border: 1px solid #eff2f7; background: #eff2f7; color: #161e25; text-align: right; font-size: 0.9rem; font-weight: 700; font-family: Montserrat, sans-serif; -moz-appearance: textfield; }
-        .staff-total { width: 110px; text-align: center; font-weight: 700; color: #fff; font-size: 0.95rem; flex-shrink: 0; }
-        .staff-arrow { background: #fff; border: none; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; color: #5383c7; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .staff-arrow { background: #fff; border: none; border-radius: 4px; cursor: pointer; color: #5383c7; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .staff-arrow:hover { background: #e0e9f7; }
-        .staff-summary { margin-top: 10px; padding: 10px; background: #fff; border-radius: 8px; text-align: right; font-weight: 600; }
-        .share-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 8px; }
         .share-bar .ecom { background: linear-gradient(90deg, #a855f7, #7c3aed); }
         .share-bar .retail { background: linear-gradient(90deg, #5383c7, #0099cc); }
         #paramsPanel input:disabled { opacity: 0.5; cursor: not-allowed; }
