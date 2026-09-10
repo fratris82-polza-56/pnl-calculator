@@ -1270,8 +1270,10 @@
                 document.getElementById('valRevenue').textContent = fmt(totalRev);
                 document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
                 // Обновляем заливку слайдеров ИТОГО
-                updateSliderFillById('revenue');
-                updateSliderFillById('margin');
+                setTimeout(function() {
+                    updateSliderFillById('revenue');
+                    updateSliderFillById('margin');
+                }, 0);
                 
                 // Обновляем круговую диаграмму
                 drawRevenuePieChart();
