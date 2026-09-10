@@ -626,6 +626,8 @@
         
         // Загрузка сохранённых данных при старте
         function loadSavedParams() {
+            // Очищаем старые данные при каждом обновлении
+            localStorage.removeItem('pnl_saved');
             const saved = localStorage.getItem('pnl_saved');
             if (saved) {
                 try {
