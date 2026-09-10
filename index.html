@@ -596,8 +596,8 @@
                 return;
             }
             
-            // Выручка для окупаемости
-            const breakevenRevenue = EXPENSES_YEAR / avgMargin;
+            // Выручка для окупаемости (делим на долю, не на процент)
+            const breakevenRevenue = EXPENSES_YEAR / (avgMargin / 100);
             
             // Обновляем UI
             document.getElementById('valBreakevenEcom').textContent = ecomShare + '% ECOM';
