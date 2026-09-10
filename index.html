@@ -769,6 +769,9 @@
                 document.getElementById('valRevenueRetail').textContent = fmt(0);
                 document.getElementById('revenueEcom').value = 0;
                 document.getElementById('valRevenueEcom').textContent = fmt(0);
+                updateSliderFillById('revenueWarehouse');
+                updateSliderFillById('revenueRetail');
+                updateSliderFillById('revenueEcom');
                 updateDisplay();
                 calculate();
             });
@@ -786,6 +789,9 @@
                 document.getElementById('valMarginRetail').textContent = val + '%';
                 document.getElementById('marginEcom').value = val;
                 document.getElementById('valMarginEcom').textContent = val + '%';
+                updateSliderFillById('marginWarehouse');
+                updateSliderFillById('marginRetail');
+                updateSliderFillById('marginEcom');
                 updateDisplay();
                 calculate();
             });
