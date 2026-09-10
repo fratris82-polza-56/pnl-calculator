@@ -1007,19 +1007,19 @@
         }
         let slidersLocked = false;
         function resetAll() {
-            // Сброс параметров к значениям по умолчанию
-            const defaults = {
-                revenue: 5000000, margin: 25, revenueWarehouse: 3500000, marginWarehouse: 15,
-                revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30,
-                rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000,
-                security: 8000, supplies: 12000, marketing: 15000, other: 0, communication: 5000,
-                software: 10000, acquiring: 1.5, acquiringShare: 100, insurance: 8000,
-                accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, depreciation: 0, project: 0
+            // Обнуление всех параметров
+            const zeros = {
+                revenue: 0, margin: 0, revenueWarehouse: 0, marginWarehouse: 0,
+                revenueRetail: 0, marginRetail: 0, revenueEcom: 0, marginEcom: 0,
+                rent: 0, salary: 0, social: 30, logistics: 0, utilities: 0,
+                security: 0, supplies: 0, marketing: 0, other: 0, communication: 0,
+                software: 0, acquiring: 0, acquiringShare: 100, insurance: 0,
+                accounting: 0, training: 0, spoilage: 0, vendorBonus: 0, depreciation: 0, project: 0
             };
-            Object.keys(defaults).forEach(key => {
-                params[key] = defaults[key];
+            Object.keys(zeros).forEach(key => {
+                params[key] = zeros[key];
                 const el = document.getElementById(key);
-                if (el) el.value = defaults[key];
+                if (el) el.value = zeros[key];
             });
             // Обновить отображение значений
             document.getElementById('valRevenue').textContent = fmt(params.revenue);
@@ -1052,16 +1052,11 @@
             document.getElementById('valProject').textContent = fmt(params.project);
             document.getElementById('valTax').textContent = params.tax + '%';
             document.getElementById('valProfitTax').textContent = params.profitTax + '%';
-            // Сброс персонала
-            const staffDefaults = [
-                {count: 1, salary: 80000}, {count: 2, salary: 60000}, {count: 2, salary: 40000},
-                {count: 1, salary: 35000}, {count: 1, salary: 50000}, {count: 0, salary: 35000},
-                {count: 0, salary: 50000}, {count: 0, salary: 45000}
-            ];
+            // Обнуление персонала
             const staffRoles = ['Zav', 'Prov', 'Sbor', 'Gruz', 'Tovar', 'Ubor', 'Vod', 'Exp'];
-            staffRoles.forEach((role, i) => {
-                document.getElementById('staff' + role + 'Count').value = staffDefaults[i].count;
-                document.getElementById('staff' + role + 'Salary').value = staffDefaults[i].salary;
+            staffRoles.forEach(role => {
+                document.getElementById('staff' + role + 'Count').value = 0;
+                document.getElementById('staff' + role + 'Salary').value = 0;
             });
             // Обновить отображение
             updateStaffDisplay();
