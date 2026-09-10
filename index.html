@@ -754,17 +754,37 @@
             calculate();
         }
         function initStaffListeners() {
-            // Основные слайдеры
+            // Основные слайдеры - синхронизируем с детализацией
             document.getElementById('revenue').addEventListener('input', function() {
-                params.revenue = parseFloat(this.value);
-                document.getElementById('valRevenue').textContent = fmt(params.revenue);
-                updateDisplay();
+                const val = parseFloat(this.value);
+                params.revenue = val;
+                // Синхронизируем детализацию (весь доход в склад)
+                params.revenueWarehouse = val;
+                params.revenueRetail = 0;
+                params.revenueEcom = 0;
+                document.getElementById('valRevenue').textContent = fmt(val);
+                document.getElementById('revenueWarehouse').value = val;
+                document.getElementById('valRevenueWarehouse').textContent = fmt(val);
+                document.getElementById('revenueRetail').value = 0;
+                document.getElementById('valRevenueRetail').textContent = fmt(0);
+                document.getElementById('revenueEcom').value = 0;
+                document.getElementById('valRevenueEcom').textContent = fmt(0);
                 calculate();
             });
             document.getElementById('margin').addEventListener('input', function() {
-                params.margin = parseFloat(this.value);
-                document.getElementById('valMargin').textContent = params.margin + '%';
-                updateDisplay();
+                const val = parseFloat(this.value);
+                params.margin = val;
+                // Синхронизируем наценку на все каналы
+                params.marginWarehouse = val;
+                params.marginRetail = val;
+                params.marginEcom = val;
+                document.getElementById('valMargin').textContent = val + '%';
+                document.getElementById('marginWarehouse').value = val;
+                document.getElementById('valMarginWarehouse').textContent = val + '%';
+                document.getElementById('marginRetail').value = val;
+                document.getElementById('valMarginRetail').textContent = val + '%';
+                document.getElementById('marginEcom').value = val;
+                document.getElementById('valMarginEcom').textContent = val + '%';
                 calculate();
             });
             
@@ -798,6 +818,9 @@
                 ecomShareEl.addEventListener('input', handleEcomShareChange);
                 ecomShareEl.addEventListener('change', handleEcomShareChange);
             }
+            
+            // Инициализация при загрузке
+            updateRevenueDetail();
         }
         function updateSliderFillById(id) {
             const s = document.getElementById(id);
