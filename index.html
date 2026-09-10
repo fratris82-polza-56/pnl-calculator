@@ -597,6 +597,8 @@
             document.getElementById('valVendorBonus').textContent = fmt(params.vendorBonus);
             document.getElementById('valDepreciation').textContent = fmt(params.depreciation);
             document.getElementById('valProject').textContent = fmt(params.project);
+            // Обновляем заполнение всех слайдеров
+            document.querySelectorAll('input[type="range"]').forEach(s => updateSliderFillCustom(s));
             updateStaffDisplay();
         }
         function adjustStaff(role, field, delta) {
@@ -640,6 +642,7 @@
             params.salary = totalSalary;
             document.getElementById('salary').value = totalSalary;
             document.getElementById('valSalary').textContent = fmt(totalSalary);
+            updateSliderFillCustom(document.getElementById('salary'));
             calculate();
         }
         function initStaffListeners() {
@@ -725,6 +728,10 @@
             // Обновляем основные слайдеры
             document.getElementById('revenue').value = totalRev;
             document.getElementById('margin').value = avgMargin;
+            
+            // Обновляем заполнение дорожки
+            updateSliderFillCustom(document.getElementById('revenue'));
+            updateSliderFillCustom(document.getElementById('margin'));
             document.getElementById('valRevenue').textContent = fmt(totalRev);
             document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
@@ -770,6 +777,7 @@
             
             // Синхронизируем слайдер
             document.getElementById('ecomShare').value = share;
+            updateSliderFillCustom(document.getElementById('ecomShare'));
         }
         function drawRevenuePieChart() {
             const canvas = document.getElementById('revenuePieChart');
@@ -1161,15 +1169,20 @@
             updateStaffDisplay();
             calculate();
         }
+        // Глобальная функция обновления заполнения дорожки
+        function updateSliderFillCustom(slider) {
+            const min = parseFloat(slider.min) || 0;
+            const max = parseFloat(slider.max) || 100;
+            const val = parseFloat(slider.value);
+            const percent = ((val - min) / (max - min)) * 100;
+            slider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
+        }
+        
         document.querySelectorAll('input[type="range"]').forEach(s => {
             let isUpdatingFromDetail = false;
             // Обновление заполнения дорожки
             const updateSliderFill = () => {
-                const min = parseFloat(s.min) || 0;
-                const max = parseFloat(s.max) || 100;
-                const val = parseFloat(s.value);
-                const percent = ((val - min) / (max - min)) * 100;
-                s.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
+                updateSliderFillCustom(s);
             };
             updateSliderFill();
             s.addEventListener('input', function() {
