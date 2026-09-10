@@ -1266,7 +1266,7 @@
                 document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
                 document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
                 document.getElementById('revenue').value = totalRev;
-                document.getElementById('margin').value = avgMargin;
+                document.getElementById('margin').value = Math.round(avgMargin);
                 document.getElementById('valRevenue').textContent = fmt(totalRev);
                 document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
                 // Обновляем заливку слайдеров ИТОГО
