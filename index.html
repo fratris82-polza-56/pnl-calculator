@@ -1269,7 +1269,12 @@
                 document.getElementById('margin').value = Math.round(avgMargin);
                 document.getElementById('valRevenue').textContent = fmt(totalRev);
                 document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
-                // Обновляем заливку слайдеров ИТОГО
+                // Обновляем слайдеры ИТОГО
+                const revSlider = document.getElementById('revenue');
+                const margSlider = document.getElementById('margin');
+                revSlider.value = totalRev;
+                margSlider.value = Math.round(avgMargin);
+                // Обновляем заливку
                 setTimeout(function() {
                     updateSliderFillById('revenue');
                     updateSliderFillById('margin');
