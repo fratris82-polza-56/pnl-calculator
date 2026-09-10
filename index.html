@@ -624,44 +624,8 @@
         
         let isLocked = false;
         
-        // Загрузка сохранённых данных при старте
-        function loadSavedParams() {
-            // Очищаем старые данные при каждом обновлении
-            localStorage.removeItem('pnl_saved');
-            const saved = localStorage.getItem('pnl_saved');
-            if (saved) {
-                try {
-                    const savedParams = JSON.parse(saved);
-                    Object.keys(savedParams).forEach(key => {
-                        if (params.hasOwnProperty(key)) {
-                            params[key] = savedParams[key];
-                        }
-                    });
-                    // Применяем к слайдерам
-                    document.getElementById('revenue').value = params.revenue || 0;
-                    document.getElementById('margin').value = params.margin || 0;
-                    document.getElementById('revenueWarehouse').value = params.revenueWarehouse || 0;
-                    document.getElementById('marginWarehouse').value = params.marginWarehouse || 0;
-                    document.getElementById('revenueRetail').value = params.revenueRetail || 0;
-                    document.getElementById('marginRetail').value = params.marginRetail || 0;
-                    document.getElementById('revenueEcom').value = params.revenueEcom || 0;
-                    document.getElementById('marginEcom').value = params.marginEcom || 0;
-                    
-                    // Блокируем панель
-                    isLocked = true;
-                    const btn = document.getElementById('lockBtn');
-                    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Заблокировано';
-                    btn.style.background = '#5383c7';
-                    const inputs = document.querySelectorAll('#paramsPanel input');
-                    inputs.forEach(input => input.disabled = true);
-                    
-                    console.log('Загружены сохранённые данные');
-                } catch(e) { console.error('Ошибка загрузки:', e); }
-            }
-        }
-        
         function saveParams() {
-            localStorage.setItem('pnl_saved', JSON.stringify(params));
+            // Функция сохранения (пока не используется)
         }
         
         function toggleLock() {
