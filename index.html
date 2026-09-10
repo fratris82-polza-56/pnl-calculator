@@ -8,6 +8,38 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Montserrat', -apple-system, sans-serif; background: linear-gradient(135deg, #e0e9f7); min-height: 100vh; padding: 10px; color: #161e25; }
+        /* PDF export - мобильная компоновка */
+        body.pdf-export { padding: 6px; }
+        body.pdf-export .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 4px; margin-bottom: 8px; }
+        body.pdf-export .kpi-card { padding: 6px; border-radius: 6px; }
+        body.pdf-export .kpi-card .value { font-size: 0.75rem; }
+        body.pdf-export .kpi-card .label { font-size: 0.5rem; }
+        body.pdf-export .main-grid { gap: 6px; }
+        body.pdf-export .panel { padding: 8px; border-radius: 10px; }
+        body.pdf-export .panel h2 { font-size: 0.8rem; margin-bottom: 8px; }
+        body.pdf-export .param { margin-bottom: 6px; }
+        body.pdf-export .param-header { margin-bottom: 3px; }
+        body.pdf-export .param-label { font-size: 0.55rem; }
+        body.pdf-export .param-value { font-size: 0.65rem; }
+        body.pdf-export .results-table { font-size: 0.55rem; }
+        body.pdf-export .bar-track { height: 10px; }
+        body.pdf-export .scenarios { gap: 4px; margin-top: 6px; }
+        body.pdf-export .scenario-btn { padding: 6px; }
+        body.pdf-export .scenario-btn .title { font-size: 0.65rem; }
+        body.pdf-export .scenario-btn .profit { font-size: 0.8rem; }
+        body.pdf-export .section-title { font-size: 0.5rem; }
+        body.pdf-export .staff-row { display: flex; align-items: center; gap: 0; margin-bottom: 3px; padding: 3px; font-size: 0.55rem; }
+        body.pdf-export .staff-row span:first-child { width: 55px; font-size: 0.6rem; flex-shrink: 0; text-align: left; }
+        body.pdf-export .staff-arrow, body.pdf-export .staff-count, body.pdf-export .staff-salary { flex-shrink: 0; }
+        body.pdf-export .staff-row .staff-arrow { margin: 0 1px; }
+        body.pdf-export .staff-row input + .staff-arrow { margin-left: 1px; }
+        body.pdf-export .staff-row .staff-count + .staff-arrow { margin-left: 4px; }
+        body.pdf-export .staff-row .staff-total { flex-shrink: 0; }
+        body.pdf-export .staff-row .staff-net { flex-shrink: 0; font-size: 0.5rem; font-weight: 600; margin-left: 4px; }
+        body.pdf-export header { margin-bottom: 8px; }
+        body.pdf-export header h1 { font-size: 1rem; }
+        body.pdf-export .quick-btns { gap: 3px; margin-top: 3px; }
+        body.pdf-export .quick-btn { padding: 2px 5px; font-size: 0.5rem; }
         .container { max-width: 1400px; margin: 0 auto; }
         .sticky-header { position: static; top: 0; z-index: 100; background: #e0e9f7; padding: 10px 15px 5px; margin: 0 -15px; }
         .sticky-header.pinned { position: sticky; }
@@ -506,16 +538,20 @@
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
 
         function exportToPdf() {
+            // Добавляем класс mobile-view для компактной компоновки
+            document.body.classList.add('pdf-export');
             const element = document.querySelector('.container');
             const opt = {
                 margin: [5, 5, 5, 5],
                 filename: 'pnl-calculator.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 1.2, useCORS: true, windowWidth: 1200 },
+                html2canvas: { scale: 2, useCORS: true, windowWidth: 480 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.classList.remove('pdf-export');
+            });
         }
 
         function setSlider(id, v) {
