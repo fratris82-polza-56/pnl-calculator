@@ -115,7 +115,7 @@
         .staff-total { width: 90px; text-align: center; font-weight: 700; color: #fff; font-size: 0.9rem; flex-shrink: 0; }
         .staff-summary { margin-top: 8px; padding: 8px; background: #fff; border-radius: 6px; text-align: right; font-weight: 600; font-size: 0.8rem; }
         .pie-chart-container { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
-        #revenuePieChart { width: 225px !important; height: 225px !important; }
+        #revenuePieChart { width: 320px !important; height: 320px !important; }
         .pie-legend { font-size: 0.7rem; color: #1a3a5c; }
         .share-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 6px; }
         
@@ -428,9 +428,9 @@
                 <div class="param"><div class="param-header"><span class="param-label">Выручка ECOM</span><span class="param-value" id="valRevenueEcom">0</span></div><input type="range" id="revenueEcom" min="0" max="500000000" step="10000" value="0"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Наценка ECOM (%)</span><span class="param-value" id="valMarginEcom">0%</span></div><input type="range" id="marginEcom" min="0" max="100" step="0.01" value="0"></div>
                 <div class="staff-summary">Итого: <span id="totalRevenueDetail">0 ₽</span> | Средняя наценка: <span id="avgMarginDetail">0%</span></div>
-                <div class="param" style="margin-top:15px;"><div class="param-header"><span class="param-label"><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10" fill="none" stroke="#5383c7" stroke-width="2"/><path d="M12 2v20" stroke="#6dc47b" stroke-width="2"/><path d="M12 2a10 10 0 0 1 0 20" fill="#6dc47b" opacity="0.3"/></svg>Доля ECOM / Розница</span><span class="param-value" id="valEcomShare">0% ECOM</span></div><input type="range" id="ecomShare" min="0" max="100" step="1" value="0"></div>
+                
                 <div class="pie-chart-container">
-                    <canvas id="revenuePieChart" width="225" height="225" style="flex-shrink:0;"></canvas>
+                    <canvas id="revenuePieChart" width="320" height="320" style="flex-shrink:0;"></canvas>
                     <div class="pie-legend" style="font-size:0.85rem;text-align:left;">
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="width:12px;height:12px;background:#5383c7;border-radius:2px;"></span>Склад: <span id="pieWarehouse">0</span> (<span id="pieWarehousePct">0%</span>)</div>
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="width:12px;height:12px;background:#6dc47b;border-radius:2px;"></span>Розница: <span id="pieRetail">0</span> (<span id="pieRetailPct">0%</span>)</div>
