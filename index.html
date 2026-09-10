@@ -538,32 +538,34 @@
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
 
         function exportToPdf() {
-            document.body.classList.add('pdf-export');
+            // Пробуем другой подход - используем jsPDF напрямую
             const element = document.querySelector('.container');
             
-            // Сохраняем оригинальную ширину
-            const originalWidth = element.style.maxWidth;
-            
-            // Устанавливаем мобильную ширину для экспорта
-            element.style.maxWidth = '480px';
-            element.style.width = '480px';
-            
-            const opt = {
-                margin: [5, 5, 5, 5],
-                filename: 'pnl-calculator.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-            
-            setTimeout(() => {
-                html2pdf().set(opt).from(element).save().then(() => {
-                    document.body.classList.remove('pdf-export');
-                    element.style.maxWidth = originalWidth;
-                    element.style.width = '';
-                });
-            }, 100);
+            html2canvas(element, { scale: 1, useCORS: true }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                const imgWidth = 190; // A4 ширина в mm минус поля
+                const pageHeight = 277; // A4 высота в mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                // Масштабируем чтобы влезло
+                let heightLeft = imgHeight;
+                let position = 10;
+                
+                pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+                heightLeft -= (pageHeight - 20);
+                
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight + 10;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= (pageHeight - 20);
+                }
+                
+                pdf.save('pnl-calculator.pdf');
+            });
         }
 
         function setSlider(id, v) {
