@@ -1105,6 +1105,14 @@
             // Обновить отображение
             updateStaffDisplay();
             updateRevenueDetail();
+            // Обновляем заполнение всех дорожек
+            document.querySelectorAll('input[type="range"]').forEach(slider => {
+                const min = parseFloat(slider.min) || 0;
+                const max = parseFloat(slider.max) || 100;
+                const val = parseFloat(slider.value);
+                const percent = ((val - min) / (max - min)) * 100;
+                slider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
+            });
             calculate();
             updateScenarios();
         }
@@ -1166,6 +1174,14 @@
                 }
             });
             updateStaffDisplay();
+            // Обновляем заполнение всех дорожек
+            document.querySelectorAll('input[type="range"]').forEach(slider => {
+                const min = parseFloat(slider.min) || 0;
+                const max = parseFloat(slider.max) || 100;
+                const val = parseFloat(slider.value);
+                const percent = ((val - min) / (max - min)) * 100;
+                slider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
+            });
             calculate();
         }
         document.querySelectorAll('input[type="range"]').forEach(s => {
