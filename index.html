@@ -1241,6 +1241,8 @@
                 }
                 
                 // Обновляем отображение детализации
+                document.getElementById('valRevenue').textContent = fmt(params.revenue);
+                document.getElementById('valMargin').textContent = params.margin + '%';
                 document.getElementById('valRevenueWarehouse').textContent = fmt(params.revenueWarehouse);
                 document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse + '%';
                 document.getElementById('valRevenueRetail').textContent = fmt(params.revenueRetail);
