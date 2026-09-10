@@ -712,6 +712,16 @@
                 ecomShareEl.addEventListener('change', handleEcomShareChange);
             }
         }
+        function updateSliderFillById(id) {
+            const s = document.getElementById(id);
+            if (s) {
+                const min = parseFloat(s.min) || 0;
+                const max = parseFloat(s.max) || 100;
+                const val = parseFloat(s.value);
+                const percent = ((val - min) / (max - min)) * 100;
+                s.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
+            }
+        }
         function updateRevenueDetail() {
             let isUpdatingRevenue = false;
             let activeRevenueInput = null;
@@ -1259,6 +1269,9 @@
                 document.getElementById('margin').value = avgMargin;
                 document.getElementById('valRevenue').textContent = fmt(totalRev);
                 document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
+                // Обновляем заливку слайдеров ИТОГО
+                updateSliderFillById('revenue');
+                updateSliderFillById('margin');
                 
                 // Обновляем круговую диаграмму
                 drawRevenuePieChart();
