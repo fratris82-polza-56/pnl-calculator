@@ -405,7 +405,7 @@
         <div class="kpi-row">
             <div class="kpi-card revenue"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="value" id="kpiRevenue">60 млн ₽</div><div class="label">Годовая выручка</div><div class="sub-value" id="kpiRevenueM">5 млн ₽/мес</div></div>
             <div class="kpi-card margin"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f78d37" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="value" id="kpiMargin">10.7 млн ₽</div><div class="label">Валовая прибыль</div><div class="sub-value" id="kpiMarginM">892 тыс ₽/мес</div></div>
-            <div class="kpi-card loss" id="kpiProfitCard"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ee6242" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div class="value" id="kpiProfit">-1.3 млн ₽</div><div class="label">Валовая прибыль</div><div class="sub-value" id="kpiProfitM">-112 тыс ₽/мес</div></div>
+            <div class="kpi-card loss" id="kpiProfitCard"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ee6242" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div class="value" id="kpiProfit">-1.3 млн ₽</div><div class="label">Операционная прибыль</div><div class="sub-value" id="kpiProfitM">-112 тыс ₽/мес</div></div>
             <div class="kpi-card" id="kpiNetProfitCard"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6dc47b" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg></div><div class="value" id="kpiNetProfit">—</div><div class="label">Чистая прибыль</div><div class="sub-value" id="kpiNetProfitM">—/мес</div></div>
             <div class="kpi-card" id="kpiRoiCard"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="value" id="kpiRoi">—</div><div class="label">Срок окупаемости</div><div class="sub-value sub-gray" id="kpiRoiM">—/мес</div></div>
         </div></div>
@@ -518,7 +518,7 @@
                     <tr><td>Бонусы от поставщиков</td><td id="tblVendorBonusM" style="color:#6dc47b">0 ₽</td><td id="tblVendorBonusY" style="color:#6dc47b">0 ₽</td></tr>
                     <tr><td>Проектные</td><td id="tblProjectM">0 ₽</td><td id="tblProjectY">0 ₽</td></tr>
                     <tr><td><strong>Расходы</strong></td><td id="tblExpM"><strong>1 005 тыс ₽</strong></td><td id="tblExpY"><strong>12.06 млн ₽</strong></td></tr>
-                    <tr id="tblProfitRow"><td><strong>Валовая прибыль</strong></td><td id="tblProfitM"><strong class="loss">-112 тыс ₽</strong></td><td id="tblProfitY"><strong class="loss">-1.34 млн ₽</strong></td></tr>
+                    <tr id="tblProfitRow"><td><strong>Операционная прибыль</strong></td><td id="tblProfitM"><strong class="loss">-112 тыс ₽</strong></td><td id="tblProfitY"><strong class="loss">-1.34 млн ₽</strong></td></tr>
                     <tr id="tblNetProfitRow"><td><strong>Чистая прибыль</strong></td><td id="tblNetProfitM"><strong class="loss">-112 тыс ₽</strong></td><td id="tblNetProfitY"><strong class="loss">-1.34 млн ₽</strong></td></tr>
                 </table>
                 <div class="scenarios">
@@ -905,7 +905,7 @@
             document.getElementById('kpiNetProfitM').textContent = fmtS(netProfit) + '/мес';
             document.getElementById('kpiNetProfitCard').className = 'kpi-card ' + (netProfitYear >= 0 ? 'profit' : 'loss');
             
-            // EBITDA = Валовая прибыль + Амортизация
+            // EBITDA = Операционная прибыль + Амортизация
             // (скрыто, используется для расчётов)
             const ebitda = opProfit + (params.depreciation || 0);
 
