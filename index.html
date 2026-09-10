@@ -533,13 +533,6 @@
                 </div>
                 <div class="breakeven-section">
                     <div class="section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg> Окупаемость по средней наценке</div>
-                    <div class="param">
-                        <div class="param-header">
-                            <span class="param-label">Доля ECOM в выручке</span>
-                            <span class="param-value" id="valBreakevenEcom">0%</span>
-                        </div>
-                        <input type="range" id="breakevenEcom" min="0" max="100" step="1" value="0" oninput="calculate()">
-                    </div>
                     <div class="breakeven-result">
                         <div class="breakeven-row">
                             <span>Доля Розница:</span>
@@ -578,8 +571,10 @@
         const MARGIN_ECOM = MARKUP_ECOM / (1 + MARKUP_ECOM/100);
 
         function calcBreakeven() {
-            const ecomShare = parseFloat(document.getElementById('breakevenEcom').value);
-            const retailShare = 100 - ecomShare;
+            // Берём доли из фактических данных
+            const totalRevenue = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
+            const ecomShare = totalRevenue > 0 ? (params.revenueEcom / totalRevenue) * 100 : 0;
+            const retailShare = totalRevenue > 0 ? (params.revenueRetail / totalRevenue) * 100 : 0;
             
             // Средняя маржа
             const avgMargin = (retailShare/100 * MARGIN_RETAIL) + (ecomShare/100 * MARGIN_ECOM);
@@ -588,20 +583,20 @@
             
             // Если маржа = 0, сбрасываем значения на 0
             if (avgMargin <= 0 || avgMarkup <= 0) {
-                document.getElementById('valBreakevenEcom').textContent = ecomShare + '% ECOM';
-                document.getElementById('beRetailShare').textContent = retailShare + '%';
+                document.getElementById('valBreakevenEcom').textContent = Math.round(ecomShare) + '% ECOM';
+                document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
                 document.getElementById('beAvgMarkup').textContent = '0%';
                 document.getElementById('beRevenue').textContent = '0 млн ₽/год';
                 document.getElementById('beRevenueM').textContent = '0 млн ₽';
                 return;
             }
             
-            // Выручка для окупаемости = расходы / маржа
+            // Выручка для окупаемости = расходы / маржу
             const breakevenRevenue = currentExpensesYear / avgMargin;
             
             // Обновляем UI
-            document.getElementById('valBreakevenEcom').textContent = ecomShare + '% ECOM';
-            document.getElementById('beRetailShare').textContent = retailShare + '%';
+            document.getElementById('valBreakevenEcom').textContent = Math.round(ecomShare) + '% ECOM';
+            document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
             document.getElementById('beAvgMarkup').textContent = avgMarkup.toFixed(1) + '%';
             document.getElementById('beRevenue').textContent = (breakevenRevenue/1000000).toFixed(1) + ' млн ₽/год';
             document.getElementById('beRevenueM').textContent = (breakevenRevenue/12/1000000).toFixed(2) + ' млн ₽';
