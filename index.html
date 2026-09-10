@@ -1250,11 +1250,15 @@
                 document.getElementById('valRevenueEcom').textContent = fmt(params.revenueEcom);
                 document.getElementById('valMarginEcom').textContent = params.marginEcom + '%';
                 
-                // Обновляем итоговую строку
+                // Обновляем итоговую строку и слайдеры ИТОГО
                 const totalRev = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
                 const avgMargin = totalRev > 0 ? ((params.revenueWarehouse * params.marginWarehouse) + (params.revenueRetail * params.marginRetail) + (params.revenueEcom * params.marginEcom)) / totalRev : 0;
                 document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
                 document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
+                document.getElementById('revenue').value = totalRev;
+                document.getElementById('margin').value = avgMargin;
+                document.getElementById('valRevenue').textContent = fmt(totalRev);
+                document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
                 
                 // Обновляем круговую диаграмму
                 drawRevenuePieChart();
