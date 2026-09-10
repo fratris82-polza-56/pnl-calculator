@@ -51,7 +51,7 @@
         .pin-btn.unpinned { background: #6dc47b; }
         .pin-btn.unpinned:hover { background: #5ab368; }
         header { text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 1.4rem; color: #5383c7; }
+        header h1 { font-size: 1.4rem; color: #5383c7; display: flex; align-items: center; justify-content: center; gap: 8px; }
         header p { color: #969ba0; margin-top: 8px; font-size: 0.8rem; }
         .kpi-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
         .kpi-card { background: #fff; border-radius: 12px; padding: 12px; text-align: center; border: 1px solid #eff2f7; }
@@ -171,10 +171,18 @@
             #revenuePieChart { width: 200px !important; height: 200px !important; }
             .pie-legend { font-size: 0.65rem !important; color: #1a3a5c; }
             .sticky-header { margin: 0 -6px; padding: 8px 6px 4px; }
-            .header-row { flex-direction: column; align-items: stretch; gap: 8px; }
-            .header-row > div { flex-wrap: wrap; justify-content: center; }
-            .header-row .pin-btn { padding: 8px 10px; }
+            .header-row { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 6px; }
+            .header-row header { flex: 1; min-width: 0; margin-bottom: 0; text-align: left; }
+            .header-row h1 { font-size: 0.8rem; gap: 6px; white-space: nowrap; justify-content: flex-start; }
+            .header-row h1 svg { width: 20px; height: 20px; flex-shrink: 0; }
+            .header-row > div { flex-shrink: 0; gap: 3px; }
+            .header-row .pin-btn { padding: 5px 7px; font-size: 0.65rem; white-space: nowrap; }
+            .header-row .pin-btn svg { width: 12px; height: 12px; }
             .panel { overflow-x: auto; }
+        }
+        @media (max-width: 380px) {
+            .header-row h1 { font-size: 0.72rem; }
+            .header-row .pin-btn { padding: 4px 5px; }
         }
         
         /* Desktop styles */
