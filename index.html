@@ -640,7 +640,13 @@
             params.salary = totalSalary;
             document.getElementById('salary').value = totalSalary;
             document.getElementById('valSalary').textContent = fmt(totalSalary);
-            updateSliderFillCustom(document.getElementById('salary'));
+            // Обновляем заполнение дорожки
+            const salarySlider = document.getElementById('salary');
+            const min = parseFloat(salarySlider.min) || 0;
+            const max = parseFloat(salarySlider.max) || 100;
+            const val = parseFloat(salarySlider.value);
+            const percent = ((val - min) / (max - min)) * 100;
+            salarySlider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
             calculate();
         }
         function initStaffListeners() {
