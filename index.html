@@ -561,14 +561,14 @@
         // Загрузка сохранённых данных при старте
         function loadSavedParams() {
             const saved = localStorage.getItem('pnl_saved');
-            if (saved) {
-                try {
-                    const savedParams = JSON.parse(saved);
-                    Object.keys(savedParams).forEach(key => {
-                        if (params.hasOwnProperty(key)) {
-                            params[key] = savedParams[key];
-                        }
-                    });
+            if (!saved) return false;
+            try {
+                const savedParams = JSON.parse(saved);
+                Object.keys(savedParams).forEach(key => {
+                    if (params.hasOwnProperty(key)) {
+                        params[key] = savedParams[key];
+                    }
+                });
                     // Применяем к слайдерам
                     document.getElementById('revenue').value = params.revenue || 0;
                     document.getElementById('margin').value = params.margin || 0;
@@ -587,9 +587,15 @@
                     const inputs = document.querySelectorAll('#paramsPanel input');
                     inputs.forEach(input => input.disabled = true);
                     
+                    // Обновляем отображение после загрузки
+                    updateRevenueDetail();
+                    updateDisplay();
+                    calculate();
                     console.log('Загружены сохранённые данные');
+                    return true;
                 } catch(e) { console.error('Ошибка загрузки:', e); }
             }
+            return false;
         }
         
         function saveParams() {
@@ -1317,12 +1323,15 @@
             });
         });
         // Пробуем загрузить сохранённые данные
-        loadSavedParams();
+        const hasLoaded = loadSavedParams();
         
-        updateDisplay();
+        if (!hasLoaded) {
+            updateDisplay();
+        }
         calculate();
         drawRevenuePieChart();
         initStaffListeners();
+        updateSliderFill();
         
 
     </script>
