@@ -1021,6 +1021,37 @@
                 const el = document.getElementById(key);
                 if (el) el.value = defaults[key];
             });
+            // Обновить отображение значений
+            document.getElementById('valRevenue').textContent = fmt(params.revenue);
+            document.getElementById('valMargin').textContent = params.margin + '%';
+            document.getElementById('valRevenueWarehouse').textContent = fmt(params.revenueWarehouse);
+            document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse + '%';
+            document.getElementById('valRevenueRetail').textContent = fmt(params.revenueRetail);
+            document.getElementById('valMarginRetail').textContent = params.marginRetail + '%';
+            document.getElementById('valRevenueEcom').textContent = fmt(params.revenueEcom);
+            document.getElementById('valMarginEcom').textContent = params.marginEcom + '%';
+            document.getElementById('valRent').textContent = fmt(params.rent);
+            document.getElementById('valSalary').textContent = fmt(params.salary);
+            document.getElementById('valSocial').textContent = params.social + '%';
+            document.getElementById('valLogistics').textContent = params.logistics + '%';
+            document.getElementById('valUtilities').textContent = fmt(params.utilities);
+            document.getElementById('valSecurity').textContent = fmt(params.security);
+            document.getElementById('valSupplies').textContent = fmt(params.supplies);
+            document.getElementById('valMarketing').textContent = fmt(params.marketing);
+            document.getElementById('valOther').textContent = fmt(params.other);
+            document.getElementById('valCommunication').textContent = fmt(params.communication);
+            document.getElementById('valSoftware').textContent = fmt(params.software);
+            document.getElementById('valAcquiring').textContent = params.acquiring + '%';
+            document.getElementById('valAcquiringShare').textContent = params.acquiringShare + '%';
+            document.getElementById('valInsurance').textContent = fmt(params.insurance);
+            document.getElementById('valAccounting').textContent = fmt(params.accounting);
+            document.getElementById('valTraining').textContent = fmt(params.training);
+            document.getElementById('valSpoilage').textContent = params.spoilage + '%';
+            document.getElementById('valVendorBonus').textContent = fmt(params.vendorBonus);
+            document.getElementById('valDepreciation').textContent = fmt(params.depreciation);
+            document.getElementById('valProject').textContent = fmt(params.project);
+            document.getElementById('valTax').textContent = params.tax + '%';
+            document.getElementById('valProfitTax').textContent = params.profitTax + '%';
             // Сброс персонала
             const staffDefaults = [
                 {count: 1, salary: 80000}, {count: 2, salary: 60000}, {count: 2, salary: 40000},
@@ -1035,7 +1066,6 @@
             // Обновить отображение
             updateStaffDisplay();
             updateRevenueDetail();
-            document.querySelectorAll('.param-value').forEach(el => el.dispatchEvent(new Event('input')));
             calculate();
         }
         function toggleLock() {
