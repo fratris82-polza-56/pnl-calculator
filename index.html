@@ -723,8 +723,6 @@
             }
         }
         function updateRevenueDetail() {
-            let isUpdatingRevenue = false;
-            let activeRevenueInput = null;
             const revWarehouse = parseFloat(document.getElementById('revenueWarehouse').value) || 0;
             let revRetail = parseFloat(document.getElementById('revenueRetail').value) || 0;
             let revEcom = parseFloat(document.getElementById('revenueEcom').value) || 0;
@@ -1299,25 +1297,7 @@
         drawRevenuePieChart();
         initStaffListeners();
         
-        // Регистрируем обработчики для детализации выручки
-        setTimeout(function() {
-            console.log('Setting up revenue input listeners');
-            const revenueInputs = ['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'];
-            revenueInputs.forEach(function(id) {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.addEventListener('input', function() {
-                        console.log('input event on', id);
-                        updateRevenueDetail();
-                    });
-                    el.addEventListener('change', function() {
-                        updateRevenueDetail();
-                    });
-                }
-            });
-            // Синхронизируем при загрузке
-            updateRevenueDetail();
-        }, 200);
+
     </script>
 </body>
 </html>
