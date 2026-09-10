@@ -723,62 +723,45 @@
             }
         }
         function updateRevenueDetail() {
-            const revWarehouse = parseFloat(document.getElementById('revenueWarehouse').value) || 0;
-            let revRetail = parseFloat(document.getElementById('revenueRetail').value) || 0;
-            let revEcom = parseFloat(document.getElementById('revenueEcom').value) || 0;
-            const margWarehouse = parseFloat(document.getElementById('marginWarehouse').value) || 0;
-            const margRetail = parseFloat(document.getElementById('marginRetail').value) || 0;
-            const margEcom = parseFloat(document.getElementById('marginEcom').value) || 0;
+            // Читаем значения напрямую из слайдеров
+            const w = parseFloat(document.getElementById('revenueWarehouse').value) || 0;
+            const r = parseFloat(document.getElementById('revenueRetail').value) || 0;
+            const e = parseFloat(document.getElementById('revenueEcom').value) || 0;
+            const mw = parseFloat(document.getElementById('marginWarehouse').value) || 0;
+            const mr = parseFloat(document.getElementById('marginRetail').value) || 0;
+            const me = parseFloat(document.getElementById('marginEcom').value) || 0;
             
-            // Пропорциональное перераспределение между ECOM и розницей
-            if (!isUpdatingRevenue) {
-                isUpdatingRevenue = true;
-                const totalRetailEcom = revRetail + revEcom;
-                if (activeRevenueInput === 'revenueEcom' && totalRetailEcom > 0) {
-                    const oldEcom = params.revenueEcom || 0;
-                    const diff = revEcom - oldEcom;
-                    revRetail = Math.max(0, revRetail - diff);
-                    document.getElementById('revenueRetail').value = revRetail;
-                } else if (activeRevenueInput === 'revenueRetail' && totalRetailEcom > 0) {
-                    const oldRetail = params.revenueRetail || 0;
-                    const diff = revRetail - oldRetail;
-                    revEcom = Math.max(0, revEcom - diff);
-                    document.getElementById('revenueEcom').value = revEcom;
-                }
-                activeRevenueInput = null;
-                isUpdatingRevenue = false;
-            }
+            // Складываем
+            const total = w + r + e;
+            const avgMargin = total > 0 ? ((w * mw) + (r * mr) + (e * me)) / total : 0;
             
-            const totalRev = revWarehouse + revRetail + revEcom;
-            const avgMargin = totalRev > 0 ? ((revWarehouse * margWarehouse) + (revRetail * margRetail) + (revEcom * margEcom)) / totalRev : 0;
+            // Обновляем ИТОГО
+            document.getElementById('revenue').value = total;
+            document.getElementById('margin').value = Math.round(avgMargin);
+            document.getElementById('valRevenue').textContent = fmt(total);
+            document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
             
-            // Обновляем визуализацию долей
-            updateEcomShareDisplay(revRetail, revEcom);
+            // Обновляем детализацию (текст)
+            document.getElementById('valRevenueWarehouse').textContent = fmt(w);
+            document.getElementById('valRevenueRetail').textContent = fmt(r);
+            document.getElementById('valRevenueEcom').textContent = fmt(e);
+            document.getElementById('valMarginWarehouse').textContent = mw + '%';
+            document.getElementById('valMarginRetail').textContent = mr + '%';
+            document.getElementById('valMarginEcom').textContent = me + '%';
             
-            document.getElementById('totalRevenueDetail').textContent = fmt(totalRev) + ' ₽';
+            // Обновляем сводку
+            document.getElementById('totalRevenueDetail').textContent = fmt(total) + ' ₽';
             document.getElementById('avgMarginDetail').textContent = avgMargin.toFixed(1) + '%';
             
-            // Обновляем параметры
-            params.revenue = totalRev;
+            // Сохраняем в params
+            params.revenue = total;
             params.margin = avgMargin;
-            params.revenueWarehouse = revWarehouse;
-            params.marginWarehouse = margWarehouse;
-            params.revenueRetail = revRetail;
-            params.marginRetail = margRetail;
-            params.revenueEcom = revEcom;
-            params.marginEcom = margEcom;
-            
-            // Обновляем основные слайдеры
-            document.getElementById('revenue').value = totalRev;
-            document.getElementById('margin').value = Math.round(avgMargin);
-            document.getElementById('valRevenue').textContent = fmt(totalRev);
-            document.getElementById('valMargin').textContent = avgMargin.toFixed(1) + '%';
-            document.getElementById('valRevenueWarehouse').textContent = fmt(revWarehouse);
-            document.getElementById('valMarginWarehouse').textContent = margWarehouse + '%';
-            document.getElementById('valRevenueRetail').textContent = fmt(revRetail);
-            document.getElementById('valMarginRetail').textContent = margRetail + '%';
-            document.getElementById('valRevenueEcom').textContent = fmt(revEcom);
-            document.getElementById('valMarginEcom').textContent = margEcom + '%';
+            params.revenueWarehouse = w;
+            params.marginWarehouse = mw;
+            params.revenueRetail = r;
+            params.marginRetail = mr;
+            params.revenueEcom = e;
+            params.marginEcom = me;
             
             drawRevenuePieChart();
             calculate();
