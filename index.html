@@ -423,6 +423,7 @@
                 <div class="param"><div class="param-header"><span class="param-label">ПО и автоматизация</span><span class="param-value" id="valSoftware">10 000</span></div><input type="range" id="software" min="0" max="1000000" step="5000" value="10000"></div>
                 <div class="section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Эквайринг и страхование</div>
                 <div class="param"><div class="param-header"><span class="param-label">Эквайринг (% от выручки)</span><span class="param-value" id="valAcquiring">1.5%</span></div><input type="range" id="acquiring" min="0" max="5" step="0.01" value="1.5"></div>
+                <div class="param"><div class="param-header"><span class="param-label">Доля эквайринга (%)</span><span class="param-value" id="valAcquiringShare">100%</span></div><input type="range" id="acquiringShare" min="0" max="50" step="0.01" value="100"></div>
                 <div class="param"><div class="param-header"><span class="param-label">Страхование</span><span class="param-value" id="valInsurance">8 000</span></div><input type="range" id="insurance" min="0" max="1000000" step="1000" value="8000"></div>
                 <div class="section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Услуги и персонал</div>
                 <div class="param"><div class="param-header"><span class="param-label">Бухгалтерия (аутсорс)</span><span class="param-value" id="valAccounting">15 000</span></div><input type="range" id="accounting" min="0" max="1000000" step="5000" value="15000"></div>
@@ -491,7 +492,7 @@
     </div>
     <script>
         const DEFAULT_INVESTMENT = 10000000;
-        let params = {revenue: 0, margin: 25, revenueWarehouse: 0, marginWarehouse: 15, revenueRetail: 0, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, tax: 20, profitTax: 20, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, other: 0, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, depreciation: 0, project: 0};
+        let params = {revenue: 0, margin: 25, revenueWarehouse: 0, marginWarehouse: 15, revenueRetail: 0, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, tax: 20, profitTax: 20, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, other: 0, communication: 5000, software: 10000, acquiring: 1.5, acquiringShare: 100, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0, depreciation: 0, project: 0};
 
         function fmt(n) { return n.toLocaleString('ru-RU'); }
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
@@ -580,6 +581,7 @@
             document.getElementById('valCommunication').textContent = fmt(params.communication);
             document.getElementById('valSoftware').textContent = fmt(params.software);
             document.getElementById('valAcquiring').textContent = params.acquiring + '%';
+            document.getElementById('valAcquiringShare').textContent = params.acquiringShare + '%';
             document.getElementById('valInsurance').textContent = fmt(params.insurance);
             document.getElementById('valAccounting').textContent = fmt(params.accounting);
             document.getElementById('valTraining').textContent = fmt(params.training);
@@ -841,7 +843,7 @@
             const grossProfit = grossProfitWarehouse + grossProfitRetail + grossProfitEcom;
             const logisticsCost = costOfGoods * params.logistics / 100;
             const spoilageCost = costOfGoods * params.spoilage / 100;
-            const acquiringCost = grossRevenue * params.acquiring / 100;
+            const acquiringCost = grossRevenue * params.acquiring / 100 * params.acquiringShare / 100;
             const vendorBonus = params.vendorBonus;
             const operatingExpenses = params.rent + params.salary + (params.salary * params.social / 100) + logisticsCost + params.utilities + params.security + params.supplies + params.marketing + params.other + params.communication + params.software + params.insurance + params.accounting + params.training + spoilageCost + acquiringCost + (params.project / 12) - vendorBonus + (params.depreciation || 0);
             const opProfit = grossProfit - operatingExpenses;
