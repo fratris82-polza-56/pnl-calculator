@@ -769,6 +769,7 @@
                 document.getElementById('valRevenueRetail').textContent = fmt(0);
                 document.getElementById('revenueEcom').value = 0;
                 document.getElementById('valRevenueEcom').textContent = fmt(0);
+                updateDisplay();
                 calculate();
             });
             document.getElementById('margin').addEventListener('input', function() {
@@ -785,6 +786,7 @@
                 document.getElementById('valMarginRetail').textContent = val + '%';
                 document.getElementById('marginEcom').value = val;
                 document.getElementById('valMarginEcom').textContent = val + '%';
+                updateDisplay();
                 calculate();
             });
             
@@ -874,6 +876,7 @@
             params.marginEcom = me;
             
             drawRevenuePieChart();
+            updateDisplay();
             calculate();
         }
         function handleEcomShareChange() {
@@ -1244,6 +1247,7 @@
             // Обновить отображение
             updateStaffDisplay();
             updateRevenueDetail();
+            updateDisplay();
             // Обновляем заполнение всех дорожек
             document.querySelectorAll('input[type="range"]').forEach(slider => {
                 const min = parseFloat(slider.min) || 0;
