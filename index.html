@@ -538,34 +538,50 @@
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
 
         function exportToPdf() {
-            // Пробуем другой подход - используем jsPDF напрямую
-            const element = document.querySelector('.container');
+            // Создаём iframe с мобильной шириной для рендеринга
+            const iframe = document.createElement('iframe');
+            iframe.style.width = '480px';
+            iframe.style.height = '1px';
+            iframe.style.position = 'absolute';
+            iframe.style.left = '-9999px';
+            iframe.style.top = '0';
+            iframe.style.border = 'none';
+            document.body.appendChild(iframe);
             
-            html2canvas(element, { scale: 1, useCORS: true }).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 0.98);
-                const imgWidth = 190; // A4 ширина в mm минус поля
-                const pageHeight = 277; // A4 высота в mm
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            
+            // Копируем HTML
+            iframeDoc.open();
+            iframeDoc.write(document.documentElement.outerHTML);
+            iframeDoc.close();
+            
+            // Ждём загрузки и применяем стили
+            iframe.onload = function() {
+                const iframeBody = iframeDoc.body;
+                iframeBody.classList.add('pdf-export');
+                iframeBody.style.padding = '6px';
                 
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                
-                // Масштабируем чтобы влезло
-                let heightLeft = imgHeight;
-                let position = 10;
-                
-                pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
-                heightLeft -= (pageHeight - 20);
-                
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight + 10;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'JPEG', 10, position, imgWidth, imgHeight);
-                    heightLeft -= (pageHeight - 20);
+                const container = iframeDoc.querySelector('.container');
+                if (container) {
+                    container.style.maxWidth = '480px';
+                    container.style.width = '100%';
                 }
                 
-                pdf.save('pnl-calculator.pdf');
-            });
+                // Рендерим
+                html2canvas(container, { scale: 1, useCORS: true }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/jpeg', 0.98);
+                    const imgWidth = 190;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    
+                    pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                    pdf.save('pnl-calculator.pdf');
+                    
+                    document.body.removeChild(iframe);
+                });
+            };
         }
 
         function setSlider(id, v) {
