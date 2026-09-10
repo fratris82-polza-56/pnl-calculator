@@ -583,7 +583,6 @@
             
             // Если маржа = 0, сбрасываем значения на 0
             if (avgMargin <= 0 || avgMarkup <= 0) {
-                document.getElementById('valBreakevenEcom').textContent = Math.round(ecomShare) + '% ECOM';
                 document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
                 document.getElementById('beAvgMarkup').textContent = '0%';
                 document.getElementById('beRevenue').textContent = '0 млн ₽/год';
@@ -595,7 +594,6 @@
             const breakevenRevenue = currentExpensesYear / avgMargin;
             
             // Обновляем UI
-            document.getElementById('valBreakevenEcom').textContent = Math.round(ecomShare) + '% ECOM';
             document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
             document.getElementById('beAvgMarkup').textContent = avgMarkup.toFixed(1) + '%';
             document.getElementById('beRevenue').textContent = (breakevenRevenue/1000000).toFixed(1) + ' млн ₽/год';
@@ -1420,8 +1418,11 @@
                     updateSliderFillById('margin');
                 }, 0);
                 
-                // Обновляем круговую диаграмму
+                // Обновляем круговую диаграмму и сводку детализации
                 drawRevenuePieChart();
+                if (typeof updateRevenueDetail === 'function') {
+                    updateRevenueDetail();
+                }
                 
                 updateSliderFill();
                 updateDisplay();
