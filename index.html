@@ -982,7 +982,7 @@
             const isZero = params.revenueWarehouse === 0 && params.revenueRetail === 0 && params.revenueEcom === 0;
             
             if (isZero) {
-                ['Pess', 'Base', 'Opt'].forEach(k => {
+                ['Pess', 'Base', 'Optim'].forEach(k => {
                     const el = document.getElementById('scen' + k);
                     if (el) el.textContent = '0 ₽';
                 });
@@ -993,12 +993,12 @@
             const multipliers = {
                 Pess: {rev: 0.6, margin: 0.8, rent: 1.2, salary: 1.15, cost: 1.15},  // -40% выручка, -20% маржа, +15-20% расходы
                 Base: {rev: 1, margin: 1, rent: 1, salary: 1, cost: 1},                 // текущие значения
-                Opt: {rev: 1.5, margin: 1.15, rent: 0.8, salary: 0.9, cost: 0.85}      // +50% выручка, +15% маржа, -15% расходы
+                Optim: {rev: 1.5, margin: 1.15, rent: 0.8, salary: 0.9, cost: 0.85}      // +50% выручка, +15% маржа, -15% расходы
             };
             
             const taxRate = 0.2;
             
-            ['Pess', 'Base', 'Opt'].forEach(k => {
+            ['Pess', 'Base', 'Optim'].forEach(k => {
                 const m = multipliers[k];
                 const revWarehouse = (params.revenueWarehouse * m.rev) / (1 + taxRate);
                 const costWarehouse = revWarehouse / (1 + (params.marginWarehouse * m.margin) / 100);
