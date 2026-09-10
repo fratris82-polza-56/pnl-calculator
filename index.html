@@ -754,6 +754,20 @@
             calculate();
         }
         function initStaffListeners() {
+            // Основные слайдеры
+            document.getElementById('revenue').addEventListener('input', function() {
+                params.revenue = parseFloat(this.value);
+                document.getElementById('valRevenue').textContent = fmt(params.revenue);
+                updateDisplay();
+                calculate();
+            });
+            document.getElementById('margin').addEventListener('input', function() {
+                params.margin = parseFloat(this.value);
+                document.getElementById('valMargin').textContent = params.margin + '%';
+                updateDisplay();
+                calculate();
+            });
+            
             const staffInputs = ['staffZavCount', 'staffZavSalary', 'staffProvCount', 'staffProvSalary', 'staffSborCount', 'staffSborSalary', 'staffGruzCount', 'staffGruzSalary', 'staffTovarCount', 'staffTovarSalary', 'staffUborCount', 'staffUborSalary', 'staffVodCount', 'staffVodSalary', 'staffExpCount', 'staffExpSalary'];
             staffInputs.forEach(id => {
                 const el = document.getElementById(id);
