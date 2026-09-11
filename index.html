@@ -262,7 +262,9 @@
             .pie-legend { font-size: 0.85rem; color: #1a3a5c; }
             .share-bar { height: 8px; border-radius: 4px; margin-top: 8px; }
         }
-        .bar-fill { height: 100%; border-radius: 12px; }
+        .bar-fill { height: 100%; border-radius: 12px; opacity: 0; transition: opacity 0.35s ease; }
+        /* Пока цифры не трогали — заливки прозрачны, шкалы выглядят синими; после первой правки включаются цвета */
+        body.bars-dirty .bar-fill { opacity: 1; }
         .bar-fill.revenue { background: linear-gradient(90deg, #5383c7, #00b4d8); }
         .bar-fill.cost { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
         .bar-fill.expenses { background: linear-gradient(90deg, #f78d37, #f0c000); }
@@ -739,6 +741,7 @@
         }
 
         function exportToPdf() {
+            barsMarkDirty(); // в PDF шкалы с цветами
             // Возвращаем базовую функцию
             const element = document.querySelector('.container');
             const opt = {
@@ -1334,6 +1337,20 @@
             });
         }
         let slidersLocked = false;
+        // ── Шкалы «Результатов»: по умолчанию синие, цвета включаются после первой правки цифр пользователем ──
+        let barsDirty = false;
+        function barsMarkDirty() {
+            if (barsDirty) return;
+            barsDirty = true;
+            document.body.classList.add('bars-dirty');
+        }
+        (function() {
+            const panel = document.getElementById('paramsPanel');
+            if (panel) panel.addEventListener('input', barsMarkDirty, true); // слайдеры и числовые поля калькулятора
+            document.addEventListener('click', function(e) {
+                if (e.target.closest && e.target.closest('.staff-arrow, .scenario-btn')) barsMarkDirty(); // стрелки персонала и сценарии
+            }, true);
+        })();
         function resetAll() {
             // Обнуление всех параметров
             const zeros = {
