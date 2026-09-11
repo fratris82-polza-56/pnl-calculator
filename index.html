@@ -1480,6 +1480,17 @@
         drawRevenuePieChart();
         initStaffListeners();
         beWire();
+        // Сброс планировщика к дефолтам после загрузки:
+        // при F5/возврате назад браузер восстанавливает прежние позиции слайдеров — перекрываем их
+        function beResetToDefaults() {
+            beExpensesAuto = true;
+            const beInitDefaults = { beExpensesRange: 1005000, beEcomShareRange: 20, beMarkupRetail: 28, beMarkupEcom: 5, beProfitRange: 0 };
+            Object.keys(beInitDefaults).forEach(id => { const el = document.getElementById(id); if (el) el.value = beInitDefaults[id]; });
+            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
+            calcBreakeven();
+        }
+        beResetToDefaults();
+        window.addEventListener('pageshow', beResetToDefaults);
         calcBreakeven();
         
 
