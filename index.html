@@ -557,6 +557,10 @@
                             <span id="beProfitVal" style="font-weight:600;color:#6dc47b;">0 ₽/мес</span>
                         </div>
                         <div class="breakeven-row">
+                            <span>Расходы в год:</span>
+                            <span id="beExpensesY" style="font-weight:600;">12.1 млн ₽/год</span>
+                        </div>
+                        <div class="breakeven-row">
                             <span>Товарооборот Розница:</span>
                             <span id="beRetailRev" style="font-weight:600;">4.36 млн ₽/мес</span>
                         </div>
@@ -595,6 +599,7 @@
             document.getElementById('beProfitRangeVal').textContent = fmtS(profitMonth);
             document.getElementById('beProfitVal').textContent = (profitMonth > 0 ? '+' : '') + fmtS(profitMonth) + '/мес';
             document.getElementById('beExpensesVal').textContent = fmtS(expensesMonth) + '/мес';
+            document.getElementById('beExpensesY').textContent = fmtS(expensesMonth * 12) + '/год';
             document.getElementById('beEcomShareVal').textContent = sE + '% ECOM / ' + sR + '% Розница';
             document.getElementById('beMarkupRetailVal').textContent = markupR + '%';
             document.getElementById('beMarkupEcomVal').textContent = markupE + '%';
