@@ -91,6 +91,21 @@
         .section-title { font-size: 0.65rem; font-weight: 600; color: #5383c7; text-transform: uppercase; margin: 12px 0 8px 0; border-bottom: 1px solid #eff2f7; font-family: Montserrat, sans-serif; }
         .breakeven-section { margin-top: 16px; padding: 12px; background: #f0f7ff; border-radius: 10px; border: 1px solid #d4e4f7; }
         .breakeven-result { margin-top: 10px; padding: 10px; background: #fff; border-radius: 8px; }
+        .be-stepper { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+        .be-step-btn { width: 46px; height: 42px; flex: 0 0 46px; border-radius: 8px; border: 1px solid #d4e4f7; background: #fff; color: #5383c7; font-size: 1.35rem; font-weight: 700; line-height: 1; cursor: pointer; padding: 0; font-family: Montserrat,sans-serif; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        .be-step-btn:active { background: #5383c7; color: #fff; }
+        .be-step-val { flex: 1 1 auto; min-width: 0; height: 42px; border: 1px solid #d4e4f7; border-radius: 8px; text-align: center; font-family: Montserrat,sans-serif; font-size: 0.95rem; font-weight: 600; color: #222; background: #fff; padding: 0 4px; }
+        .be-step-val:focus { outline: none; border-color: #5383c7; box-shadow: 0 0 0 2px rgba(83,131,199,0.18); }
+        .be-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .be-chip { padding: 8px 11px; min-height: 34px; border-radius: 17px; border: 1px solid #d4e4f7; background: #fff; color: #5383c7; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: Montserrat,sans-serif; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+        .be-chip:active { background: #5383c7; color: #fff; }
+        .be-step-btn:disabled, .be-chip:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* Мобильный (<768px): слайдеры планировщика скрыты, вместо них степперы — скролл не сбивает значения */
+        .breakeven-section input[type="range"] { display: none; }
+        @media (min-width: 768px) {
+            .breakeven-section input[type="range"] { display: block; }
+            .be-stepper, .be-chips { display: none; }
+        }
         .breakeven-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.75rem; }
         .breakeven-row:last-child { margin-bottom: 0; }
         .breakeven-row.highlight { padding: 8px; background: #e8f4fd; border-radius: 6px; margin-top: 8px; }
@@ -605,6 +620,7 @@
             document.getElementById('beEcomShareVal').textContent = sE + '% ECOM / ' + sR + '% Розница';
             document.getElementById('beMarkupRetailVal').textContent = markupR + '%';
             document.getElementById('beMarkupEcomVal').textContent = markupE + '%';
+            beSyncSteppers();
             const avgMargin = (sR / 100) * beMargin(markupR) + (sE / 100) * beMargin(markupE);
             const avgMarkup = (sR / 100) * markupR + (sE / 100) * markupE;
             document.getElementById('beAvgMarkup').textContent = avgMarkup.toFixed(1) + '%';
@@ -622,6 +638,82 @@
             document.getElementById('beEcomRev').textContent = fmtS(revMonth * sE / 100) + '/мес';
         }
 
+        // ── Степперы для мобильных (<768px) вместо слайдеров планировщика ──
+        const BE_STEPPER_CFG = {
+            beExpensesRange: { step: 5000, accel: 25000, chips: [500000, 1000000, 1500000, 2000000, 3000000] },
+            beEcomShareRange: { step: 1 },
+            beMarkupRetail: { step: 0.5 },
+            beMarkupEcom: { step: 0.5 },
+            beProfitRange: { step: 10000, accel: 50000, chips: [0, 250000, 500000, 1000000] }
+        };
+        const BE_STEPPER_LABELS = { beExpensesRange: 'Расходы в месяц', beEcomShareRange: 'Доля ECOM', beMarkupRetail: 'Наценка Розница', beMarkupEcom: 'Наценка ECOM', beProfitRange: 'Желаемая прибыль' };
+        function beStepRound(v, step) { return parseFloat((Math.round(v / step) * step).toFixed(2)); }
+        function beFmtStepper(v) { if (!isFinite(v)) v = 0; return Math.abs(v) >= 100 ? Math.round(v).toLocaleString('ru-RU') : String(parseFloat(v.toFixed(2))); }
+        function beClampToRange(r, v) { const min = parseFloat(r.min) || 0, max = parseFloat(r.max) || 0; return Math.min(max, Math.max(min, v)); }
+        function beApplyStepper(r, v, step) {
+            const nv = beClampToRange(r, beStepRound(v, step));
+            if (parseFloat(r.value) !== nv) { r.value = nv; r.dispatchEvent(new Event('input', { bubbles: true })); }
+            return nv;
+        }
+        function beBuildSteppers() {
+            Object.keys(BE_STEPPER_CFG).forEach(id => {
+                const r = document.getElementById(id); const cfg = BE_STEPPER_CFG[id];
+                if (!r || r.parentElement.querySelector('.be-stepper[data-for="' + id + '"]')) return;
+                const st = document.createElement('div'); st.className = 'be-stepper'; st.setAttribute('data-for', id);
+                const minus = document.createElement('button'); minus.type = 'button'; minus.className = 'be-step-btn'; minus.textContent = '−';
+                const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'be-step-val'; inp.inputMode = 'decimal'; inp.autocomplete = 'off'; inp.setAttribute('aria-label', (BE_STEPPER_LABELS[id] || id) + ': введите значение');
+                const plus = document.createElement('button'); plus.type = 'button'; plus.className = 'be-step-btn'; plus.textContent = '+';
+                st.appendChild(minus); st.appendChild(inp); st.appendChild(plus);
+                r.parentElement.appendChild(st);
+                if (cfg.chips) {
+                    const chips = document.createElement('div'); chips.className = 'be-chips';
+                    cfg.chips.forEach(cv => {
+                        const c = document.createElement('button'); c.type = 'button'; c.className = 'be-chip';
+                        c.textContent = cv === 0 ? '0' : fmtS(cv);
+                        c.addEventListener('click', () => beApplyStepper(r, cv, cfg.step));
+                        chips.appendChild(c);
+                    });
+                    r.parentElement.appendChild(chips);
+                }
+                // Удержание кнопки = ускоренный повтор (после ~0.8с шаг ×5)
+                let repTimer = null, repCount = 0, pointerAt = 0;
+                const stopRep = () => { if (repTimer) { clearInterval(repTimer); repTimer = null; } repCount = 0; };
+                const hold = (dir) => {
+                    stopRep();
+                    const applyOnce = () => beApplyStepper(r, (parseFloat(r.value) || 0) + dir * (repCount >= 6 ? (cfg.accel || cfg.step) : cfg.step), cfg.step);
+                    applyOnce();
+                    repTimer = setInterval(() => { repCount++; applyOnce(); }, 140);
+                };
+                [[minus, -1], [plus, 1]].forEach(pair => {
+                    const btn = pair[0], dir = pair[1];
+                    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); pointerAt = Date.now(); hold(dir); });
+                    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stopRep));
+                    btn.addEventListener('click', () => { if (Date.now() - pointerAt > 300) beApplyStepper(r, (parseFloat(r.value) || 0) + dir * cfg.step, cfg.step); }); // клавиатура
+                });
+                st.addEventListener('contextmenu', (e) => { if (e.target.classList && e.target.classList.contains('be-step-btn')) e.preventDefault(); });
+                // Ручной ввод: по Enter/потере фокуса применяем разобранное число; фокус отменяет отложенные сбросы (пользователь начал работу)
+                inp.addEventListener('focus', () => {
+                    beResetTimers.forEach(clearTimeout); beResetTimers = [];
+                    if (beExpensesResetTimer) { clearTimeout(beExpensesResetTimer); beExpensesResetTimer = null; }
+                    if (inp.select) inp.select();
+                });
+                inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } });
+                inp.addEventListener('blur', () => {
+                    const raw = parseFloat(inp.value.replace(/\s/g, '').replace(',', '.'));
+                    if (!isNaN(raw)) beApplyStepper(r, raw, cfg.step);
+                    calcBreakeven(); // перерисовать каноничное значение из range
+                    inp.value = beFmtStepper(parseFloat(r.value) || 0); // форс-синк поля (в т.ч. при некорректном вводе)
+                });
+            });
+        }
+        function beSyncSteppers() {
+            document.querySelectorAll('.be-stepper').forEach(st => {
+                const r = document.getElementById(st.getAttribute('data-for')); if (!r) return;
+                const inp = st.querySelector('.be-step-val');
+                if (document.activeElement === inp) return; // не мешаем пользователю печатать
+                inp.value = beFmtStepper(parseFloat(r.value) || 0);
+            });
+        }
         function beWire() {
             ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(id => {
                 const el = document.getElementById(id);
@@ -643,6 +735,7 @@
                 updateSliderFillById('beExpensesRange');
             });
             ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
+            beBuildSteppers();
         }
 
         function exportToPdf() {
@@ -1316,7 +1409,7 @@
         function toggleLock() {
             slidersLocked = !slidersLocked;
             const btn = document.getElementById('lockBtn');
-            const inputs = document.querySelectorAll('#paramsPanel input[type="range"], #paramsPanel input[type="number"]');
+            const inputs = document.querySelectorAll('#paramsPanel input[type="range"], #paramsPanel input[type="number"], #paramsPanel input[type="text"], #paramsPanel .be-step-btn, #paramsPanel .be-chip, #paramsPanel #beSyncExpenses');
             inputs.forEach(input => {
                 input.disabled = slidersLocked;
             });
