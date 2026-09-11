@@ -518,23 +518,43 @@
                     <div class="scenario-btn optimistic" onclick="loadScenario('optimistic')"><div class="title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Оптимистичный</div><div class="profit" id="scenOptim">+13.7 млн ₽</div></div>
                 </div>
                 <div class="breakeven-section">
-                    <div class="section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg> Окупаемость по средней наценке</div>
+                    <div class="section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg> Планировщик: расходы → товарооборот</div>
+                    <div class="param">
+                        <div class="param-header"><span class="param-label">Расходы в месяц<button id="beSyncExpenses" style="background:#5383c7;color:#fff;border:none;padding:2px 7px;border-radius:5px;cursor:pointer;font-size:0.6rem;font-family:Montserrat,sans-serif;margin-left:6px;">Из расчёта</button></span><span class="param-value" id="beExpensesVal">1 005 тыс ₽/мес</span></div>
+                        <input type="range" id="beExpensesRange" min="0" max="20000000" step="5000" value="1005000">
+                    </div>
+                    <div class="param">
+                        <div class="param-header"><span class="param-label">Доля ECOM в товарообороте</span><span class="param-value" id="beEcomShareVal">20% ECOM / 80% Розница</span></div>
+                        <input type="range" id="beEcomShareRange" min="0" max="100" step="1" value="20">
+                    </div>
+                    <div class="param">
+                        <div class="param-header"><span class="param-label">Наценка Розница (%)</span><span class="param-value" id="beMarkupRetailVal">28%</span></div>
+                        <input type="range" id="beMarkupRetail" min="0" max="100" step="0.5" value="28">
+                    </div>
+                    <div class="param">
+                        <div class="param-header"><span class="param-label">Наценка ECOM (%)</span><span class="param-value" id="beMarkupEcomVal">5%</span></div>
+                        <input type="range" id="beMarkupEcom" min="0" max="100" step="0.5" value="5">
+                    </div>
                     <div class="breakeven-result">
                         <div class="breakeven-row">
-                            <span>Доля Розница:</span>
-                            <span id="beRetailShare" style="font-weight:600;">100%</span>
-                        </div>
-                        <div class="breakeven-row">
                             <span>Средняя наценка:</span>
-                            <span id="beAvgMarkup" style="font-weight:600;">28%</span>
+                            <span id="beAvgMarkup" style="font-weight:600;">23.4%</span>
                         </div>
                         <div class="breakeven-row highlight">
-                            <span>Выручка для окупаемости:</span>
-                            <span id="beRevenue" style="font-weight:700;color:#5383c7;">59.0 млн ₽/год</span>
+                            <span>Нужный товарооборот:</span>
+                            <span id="beRevenueM" style="font-weight:700;color:#5383c7;">5.45 млн ₽/мес</span>
                         </div>
                         <div class="breakeven-row">
-                            <span>В месяц:</span>
-                            <span id="beRevenueM" style="font-weight:600;">4.92 млн ₽</span>
+                            <span>В год:</span>
+                            <span id="beRevenueY" style="font-weight:600;">65.4 млн ₽/год</span>
+                        </div>
+                        <div class="breakeven-row">
+                            <span>Товарооборот Розница:</span>
+                            <span id="beRetailRev" style="font-weight:600;">4.36 млн ₽/мес</span>
+                        </div>
+                        <div class="breakeven-row">
+                            <span>Товарооборот ECOM:</span>
+                            <span id="beEcomRev" style="font-weight:600;">1.09 млн ₽/мес</span>
                         </div>
                     </div>
                 </div>
@@ -548,50 +568,59 @@
         function fmt(n) { return n.toLocaleString('ru-RU'); }
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
 
-        // Расчёт окупаемости по средней наценке
+        // Планировщик: от расходов к товарообороту по каналам
         let currentExpensesYear = 0; // Годовые расходы (берутся из calculate())
-        const MARKUP_RETAIL = 28; // Наценка Розница %
-        const MARKUP_ECOM = 5; // Наценка ECOM %
-        // Маржа = наценка / (1 + наценка/100)
-        const MARGIN_RETAIL = MARKUP_RETAIL / (1 + MARKUP_RETAIL/100);
-        const MARGIN_ECOM = MARKUP_ECOM / (1 + MARKUP_ECOM/100);
+        let beExpensesAuto = true;   // Расходы планировщика следуют за основным расчётом
+
+        function beMargin(markupPct) { return markupPct / (100 + markupPct); } // Маржа из наценки
 
         function calcBreakeven() {
-            // Берём доли каналов из фактических данных (включая склад)
-            const totalRevenue = params.revenueWarehouse + params.revenueRetail + params.revenueEcom;
-            const wShare = totalRevenue > 0 ? (params.revenueWarehouse / totalRevenue) * 100 : 0;
-            const retailShare = totalRevenue > 0 ? (params.revenueRetail / totalRevenue) * 100 : 0;
-            const ecomShare = totalRevenue > 0 ? (params.revenueEcom / totalRevenue) * 100 : 0;
-            
-            // Фактические маржи из слайдеров, взвешенные по долям выручки
-            const marginW = params.marginWarehouse / 100;
-            const marginR = params.marginRetail / 100;
-            const marginE = params.marginEcom / 100;
-            const avgMargin = (wShare/100 * marginW) + (retailShare/100 * marginR) + (ecomShare/100 * marginE);
-            
-            // Наценка из маржи: markup = margin / (1 - margin)
-            const markupW = marginW < 1 ? marginW / (1 - marginW) : 0;
-            const markupR = marginR < 1 ? marginR / (1 - marginR) : 0;
-            const markupE = marginE < 1 ? marginE / (1 - marginE) : 0;
-            const avgMarkup = (wShare/100 * markupW) + (retailShare/100 * markupR) + (ecomShare/100 * markupE);
-            
-            // Обновляем доли и наценку всегда
-            document.getElementById('beRetailShare').textContent = Math.round(retailShare) + '%';
-            document.getElementById('beAvgMarkup').textContent = (avgMarkup * 100).toFixed(1) + '%';
-            
-            // Если средняя маржа = 0 (нет выручки или наценки), окупаемость = 0
+            const expEl = document.getElementById('beExpensesRange');
+            if (!expEl) return;
+            if (beExpensesAuto && currentExpensesYear > 0) expEl.value = Math.round(currentExpensesYear / 12);
+            const expensesMonth = parseFloat(expEl.value) || 0;
+            const sE = parseFloat(document.getElementById('beEcomShareRange').value) || 0;
+            const sR = 100 - sE;
+            const markupR = parseFloat(document.getElementById('beMarkupRetail').value) || 0;
+            const markupE = parseFloat(document.getElementById('beMarkupEcom').value) || 0;
+            document.getElementById('beExpensesVal').textContent = fmtS(expensesMonth) + '/мес';
+            document.getElementById('beEcomShareVal').textContent = sE + '% ECOM / ' + sR + '% Розница';
+            document.getElementById('beMarkupRetailVal').textContent = markupR + '%';
+            document.getElementById('beMarkupEcomVal').textContent = markupE + '%';
+            const avgMargin = (sR / 100) * beMargin(markupR) + (sE / 100) * beMargin(markupE);
+            const avgMarkup = (sR / 100) * markupR + (sE / 100) * markupE;
+            document.getElementById('beAvgMarkup').textContent = avgMarkup.toFixed(1) + '%';
             if (avgMargin <= 0) {
-                document.getElementById('beRevenue').textContent = '0 млн ₽/год';
-                document.getElementById('beRevenueM').textContent = '0 млн ₽';
+                document.getElementById('beRevenueM').textContent = '—';
+                document.getElementById('beRevenueY').textContent = '—';
+                document.getElementById('beRetailRev').textContent = '—';
+                document.getElementById('beEcomRev').textContent = '—';
                 return;
             }
-            
-            // Выручка для окупаемости = расходы / маржу
-            const breakevenRevenue = currentExpensesYear / avgMargin;
-            
-            // Обновляем UI
-            document.getElementById('beRevenue').textContent = (breakevenRevenue/1000000).toFixed(1) + ' млн ₽/год';
-            document.getElementById('beRevenueM').textContent = (breakevenRevenue/12/1000000).toFixed(2) + ' млн ₽';
+            const revMonth = expensesMonth / avgMargin;
+            document.getElementById('beRevenueM').textContent = fmtS(revMonth) + '/мес';
+            document.getElementById('beRevenueY').textContent = fmtS(revMonth * 12) + '/год';
+            document.getElementById('beRetailRev').textContent = fmtS(revMonth * sR / 100) + '/мес';
+            document.getElementById('beEcomRev').textContent = fmtS(revMonth * sE / 100) + '/мес';
+        }
+
+        function beWire() {
+            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('input', function() {
+                    if (id === 'beExpensesRange') beExpensesAuto = false;
+                    updateSliderFillById(id);
+                    calcBreakeven();
+                });
+            });
+            const syncBtn = document.getElementById('beSyncExpenses');
+            if (syncBtn) syncBtn.addEventListener('click', function() {
+                beExpensesAuto = true;
+                calcBreakeven();
+                updateSliderFillById('beExpensesRange');
+            });
+            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom'].forEach(updateSliderFillById);
         }
 
         function exportToPdf() {
@@ -1254,6 +1283,10 @@
                 const percent = ((val - min) / (max - min)) * 100;
                 slider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
             });
+            // Планировщик: вернуть настройки по умолчанию
+            beExpensesAuto = true;
+            const beDefaults = { beExpensesRange: 1005000, beEcomShareRange: 20, beMarkupRetail: 28, beMarkupEcom: 5 };
+            Object.keys(beDefaults).forEach(id => { const el = document.getElementById(id); if (el) el.value = beDefaults[id]; });
             calculate();
             updateScenarios();
         }
@@ -1430,6 +1463,7 @@
         calculate();
         drawRevenuePieChart();
         initStaffListeners();
+        beWire();
         calcBreakeven();
         
 
