@@ -535,6 +535,10 @@
                         <div class="param-header"><span class="param-label">Наценка ECOM (%)</span><span class="param-value" id="beMarkupEcomVal">5%</span></div>
                         <input type="range" id="beMarkupEcom" min="0" max="100" step="0.5" value="5">
                     </div>
+                    <div class="param">
+                        <div class="param-header"><span class="param-label">Желаемая прибыль в месяц</span><span class="param-value" id="beProfitRangeVal">0 ₽</span></div>
+                        <input type="range" id="beProfitRange" min="0" max="3000000" step="10000" value="0">
+                    </div>
                     <div class="breakeven-result">
                         <div class="breakeven-row">
                             <span>Средняя наценка:</span>
@@ -547,6 +551,10 @@
                         <div class="breakeven-row">
                             <span>В год:</span>
                             <span id="beRevenueY" style="font-weight:600;">65.4 млн ₽/год</span>
+                        </div>
+                        <div class="breakeven-row">
+                            <span>Прибыль сверх расходов:</span>
+                            <span id="beProfitVal" style="font-weight:600;color:#6dc47b;">0 ₽/мес</span>
                         </div>
                         <div class="breakeven-row">
                             <span>Товарооборот Розница:</span>
@@ -583,6 +591,9 @@
             const sR = 100 - sE;
             const markupR = parseFloat(document.getElementById('beMarkupRetail').value) || 0;
             const markupE = parseFloat(document.getElementById('beMarkupEcom').value) || 0;
+            const profitMonth = parseFloat(document.getElementById('beProfitRange').value) || 0;
+            document.getElementById('beProfitRangeVal').textContent = fmtS(profitMonth);
+            document.getElementById('beProfitVal').textContent = (profitMonth > 0 ? '+' : '') + fmtS(profitMonth) + '/мес';
             document.getElementById('beExpensesVal').textContent = fmtS(expensesMonth) + '/мес';
             document.getElementById('beEcomShareVal').textContent = sE + '% ECOM / ' + sR + '% Розница';
             document.getElementById('beMarkupRetailVal').textContent = markupR + '%';
@@ -597,7 +608,7 @@
                 document.getElementById('beEcomRev').textContent = '—';
                 return;
             }
-            const revMonth = expensesMonth / avgMargin;
+            const revMonth = (expensesMonth + profitMonth) / avgMargin;
             document.getElementById('beRevenueM').textContent = fmtS(revMonth) + '/мес';
             document.getElementById('beRevenueY').textContent = fmtS(revMonth * 12) + '/год';
             document.getElementById('beRetailRev').textContent = fmtS(revMonth * sR / 100) + '/мес';
@@ -605,7 +616,7 @@
         }
 
         function beWire() {
-            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom'].forEach(id => {
+            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.addEventListener('input', function() {
@@ -620,7 +631,7 @@
                 calcBreakeven();
                 updateSliderFillById('beExpensesRange');
             });
-            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom'].forEach(updateSliderFillById);
+            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
         }
 
         function exportToPdf() {
@@ -1285,7 +1296,7 @@
             });
             // Планировщик: вернуть настройки по умолчанию
             beExpensesAuto = true;
-            const beDefaults = { beExpensesRange: 1005000, beEcomShareRange: 20, beMarkupRetail: 28, beMarkupEcom: 5 };
+            const beDefaults = { beExpensesRange: 1005000, beEcomShareRange: 20, beMarkupRetail: 28, beMarkupEcom: 5, beProfitRange: 0 };
             Object.keys(beDefaults).forEach(id => { const el = document.getElementById(id); if (el) el.value = beDefaults[id]; });
             calculate();
             updateScenarios();
