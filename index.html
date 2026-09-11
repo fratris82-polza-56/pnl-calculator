@@ -262,9 +262,13 @@
             .pie-legend { font-size: 0.85rem; color: #1a3a5c; }
             .share-bar { height: 8px; border-radius: 4px; margin-top: 8px; }
         }
-        .bar-fill { height: 100%; border-radius: 12px; opacity: 0; transition: opacity 0.35s ease; }
+        .bar-fill { height: 100%; border-radius: 12px; opacity: 0; width: 0% !important; transition: width 0.7s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s ease; }
         /* Пока цифры не трогали — заливки прозрачны, шкалы выглядят синими; после первой правки включаются цвета */
         body.bars-dirty .bar-fill { opacity: 1; }
+        /* «Слайдерное» заполнение: ширина живёт в --w, класс bars-animated её пропускает (при первом рендере класс включается отдельно, чтобы заливка шла 0 → значение) */
+        .bar-fill.bars-animated { width: var(--w, 0%) !important; }
+        /* На время PDF-экспорта отключаем анимации, чтобы не поймать промежуточную ширину */
+        body.pdf-anim-off .bar-fill { transition: none !important; }
         .bar-fill.revenue { background: linear-gradient(90deg, #5383c7, #00b4d8); }
         .bar-fill.cost { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
         .bar-fill.expenses { background: linear-gradient(90deg, #f78d37, #f0c000); }
@@ -484,10 +488,10 @@
             </div>
             <div class="panel">
                 <h2><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg> Результаты</h2>
-                <div class="bar-container"><div class="bar-label"><span>Выручка (год)</span><span id="barRevenueVal">60 млн ₽</span></div><div class="bar-track"><div class="bar-fill revenue" id="barRevenue" style="width:100%"></div></div></div>
-                <div class="bar-container"><div class="bar-label"><span>Себестоимость</span><span id="barCostVal">42.9 млн ₽</span></div><div class="bar-track"><div class="bar-fill cost" id="barCost" style="width:71%"></div></div></div>
-                <div class="bar-container"><div class="bar-label"><span>Расходы</span><span id="barExpensesVal">12.1 млн ₽</span></div><div class="bar-track"><div class="bar-fill expenses" id="barExpenses" style="width:20%"></div></div></div>
-                <div class="bar-container"><div class="bar-label"><span>Прибыль</span><span id="barProfitVal">-1.3 млн ₽</span></div><div class="bar-track"><div class="bar-fill loss" id="barProfit" style="width:2%"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Выручка (год)</span><span id="barRevenueVal">60 млн ₽</span></div><div class="bar-track"><div class="bar-fill revenue" id="barRevenue"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Себестоимость</span><span id="barCostVal">42.9 млн ₽</span></div><div class="bar-track"><div class="bar-fill cost" id="barCost"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Расходы</span><span id="barExpensesVal">12.1 млн ₽</span></div><div class="bar-track"><div class="bar-fill expenses" id="barExpenses"></div></div></div>
+                <div class="bar-container"><div class="bar-label"><span>Прибыль</span><span id="barProfitVal">-1.3 млн ₽</span></div><div class="bar-track"><div class="bar-fill loss" id="barProfit"></div></div></div>
                 <table class="results-table">
                     <tr><th>Показатель</th><th>Месяц</th><th>Год</th></tr>
                     <tr style="background:#969ba0;"><td colspan="3" style="color: #fff; border-radius: 8px; padding: 4px 8px;"><strong><svg width="16" height="16" viewBox="0 0 24 24" style="vertical-align:text-bottom;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="#ffffff" stroke-width="2"/><path d="M9 9h6v6H9z" fill="none" stroke="#ffffff" stroke-width="2"/></svg>Склад</strong></td></tr>
@@ -742,6 +746,7 @@
 
         function exportToPdf() {
             barsMarkDirty(); // в PDF шкалы с цветами
+            document.body.classList.add('pdf-anim-off'); // если анимация заливки была в полёте — в PDF попадает финальная ширина
             // Возвращаем базовую функцию
             const element = document.querySelector('.container');
             const opt = {
@@ -751,7 +756,11 @@
                 html2canvas: { scale: 1.5, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(opt).from(element).save().then(function() {
+                document.body.classList.remove('pdf-anim-off');
+            }).catch(function() {
+                document.body.classList.remove('pdf-anim-off');
+            });
         }
 
         function setSlider(id, v) {
@@ -811,13 +820,13 @@
         }
         function updateDisplay() {
             document.getElementById('valRevenue').textContent = fmt(params.revenue);
-            document.getElementById('valMargin').textContent = params.margin + '%';
+            document.getElementById('valMargin').textContent = params.margin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(params.revenueWarehouse);
-            document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse + '%';
+            document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse.toFixed(1) + '%';
             document.getElementById('valRevenueRetail').textContent = fmt(params.revenueRetail);
-            document.getElementById('valMarginRetail').textContent = params.marginRetail + '%';
+            document.getElementById('valMarginRetail').textContent = params.marginRetail.toFixed(1) + '%';
             document.getElementById('valRevenueEcom').textContent = fmt(params.revenueEcom);
-            document.getElementById('valMarginEcom').textContent = params.marginEcom + '%';
+            document.getElementById('valMarginEcom').textContent = params.marginEcom.toFixed(1) + '%';
             document.getElementById('valRent').textContent = fmt(params.rent);
             document.getElementById('valSalary').textContent = fmt(params.salary);
             document.getElementById('valSocial').textContent = params.social + '%';
@@ -921,13 +930,14 @@
                 params.marginWarehouse = val;
                 params.marginRetail = val;
                 params.marginEcom = val;
-                document.getElementById('valMargin').textContent = val + '%';
+                document.getElementById('valMargin').textContent = val.toFixed(1) + '%';
+                const valTxt = val.toFixed(1) + '%';
                 document.getElementById('marginWarehouse').value = val;
-                document.getElementById('valMarginWarehouse').textContent = val + '%';
+                document.getElementById('valMarginWarehouse').textContent = valTxt;
                 document.getElementById('marginRetail').value = val;
-                document.getElementById('valMarginRetail').textContent = val + '%';
+                document.getElementById('valMarginRetail').textContent = valTxt;
                 document.getElementById('marginEcom').value = val;
-                document.getElementById('valMarginEcom').textContent = val + '%';
+                document.getElementById('valMarginEcom').textContent = valTxt;
                 updateSliderFillById('marginWarehouse');
                 updateSliderFillById('marginRetail');
                 updateSliderFillById('marginEcom');
@@ -1002,9 +1012,9 @@
             document.getElementById('valRevenueWarehouse').textContent = fmt(w);
             document.getElementById('valRevenueRetail').textContent = fmt(r);
             document.getElementById('valRevenueEcom').textContent = fmt(e);
-            document.getElementById('valMarginWarehouse').textContent = mw + '%';
-            document.getElementById('valMarginRetail').textContent = mr + '%';
-            document.getElementById('valMarginEcom').textContent = me + '%';
+            document.getElementById('valMarginWarehouse').textContent = mw.toFixed(1) + '%';
+            document.getElementById('valMarginRetail').textContent = mr.toFixed(1) + '%';
+            document.getElementById('valMarginEcom').textContent = me.toFixed(1) + '%';
             
             // Обновляем сводку
             document.getElementById('totalRevenueDetail').textContent = fmt(total) + ' ₽';
@@ -1188,12 +1198,19 @@
             }
 
             const maxVal = Math.max(grossRevenueYear, costOfGoods * 12, operatingExpenses * 12, Math.abs(opProfitYear));
-            document.getElementById('barRevenue').style.width = (grossRevenueYear / maxVal * 100) + '%';
-            document.getElementById('barCost').style.width = (costOfGoods * 12 / maxVal * 100) + '%';
-            document.getElementById('barExpenses').style.width = (operatingExpenses * 12 / maxVal * 100) + '%';
+            // Ширина пишется в переменную --w; класс bars-animated её пропускает («слайдерная» анимация 0 → значение)
             const barProfit = document.getElementById('barProfit');
-            barProfit.style.width = (Math.abs(opProfitYear) / maxVal * 100) + '%';
             barProfit.className = 'bar-fill ' + (opProfitYear >= 0 ? 'profit' : 'loss');
+            const setBarW = function(id, pct) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.style.setProperty('--w', pct + '%');
+                if (barsPrimed) el.classList.add('bars-animated');
+            };
+            setBarW('barRevenue', grossRevenueYear / maxVal * 100);
+            setBarW('barCost', costOfGoods * 12 / maxVal * 100);
+            setBarW('barExpenses', operatingExpenses * 12 / maxVal * 100);
+            setBarW('barProfit', Math.abs(opProfitYear) / maxVal * 100);
             document.getElementById('barRevenueVal').textContent = fmtS(grossRevenueYear);
             document.getElementById('barCostVal').textContent = fmtS(costOfGoods * 12);
             document.getElementById('barExpensesVal').textContent = fmtS(operatingExpenses * 12);
@@ -1343,6 +1360,11 @@
             if (barsDirty) return;
             barsDirty = true;
             document.body.classList.add('bars-dirty');
+            // Первый показ цветов: заливка проигрывается как «слайдер» с нуля
+            const bars = ['barRevenue', 'barCost', 'barExpenses', 'barProfit'].map(function(id) { return document.getElementById(id); });
+            bars.forEach(function(el) { if (el) el.classList.remove('bars-animated'); });
+            void document.body.offsetWidth; // фиксируем нулевую ширину
+            bars.forEach(function(el) { if (el) el.classList.add('bars-animated'); });
         }
         (function() {
             const panel = document.getElementById('paramsPanel');
@@ -1351,6 +1373,17 @@
                 if (e.target.closest && e.target.closest('.staff-arrow, .scenario-btn')) barsMarkDirty(); // стрелки персонала и сценарии
             }, true);
         })();
+        // Первый рендер: класс ширины включается после первой отрисовки, чтобы заливка пошла как «слайдер» 0 → значение
+        var barsPrimed = false;
+        function barsPrimeBarWidths() {
+            if (barsPrimed) return;
+            barsPrimed = true;
+            void document.body.offsetWidth; // фиксируем стартовое состояние (ширина 0) ДО включения класса — иначе анимации не будет
+            ['barRevenue', 'barCost', 'barExpenses', 'barProfit'].forEach(function(id) {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('bars-animated'); // ширина уже посчитана в calculate() и лежит в --w
+            });
+        }
         function resetAll() {
             // Обнуление всех параметров
             const zeros = {
@@ -1368,13 +1401,13 @@
             });
             // Обновить отображение значений
             document.getElementById('valRevenue').textContent = fmt(params.revenue);
-            document.getElementById('valMargin').textContent = params.margin + '%';
+            document.getElementById('valMargin').textContent = params.margin.toFixed(1) + '%';
             document.getElementById('valRevenueWarehouse').textContent = fmt(params.revenueWarehouse);
-            document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse + '%';
+            document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse.toFixed(1) + '%';
             document.getElementById('valRevenueRetail').textContent = fmt(params.revenueRetail);
-            document.getElementById('valMarginRetail').textContent = params.marginRetail + '%';
+            document.getElementById('valMarginRetail').textContent = params.marginRetail.toFixed(1) + '%';
             document.getElementById('valRevenueEcom').textContent = fmt(params.revenueEcom);
-            document.getElementById('valMarginEcom').textContent = params.marginEcom + '%';
+            document.getElementById('valMarginEcom').textContent = params.marginEcom.toFixed(1) + '%';
             document.getElementById('valRent').textContent = fmt(params.rent);
             document.getElementById('valSalary').textContent = fmt(params.salary);
             document.getElementById('valSocial').textContent = params.social + '%';
@@ -1473,7 +1506,9 @@
                 if (el) {
                     const key = id.charAt(0).toLowerCase() + id.slice(1);
                     const val = params[key];
-                    if (id.includes('Margin') || id === 'Social' || id === 'Logistics' || id === 'Acquiring' || id === 'AcquiringShare' || id === 'Spoilage') {
+                    if (id.includes('Margin')) {
+                        el.textContent = (typeof val === 'number' ? val.toFixed(1) : val) + '%';
+                    } else if (id === 'Social' || id === 'Logistics' || id === 'Acquiring' || id === 'AcquiringShare' || id === 'Spoilage') {
                         el.textContent = val + '%';
                     } else {
                         el.textContent = fmt(val);
@@ -1531,9 +1566,9 @@
                     document.getElementById('marginWarehouse').value = val;
                     document.getElementById('marginRetail').value = val;
                     document.getElementById('marginEcom').value = val;
-                    document.getElementById('valMarginWarehouse').textContent = val + '%';
-                    document.getElementById('valMarginRetail').textContent = val + '%';
-                    document.getElementById('valMarginEcom').textContent = val + '%';
+                    document.getElementById('valMarginWarehouse').textContent = val.toFixed(1) + '%';
+                    document.getElementById('valMarginRetail').textContent = val.toFixed(1) + '%';
+                    document.getElementById('valMarginEcom').textContent = val.toFixed(1) + '%';
                     updateSliderFillById('marginWarehouse');
                     updateSliderFillById('marginRetail');
                     updateSliderFillById('marginEcom');
@@ -1544,13 +1579,13 @@
                 
                 // Обновляем отображение детализации
                 document.getElementById('valRevenue').textContent = fmt(params.revenue);
-                document.getElementById('valMargin').textContent = params.margin + '%';
+                document.getElementById('valMargin').textContent = params.margin.toFixed(1) + '%';
                 document.getElementById('valRevenueWarehouse').textContent = fmt(params.revenueWarehouse);
-                document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse + '%';
+                document.getElementById('valMarginWarehouse').textContent = params.marginWarehouse.toFixed(1) + '%';
                 document.getElementById('valRevenueRetail').textContent = fmt(params.revenueRetail);
-                document.getElementById('valMarginRetail').textContent = params.marginRetail + '%';
+                document.getElementById('valMarginRetail').textContent = params.marginRetail.toFixed(1) + '%';
                 document.getElementById('valRevenueEcom').textContent = fmt(params.revenueEcom);
-                document.getElementById('valMarginEcom').textContent = params.marginEcom + '%';
+                document.getElementById('valMarginEcom').textContent = params.marginEcom.toFixed(1) + '%';
                 
                 // Обновляем итоговую строку и слайдеры ИТОГО
                 // ВАЖНО: слайдеры ИТОГО обновляем ТОЛЬКО если изменяется детализация
@@ -1594,6 +1629,7 @@
         
         updateDisplay();
         calculate();
+        barsPrimeBarWidths(); // первый рендер: шкалы заполняются как «слайдеры» 0 → значение
         drawRevenuePieChart();
         initStaffListeners();
         beWire();
