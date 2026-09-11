@@ -584,6 +584,7 @@
         let currentExpensesYear = 0; // Годовые расходы (берутся из calculate())
         let beExpensesAuto = true;   // Расходы планировщика следуют за основным расчётом
         let beResetTimers = []; // Отложенные сбросы (перекрывают восстановление формы браузером)
+        let beExpensesResetTimer = null; // Отдельный таймер для слайдера «Расходы»: возвращает авто-режим, не мешая ручному вводу
 
         function beMargin(markupPct) { return markupPct / (100 + markupPct); } // Маржа из наценки
 
@@ -627,7 +628,10 @@
                 if (!el) return;
                 el.addEventListener('input', function() {
                     beResetTimers.forEach(clearTimeout); beResetTimers = []; // пользователь трогает слайдер — отложенные сбросы отменяем
-                    if (id === 'beExpensesRange') beExpensesAuto = false;
+                    if (id === 'beExpensesRange') {
+                        if (beExpensesResetTimer) { clearTimeout(beExpensesResetTimer); beExpensesResetTimer = null; }
+                        beExpensesAuto = false;
+                    }
                     updateSliderFillById(id);
                     calcBreakeven();
                 });
@@ -1485,10 +1489,13 @@
         beWire();
         // Сброс планировщика к дефолтам после загрузки:
         // при F5/возврате назад браузер восстанавливает прежние позиции слайдеров — перекрываем их
-        function beApplyDefaults() {
+        function beApplyDefaults(expensesOnly) {
             beExpensesAuto = true;
             const beInitDefaults = { beExpensesRange: 1005000, beEcomShareRange: 20, beMarkupRetail: 28, beMarkupEcom: 5, beProfitRange: 0 };
-            Object.keys(beInitDefaults).forEach(id => { const el = document.getElementById(id); if (el) el.value = beInitDefaults[id]; });
+            Object.keys(beInitDefaults).forEach(id => {
+                if (expensesOnly && id !== 'beExpensesRange') return;
+                const el = document.getElementById(id); if (el) el.value = beInitDefaults[id];
+            });
             ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
             calcBreakeven();
         }
@@ -1497,7 +1504,11 @@
             // Firefox/Chrome могут восстановить значения формы уже ПОСЛЕ pageshow —
             // перекрываем восстановление отложенными сбросами (отменяются при ручном вводе)
             beResetTimers.forEach(clearTimeout);
-            beResetTimers = [0, 150, 600].map(ms => setTimeout(beApplyDefaults, ms));
+            beResetTimers = [150, 600, 1500].map(ms => setTimeout(() => beApplyDefaults(), ms));
+            // Слайдер «Расходы»: отложенный сброс возвращает авто-режим («Из расчёта»),
+            // если пользователь перетащил его вручную — но не прерывает начатый ввод
+            if (beExpensesResetTimer) clearTimeout(beExpensesResetTimer);
+            beExpensesResetTimer = setTimeout(() => { beExpensesResetTimer = null; beApplyDefaults(true); }, 2500);
         }
         beResetToDefaults();
         window.addEventListener('pageshow', beResetToDefaults);
