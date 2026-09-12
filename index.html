@@ -413,7 +413,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="sticky-header unpinned" id="stickyHeader"><div class="header-row"><header><h1><svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M120 60C120 65.5301 117.758 70.5369 114.131 74.1638C110.51 77.7907 105.503 80.0325 99.9727 80.0325H80.0274V99.9726C80.0274 111.033 71.0653 120 60 120C48.9347 120 39.9727 111.033 39.9727 99.9726V80.0325H59.9692C65.4993 80.0325 70.5062 77.7907 74.1331 74.1638C77.7548 70.5369 79.9966 65.5301 79.9966 60C79.9966 48.9398 71.0346 39.9726 59.9692 39.9726H39.9727V20.0274C39.9727 8.96717 48.9398 0 60 0C65.5301 0 70.537 2.24179 74.1638 5.86867C77.7856 9.49042 80.0274 14.4973 80.0274 20.0274V39.9726H99.9727C111.033 39.9726 120 48.9398 120 60Z" fill="#5383c7"/><path d="M79.9966 60C79.9966 65.5301 77.7548 70.537 74.1331 74.1638C70.5062 77.7907 65.4993 80.0325 59.9692 80.0325H39.9727V39.9727H59.9692C71.0346 39.9727 79.9966 48.9398 79.9966 60Z" fill="white"/><path d="M39.9726 39.9727V80.0325H20.0325C8.96717 80.0325 0 71.0602 0 60C0 48.9398 8.96717 39.9727 20.0325 39.9727H39.9726Z" fill="#5383c7"/></svg> P&L Калькулятор</h1></header><div style="display:flex;gap:8px;"><button class="pin-btn unpinned" id="resetBtn" onclick="resetAll()" style="background:#ee6242;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Сброс</button><button class="pin-btn unpinned" id="pinBtn" onclick="togglePin()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>Отпустить</button><button class="pin-btn unpinned" id="pdfBtn" onclick="exportToPdf()" style="background:#f78d37;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF</button></div></div>
+        <div class="sticky-header unpinned" id="stickyHeader"><div class="header-row"><header><h1><svg width="24" height="24" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M120 60C120 65.5301 117.758 70.5369 114.131 74.1638C110.51 77.7907 105.503 80.0325 99.9727 80.0325H80.0274V99.9726C80.0274 111.033 71.0653 120 60 120C48.9347 120 39.9727 111.033 39.9727 99.9726V80.0325H59.9692C65.4993 80.0325 70.5062 77.7907 74.1331 74.1638C77.7548 70.5369 79.9966 65.5301 79.9966 60C79.9966 48.9398 71.0346 39.9726 59.9692 39.9726H39.9727V20.0274C39.9727 8.96717 48.9398 0 60 0C65.5301 0 70.537 2.24179 74.1638 5.86867C77.7856 9.49042 80.0274 14.4973 80.0274 20.0274V39.9726H99.9727C111.033 39.9726 120 48.9398 120 60Z" fill="#5383c7"/><path d="M79.9966 60C79.9966 65.5301 77.7548 70.537 74.1331 74.1638C70.5062 77.7907 65.4993 80.0325 59.9692 80.0325H39.9727V39.9727H59.9692C71.0346 39.9727 79.9966 48.9398 79.9966 60Z" fill="white"/><path d="M39.9726 39.9727V80.0325H20.0325C8.96717 80.0325 0 71.0602 0 60C0 48.9398 8.96717 39.9727 20.0325 39.9727H39.9726Z" fill="#5383c7"/></svg> P&L Калькулятор</h1></header><div style="display:flex;gap:8px;"><button class="pin-btn unpinned" id="shareBtn" onclick="shareLink()" style="background:#6dc47b;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Поделиться</button><button class="pin-btn unpinned" id="copyResultsBtn" onclick="copyResults()" style="background:#5383c7;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Итоги</button><button class="pin-btn unpinned" id="resetBtn" onclick="resetAll()" style="background:#ee6242;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Сброс</button><button class="pin-btn unpinned" id="pinBtn" onclick="togglePin()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>Отпустить</button><button class="pin-btn unpinned" id="pdfBtn" onclick="exportToPdf()" style="background:#f78d37;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>PDF</button></div></div>
         <div class="kpi-row">
             <div class="kpi-card revenue"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="value" id="kpiRevenue">60 млн ₽</div><div class="label">Годовая выручка</div><div class="sub-value" id="kpiRevenueM">5 млн ₽/мес</div></div>
             <div class="kpi-card margin"><div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f78d37" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="value" id="kpiMargin">10.7 млн ₽</div><div class="label">Валовая прибыль</div><div class="sub-value" id="kpiMarginM">892 тыс ₽/мес</div></div>
@@ -742,6 +742,156 @@
             });
             ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
             beBuildSteppers();
+        }
+
+        // ── Состояние: автосохранение, ссылка-параметры, копирование итогов ──
+        const STATE_STAFF_ROLES = ['Zav', 'Prov', 'Sbor', 'Gruz', 'Tovar', 'Ubor', 'Vod', 'Exp'];
+        const STATE_BE_KEYS = ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'];
+        const STATE_STORAGE_KEY = 'pnl_state_v1';
+        window.__pnlRestored = false;
+
+        function collectState() {
+            const st = {};
+            STATE_STAFF_ROLES.forEach(r => {
+                const c = document.getElementById('staff' + r + 'Count');
+                const s = document.getElementById('staff' + r + 'Salary');
+                st['c' + r] = c ? (parseInt(c.value) || 0) : 0;
+                st['s' + r] = s ? (parseFloat(s.value) || 0) : 0;
+            });
+            const be = {};
+            STATE_BE_KEYS.forEach(id => { const el = document.getElementById(id); be[id] = el ? (parseFloat(el.value) || 0) : 0; });
+            be.auto = beExpensesAuto ? 1 : 0;
+            return { v: 1, p: Object.assign({}, params), st: st, be: be };
+        }
+        function encodeState(obj) {
+            return btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+        function decodeState(str) {
+            let s = String(str).replace(/-/g, '+').replace(/_/g, '/');
+            while (s.length % 4) s += '=';
+            return JSON.parse(atob(s));
+        }
+        function applyState(s) {
+            if (!s || typeof s !== 'object') return false;
+            if (s.p) {
+                Object.keys(s.p).forEach(k => {
+                    if (k in params) { const v = parseFloat(s.p[k]); if (isFinite(v)) params[k] = v; }
+                });
+            }
+            if (s.st) {
+                STATE_STAFF_ROLES.forEach(r => {
+                    const c = document.getElementById('staff' + r + 'Count');
+                    const sal = document.getElementById('staff' + r + 'Salary');
+                    if (c && s.st['c' + r] !== undefined) c.value = Math.max(0, parseInt(s.st['c' + r]) || 0);
+                    if (sal && s.st['s' + r] !== undefined) sal.value = Math.max(0, parseFloat(s.st['s' + r]) || 0);
+                });
+            }
+            if (s.be) {
+                STATE_BE_KEYS.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && s.be[id] !== undefined && isFinite(parseFloat(s.be[id]))) {
+                        el.value = Math.min(parseFloat(el.max) || 0, Math.max(parseFloat(el.min) || 0, parseFloat(s.be[id])));
+                    }
+                });
+                if (s.be.auto !== undefined) beExpensesAuto = !!s.be.auto;
+            }
+            return true;
+        }
+        function syncDomFromParams() {
+            Object.keys(params).forEach(k => { const el = document.getElementById(k); if (el) el.value = params[k]; });
+        }
+        let saveTimer = null;
+        function scheduleSave() {
+            if (saveTimer) clearTimeout(saveTimer);
+            saveTimer = setTimeout(function() {
+                saveTimer = null;
+                try { localStorage.setItem(STATE_STORAGE_KEY, encodeState(collectState())); } catch(e) {}
+            }, 300);
+        }
+        document.addEventListener('input', function(e) {
+            if (e.target && e.target.closest && (e.target.closest('#paramsPanel') || STATE_BE_KEYS.indexOf(e.target.id) !== -1)) scheduleSave();
+        }, true);
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.closest && e.target.closest('.staff-arrow, .be-step-btn, .be-chip, .scenario-btn, #beSyncExpenses')) scheduleSave();
+        }, true);
+
+        let toastTimer = null;
+        function showToast(msg) {
+            let t = document.getElementById('pnlToast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'pnlToast';
+                t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222c3a;color:#fff;padding:10px 18px;border-radius:8px;font-family:Montserrat,sans-serif;font-size:0.85rem;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,0.25);transition:opacity 0.25s;opacity:0;pointer-events:none;';
+                document.body.appendChild(t);
+            }
+            t.textContent = msg;
+            t.style.opacity = '1';
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() { t.style.opacity = '0'; }, 2000);
+        }
+        function copyTextFallback(text) {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return !!ok;
+            } catch(e) { return false; }
+        }
+        function copyToClipboard(text, okMsg) {
+            const fail = function() { showToast('Не удалось скопировать'); };
+            const done = function() { showToast(okMsg); };
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done, function() { if (copyTextFallback(text)) done(); else fail(); });
+                } else {
+                    if (copyTextFallback(text)) done(); else fail();
+                }
+            } catch(e) { fail(); }
+        }
+        function shareLink() {
+            try {
+                const url = location.origin + location.pathname + '#p=' + encodeState(collectState());
+                copyToClipboard(url, 'Ссылка скопирована');
+            } catch(e) { showToast('Не удалось скопировать'); }
+        }
+        function copyResults() {
+            try {
+                const r = window._lastResults || {};
+                const roiEl = document.getElementById('kpiRoi');
+                const n = function(v) { return Math.round(v || 0); };
+                const rows = [
+                    ['Показатель', 'Значение'],
+                    ['Выручка в год, ₽', n(r.grossRevenueYear)],
+                    ['Выручка в месяц, ₽', n(r.grossRevenue)],
+                    ['Валовая прибыль в год, ₽', n(r.grossProfitYear)],
+                    ['Валовая прибыль в месяц, ₽', n(r.grossProfit)],
+                    ['Операционная прибыль в год, ₽', n(r.opProfitYear)],
+                    ['Операционная прибыль в месяц, ₽', n(r.opProfit)],
+                    ['Чистая прибыль в год, ₽', n(r.netProfitYear)],
+                    ['Чистая прибыль в месяц, ₽', n(r.netProfit)],
+                    ['Срок окупаемости', roiEl ? roiEl.textContent : '—'],
+                    ['Себестоимость в год, ₽', n(r.costOfGoodsYear)],
+                    ['Операционные расходы в год, ₽', n(r.operatingExpensesYear)],
+                    ['Операционные расходы в месяц, ₽', n(r.operatingExpensesYear / 12)],
+                    ['Выручка склад в месяц, ₽', n(params.revenueWarehouse)],
+                    ['Выручка розница в месяц, ₽', n(params.revenueRetail)],
+                    ['Выручка ECOM в месяц, ₽', n(params.revenueEcom)],
+                    ['Аренда в месяц, ₽', n(params.rent)],
+                    ['ФОТ в месяц, ₽', n(params.salary)],
+                    ['Соцвзносы в месяц, ₽', n(params.salary * params.social / 100)],
+                    ['Логистика в месяц, ₽', n(r.logisticsCost)],
+                    ['Эквайринг в месяц, ₽', n(r.acquiringCost)],
+                    ['Бой/порча в месяц, ₽', n(r.spoilageCost)]
+                ];
+                const tsv = rows.map(function(row) { return row.join('\t'); }).join('\n');
+                copyToClipboard(tsv, 'Итоги скопированы');
+            } catch(e) { showToast('Не удалось скопировать'); }
         }
 
         function exportToPdf() {
@@ -1289,6 +1439,8 @@
             document.getElementById('tblNetProfitM').innerHTML = '<strong class="' + netProfitClass + '">' + netProfitSign + fmt(Math.abs(Math.round(netProfit))) + ' ₽</strong>';
             document.getElementById('tblNetProfitY').innerHTML = '<strong class="' + netProfitClass + '">' + netProfitSign + fmt(Math.abs(Math.round(netProfitYear))) + ' ₽</strong>';
             document.getElementById('tblNetProfitRow').className = netProfitClass;
+            // Снимок результатов для «Копировать итоги» (чистые числа)
+            window._lastResults = { grossRevenueYear: grossRevenueYear, grossRevenue: grossRevenue, grossProfitYear: grossProfit * 12, grossProfit: grossProfit, opProfitYear: opProfitYear, opProfit: opProfit, netProfitYear: netProfitYear, netProfit: netProfit, costOfGoodsYear: costOfGoods * 12, operatingExpensesYear: operatingExpenses * 12, logisticsCost: logisticsCost, acquiringCost: acquiringCost, spoilageCost: spoilageCost };
             updateScenarios();
         }
         function updateScenarios() {
@@ -1385,6 +1537,9 @@
             });
         }
         function resetAll() {
+            try { localStorage.removeItem(STATE_STORAGE_KEY); } catch(e) {}
+            window.__pnlRestored = false;
+            try { history.replaceState(null, '', location.pathname + location.search); } catch(e) {}
             // Обнуление всех параметров
             const zeros = {
                 revenue: 0, margin: 0, revenueWarehouse: 0, marginWarehouse: 0,
@@ -1646,6 +1801,7 @@
             calcBreakeven();
         }
         function beResetToDefaults() {
+            if (window.__pnlRestored) return; // состояние восстановлено из ссылки/localStorage — не затираем дефолтами
             beApplyDefaults();
             // Firefox/Chrome могут восстановить значения формы уже ПОСЛЕ pageshow —
             // перекрываем восстановление отложенными сбросами (отменяются при ручном вводе)
@@ -1656,6 +1812,29 @@
             if (beExpensesResetTimer) clearTimeout(beExpensesResetTimer);
             beExpensesResetTimer = setTimeout(() => { beExpensesResetTimer = null; beApplyDefaults(true); }, 2500);
         }
+        // Восстановление состояния: ссылка (#p=...) приоритетнее localStorage, иначе — дефолты
+        (function restoreState() {
+            let restored = null, fromUrl = false;
+            try {
+                const m = location.hash.match(/(?:^|[#&])p=([A-Za-z0-9\-_]+)/);
+                if (m && m[1]) { restored = decodeState(m[1]); fromUrl = true; }
+            } catch(e) { restored = null; }
+            if (!restored) {
+                try {
+                    const raw = localStorage.getItem(STATE_STORAGE_KEY);
+                    if (raw) restored = decodeState(raw);
+                } catch(e) { restored = null; }
+            }
+            if (restored && applyState(restored)) {
+                window.__pnlRestored = true;
+                syncDomFromParams();
+                document.querySelectorAll('#paramsPanel input[type="range"]').forEach(function(s){ updateSliderFillById(s.id); });
+                STATE_BE_KEYS.forEach(updateSliderFillById);
+                updateStaffDisplay();
+                updateRevenueDetail();
+                if (fromUrl) { try { localStorage.setItem(STATE_STORAGE_KEY, encodeState(collectState())); } catch(e) {} }
+            }
+        })();
         beResetToDefaults();
         window.addEventListener('pageshow', beResetToDefaults);
         calcBreakeven();
