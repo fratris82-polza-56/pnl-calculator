@@ -1,18 +1,21 @@
 #!/usr/bin/env node
 /* Приём кода плана из P&L-калькулятора → вебхук → лист «Планы» Google-таблицы.
-   Использование: node save_plan.mjs "PNL1.<base64url>" [Аптека]
-   Аптека по умолчанию — «Без названия».
+   Использование:
+     node save_plan.mjs "PNL1.<base64url>" [Аптека]        — записать в таблицу
+     node save_plan.mjs --url "PNL1.<base64url>"           — ссылка для открытия плана в калькуляторе
    Токен берётся из env HOOK_TOKEN (не хардкодится). */
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-const [,, code, pharmacyArg] = process.argv;
+const argv = process.argv.slice(2);
+const urlMode = argv[0] === '--url';
+const [code, pharmacyArg] = urlMode ? [argv[1]] : argv;
 if (!code || !code.startsWith('PNL1.')) {
-  console.error('usage: node save_plan.mjs "PNL1.<code>" [Аптека]');
+  console.error('usage: node save_plan.mjs "PNL1.<code>" [Аптека] | --url "PNL1.<code>"');
   process.exit(1);
 }
 const TOKEN = process.env.HOOK_TOKEN;
-if (!TOKEN) { console.error('HOOK_TOKEN env required'); process.exit(1); }
+if (!urlMode && !TOKEN) { console.error('HOOK_TOKEN env required'); process.exit(1); }
 
 // URL вебхука — из gsheet-hook/Code.gs (строка URL=...)
 const gs = readFileSync(new URL('../gsheet-hook/Code.gs', import.meta.url), 'utf8');
@@ -24,9 +27,17 @@ const b64 = code.slice(5).replace(/-/g, '+').replace(/_/g, '/');
 const pad = b64 + '='.repeat((4 - b64.length % 4) % 4);
 const p = JSON.parse(Buffer.from(pad, 'base64').toString('utf8'));
 
+if (urlMode) {
+  const base = 'https://fratris82-polza-56.github.io/pnl-calculator/index.html';
+  console.log(`${base}#plan=${code}`);
+  process.exit(0);
+}
+
+if (p.ph && !pharmacyArg) console.log(`[аптека из кода: ${p.ph}]`);
+
 const row = [
   new Date().toISOString().slice(0, 10),        // дата сохранения
-  pharmacyArg || 'Без названия',                // аптека
+  pharmacyArg || p.ph || 'Без названия',        // аптека: аргумент > код > «Без названия»
   p.d ?? '',                                    // дата расчёта
   p.rev ?? 0, p.vd ?? 0, p.exp ?? 0, p.op ?? 0, p.np ?? 0,
   p.rw ?? 0, p.rr ?? 0, p.re ?? 0,

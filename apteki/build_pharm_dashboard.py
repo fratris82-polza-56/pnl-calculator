@@ -72,6 +72,12 @@ DATA = {
     'pharm': PHARM,
     'factWeeks': FACT_WEEKS[-8:],   # последние 8 недель: раньше Маяковской в выгрузках нет
     'weekPlanDivider': 4.3,   # недель в месяце для пропорции плана
+    # Норматив расходов: % от ТО (оборачивается в абсолют при рендере). Корректируется по факту.
+    'expRate': 17.0,
+    # недели в месяце: сентябрь=нед.35-39 и т.д. (ISO-подобная привязка к плану сен-дек 2026)
+    'monthWeeks': {'Сентябрь': [35, 36, 37, 38, 39], 'Октябрь': [40, 41, 42, 43, 44],
+                   'Ноябрь': [45, 46, 47, 48, 49], 'Декабрь': [50, 51, 52, 53]},
+    'currentMonthIdx': 0,   # сентябрь
     'asOf': f"нед. {FACT_WEEKS[-1]['week']} ({FACT_WEEKS[-1]['from']}–{FACT_WEEKS[-1]['to']})",
 }
 
@@ -110,7 +116,7 @@ HTML = r'''<!DOCTYPE html>
   .seg.active{background:var(--navy);border-color:var(--navy);color:#fff}
   .seg.active.all{background:var(--tx)}
 
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
   @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
   .kpi .t{font-size:11.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:7px}
@@ -174,6 +180,17 @@ HTML = r'''<!DOCTYPE html>
     </div>
   </div>
 
+  <div class="card" style="margin-bottom:12px">
+    <h3>План/факт по месяцам</h3>
+    <div class="hint">Факт сентября — по прошедшим неделям, дальше прогноз (факт/неделю × недель в месяце)</div>
+    <div style="overflow-x:auto">
+      <table id="tblMonths">
+        <thead><tr><th>Месяц</th><th>План ТО</th><th>Факт ТО</th><th>Прогноз</th><th>% плана (прогноз)</th><th>Статус</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="card">
     <h3>Сравнение аптек — последние 2 завершённые недели (нед. __W1__–__W2__)</h3>
     <div class="hint">План за 2 недели = план сентября ÷ 4,3 × 2. ВД = наценка (розница + ИЗ)</div>
@@ -234,7 +251,7 @@ PH.forEach(p => addSeg(p.name, p.name, p.color));
 function select(id){
   current = id;
   document.querySelectorAll('.seg').forEach(s => s.classList.toggle('active', s.dataset.id===id));
-  renderKpis(); renderMain(); renderTable(); highlightPie();
+  renderKpis(); renderMain(); renderTable(); renderMonths(); highlightPie();
 }
 function highlightPie(){
   if (!pieChart) return;
@@ -278,13 +295,27 @@ function renderKpis(){
   }
   const pct = factTo/planTo*100;
   const margin = factTo>0 ? factVd/factTo*100 : 0;
+  // Прогноз сентября: факт за прошедшие недели сентября масштабируем на 5 плановых недель
+  const septWeeks = FACT.filter(r => r.week >= 35 && r.week <= 39);
+  const septFact = (current==='all'
+    ? septWeeks.reduce((s,r)=>s+PH.reduce((a,p)=>a+(weekTo(r,p.name)||0),0),0)
+    : septWeeks.reduce((s,r)=>s+(weekTo(r,current)||0),0));
+  const nSept = septWeeks.length || 1;
+  const forecast = septFact / nSept * 5;
+  const fPct = planMonth>0 ? forecast/planMonth*100 : 0;
+  const expRate = DATA.expRate;
+  const profit2 = factTo * (1 - expRate/100) && factTo>0 ? factTo*margin/100 - factTo*expRate/100 : 0;
   const kpis = [
     {t:'ТО за 2 недели', v:fmtM(factTo), p:'план '+fmtM(planTo),
      badge:Math.round(pct)+'% плана', bc:badgeCls(pct), bar:Math.min(pct,100), col:barColor(pct)},
     {t:'Валовый доход', v:fmtK(factVd), p:'за те же 2 недели'},
     {t:'Маржа факт', v:margin.toFixed(1).replace('.',',')+'%', p:'план 22,2%'},
+    {t:'Прибыль (оценка)', v:fmtK(profit2), p:'расходы '+expRate.toFixed(0).replace('.',',')+'% ТО'},
+    {t:'Прогноз сентября', v:fmtM(forecast), p:Math.round(fPct)+'% плана '+fmtM(planMonth),
+     badge:Math.round(fPct)+'%', bc:badgeCls(fPct), bar:Math.min(fPct,100), col:barColor(fPct)},
     {t:'Чеков за неделю', v:Math.round(checks/2).toLocaleString('ru-RU'), p:'в среднем'},
     {t:'План сентября', v:fmtM(planMonth), p:'полный месяц'},
+    {t:'Расходы (2 нед, оценка)', v:fmtK(factTo*expRate/100), p:'норматив '+expRate.toFixed(0).replace('.',',')+'% от ТО'},
   ];
   document.getElementById('kpis').innerHTML = kpis.map(k=>`
     <div class="kpi">
@@ -339,6 +370,33 @@ pieChart = new Chart(document.getElementById('cPie'), {
     plugins:{legend:{position:'right',labels:{boxWidth:9,usePointStyle:true,pointStyle:'circle',padding:10}},
       tooltip:{...TT,callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
         return ' '+c.label+': '+fmtM(c.parsed)+' ₽ ('+(c.parsed/t*100).toFixed(1)+'%)';}}}}}});
+
+/* ---------- Срез по месяцам ---------- */
+function renderMonths(){
+  const tb = document.querySelector('#tblMonths tbody');
+  const rows = DATA.months.map((mo, mi) => {
+    const wk = (DATA.monthWeeks[mo]||[]);
+    const inPlan = mi <= DATA.currentMonthIdx;
+    let fact = 0, seen = 0;
+    FACT.forEach(r => { if (wk.includes(r.week)) { seen++; fact += (current==='all'
+      ? PH.reduce((a,p)=>a+(weekTo(r,p.name)||0),0) : (weekTo(r,current)||0)); } });
+    const planM = (current==='all' ? PH.reduce((a,p)=>a+p.to[mi],0) : PH.find(p=>p.name===current).to[mi]);
+    const perWeek = seen>0 ? fact/seen : (mi===0 ? PLAN_W(current==='all'?PH[0]:PH.find(p=>p.name===current)) : 0);
+    const allW = wk.length || 4.3;
+    const forecast = seen>0 ? perWeek*allW : (mi===DATA.currentMonthIdx ? fact : 0);
+    const pct = forecast>0 && planM>0 ? forecast/planM*100 : null;
+    const shown = pct!=null ? forecast : (inPlan?0:null);
+    return `<tr>
+      <td><b>${mo}</b>${mi===DATA.currentMonthIdx?' <span class="st b-orange" style="margin-left:6px">текущий</span>':''}</td>
+      <td>${fmtM(planM)}</td>
+      <td>${inPlan ? (seen>0?fmtM(fact):'—') : '—'}</td>
+      <td>${shown!=null?fmtM(shown):'—'}</td>
+      <td>${pct!=null?`<span class="${pct>=100?'pos':'neg'}">${Math.round(pct)}%</span>`:'—'}</td>
+      <td>${pct!=null?`<span class="st ${badgeCls(pct)}">${pct>=100?'В плане':pct>=85?'Риск':'Отставание'}</span>`:'<span style="color:var(--mut)">впереди</span>'}</td>
+    </tr>`;
+  });
+  tb.innerHTML = rows.join('');
+}
 
 /* ---------- Таблица ---------- */
 function renderTable(){

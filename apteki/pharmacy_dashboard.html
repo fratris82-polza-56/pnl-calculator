@@ -53,7 +53,7 @@
   .seg.active{background:var(--navy);border-color:var(--navy);color:#fff}
   .seg.active.all{background:var(--tx)}
 
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
   @media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
   .kpi .t{font-size:11.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-bottom:7px}
@@ -117,6 +117,17 @@
     </div>
   </div>
 
+  <div class="card" style="margin-bottom:12px">
+    <h3>План/факт по месяцам</h3>
+    <div class="hint">Факт сентября — по прошедшим неделям, дальше прогноз (факт/неделю × недель в месяце)</div>
+    <div style="overflow-x:auto">
+      <table id="tblMonths">
+        <thead><tr><th>Месяц</th><th>План ТО</th><th>Факт ТО</th><th>Прогноз</th><th>% плана (прогноз)</th><th>Статус</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="card">
     <h3>Сравнение аптек — последние 2 завершённые недели (нед. 36–37)</h3>
     <div class="hint">План за 2 недели = план сентября ÷ 4,3 × 2. ВД = наценка (розница + ИЗ)</div>
@@ -139,7 +150,7 @@
 </div>
 
 <script>
-const DATA = {"months": ["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"], "pharm": [{"name": "Азовская", "addr": "Москва, ул. Азовская, 24 к2", "color": "#003c88", "to": [4900000, 6000000, 6200000, 7000000], "vd": [1086770, 1330739, 1375097, 1552529]}, {"name": "Юбилейный", "addr": "Химки, пр-кт Юбилейный, 60", "color": "#4277c2", "to": [2850000, 4100000, 4200000, 4300000], "vd": [632101, 909339, 931518, 953696]}, {"name": "Проспект Мира", "addr": "Химки, пр-кт Мира, 13/7", "color": "#6dc47b", "to": [2300000, 2800000, 2950000, 3300000], "vd": [510117, 621012, 654280, 731907]}, {"name": "Маяковская", "addr": "Химки, ул. Маяковского, 14", "color": "#f9a968", "to": [800000, 2950000, 2950000, 3300000], "vd": [177432, 654280, 654280, 731907]}, {"name": "Пятницкое", "addr": "Москва, ш. Пятницкое, 21 к1", "color": "#ffc61a", "to": [1400000, 1540000, 1600000, 1700000], "vd": [310506, 341556, 354864, 377043]}], "factWeeks": [{"week": 30, "from": "20.07.2026", "to": "26.07.2026", "ph": {"Азовская": {"to": 1934770, "vd": 231940, "checks": 1002}, "Юбилейный": {"to": 865957, "vd": 150263, "checks": 651}, "Проспект Мира": {"to": 459454, "vd": 90702, "checks": 553}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 347128, "vd": 76574, "checks": 384}}}, {"week": 31, "from": "27.07.2026", "to": "02.08.2026", "ph": {"Азовская": {"to": 2220047, "vd": 247466, "checks": 989}, "Юбилейный": {"to": 1101584, "vd": 146449, "checks": 680}, "Проспект Мира": {"to": 481251, "vd": 90408, "checks": 562}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 320305, "vd": 65789, "checks": 375}}}, {"week": 32, "from": "03.08.2026", "to": "09.08.2026", "ph": {"Азовская": {"to": 1195120, "vd": 206567, "checks": 996}, "Юбилейный": {"to": 704952, "vd": 144653, "checks": 667}, "Проспект Мира": {"to": 516854, "vd": 106843, "checks": 612}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 257434, "vd": 52885, "checks": 334}}}, {"week": 33, "from": "10.08.2026", "to": "16.08.2026", "ph": {"Азовская": {"to": 3767629, "vd": 262509, "checks": 992}, "Юбилейный": {"to": 746566, "vd": 149590, "checks": 690}, "Проспект Мира": {"to": 562930, "vd": 102577, "checks": 562}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 329433, "vd": 71405, "checks": 420}}}, {"week": 34, "from": "17.08.2026", "to": "23.08.2026", "ph": {"Азовская": {"to": 1223766, "vd": 211515, "checks": 997}, "Юбилейный": {"to": 615279, "vd": 123007, "checks": 593}, "Проспект Мира": {"to": 607492, "vd": 132204, "checks": 605}, "Маяковская": {"to": 2989, "vd": 788, "checks": 8}, "Пятницкое": {"to": 386242, "vd": 70450, "checks": 388}}}, {"week": 35, "from": "24.08.2026", "to": "30.08.2026", "ph": {"Азовская": {"to": 1447624, "vd": 250796, "checks": 983}, "Юбилейный": {"to": 739537, "vd": 150361, "checks": 688}, "Проспект Мира": {"to": 517468, "vd": 92804, "checks": 575}, "Маяковская": {"to": 97413, "vd": 19500, "checks": 142}, "Пятницкое": {"to": 382164, "vd": 74616, "checks": 426}}}, {"week": 36, "from": "31.08.2026", "to": "06.09.2026", "ph": {"Азовская": {"to": 1284067, "vd": 227418, "checks": 1031}, "Юбилейный": {"to": 769982, "vd": 151980, "checks": 742}, "Проспект Мира": {"to": 556473, "vd": 106575, "checks": 614}, "Маяковская": {"to": 142917, "vd": 21380, "checks": 189}, "Пятницкое": {"to": 388844, "vd": 80771, "checks": 443}}}, {"week": 37, "from": "07.09.2026", "to": "13.09.2026", "ph": {"Азовская": {"to": 1900814, "vd": 294656, "checks": 1263}, "Юбилейный": {"to": 865242, "vd": 175045, "checks": 804}, "Проспект Мира": {"to": 649653, "vd": 118703, "checks": 635}, "Маяковская": {"to": 167829, "vd": 26410, "checks": 211}, "Пятницкое": {"to": 453218, "vd": 90964, "checks": 475}}}], "weekPlanDivider": 4.3, "asOf": "нед. 37 (07.09.2026–13.09.2026)"};
+const DATA = {"months": ["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"], "pharm": [{"name": "Азовская", "addr": "Москва, ул. Азовская, 24 к2", "color": "#003c88", "to": [4900000, 6000000, 6200000, 7000000], "vd": [1086770, 1330739, 1375097, 1552529]}, {"name": "Юбилейный", "addr": "Химки, пр-кт Юбилейный, 60", "color": "#4277c2", "to": [2850000, 4100000, 4200000, 4300000], "vd": [632101, 909339, 931518, 953696]}, {"name": "Проспект Мира", "addr": "Химки, пр-кт Мира, 13/7", "color": "#6dc47b", "to": [2300000, 2800000, 2950000, 3300000], "vd": [510117, 621012, 654280, 731907]}, {"name": "Маяковская", "addr": "Химки, ул. Маяковского, 14", "color": "#f9a968", "to": [800000, 2950000, 2950000, 3300000], "vd": [177432, 654280, 654280, 731907]}, {"name": "Пятницкое", "addr": "Москва, ш. Пятницкое, 21 к1", "color": "#ffc61a", "to": [1400000, 1540000, 1600000, 1700000], "vd": [310506, 341556, 354864, 377043]}], "factWeeks": [{"week": 30, "from": "20.07.2026", "to": "26.07.2026", "ph": {"Азовская": {"to": 1934770, "vd": 231940, "checks": 1002}, "Юбилейный": {"to": 865957, "vd": 150263, "checks": 651}, "Проспект Мира": {"to": 459454, "vd": 90702, "checks": 553}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 347128, "vd": 76574, "checks": 384}}}, {"week": 31, "from": "27.07.2026", "to": "02.08.2026", "ph": {"Азовская": {"to": 2220047, "vd": 247466, "checks": 989}, "Юбилейный": {"to": 1101584, "vd": 146449, "checks": 680}, "Проспект Мира": {"to": 481251, "vd": 90408, "checks": 562}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 320305, "vd": 65789, "checks": 375}}}, {"week": 32, "from": "03.08.2026", "to": "09.08.2026", "ph": {"Азовская": {"to": 1195120, "vd": 206567, "checks": 996}, "Юбилейный": {"to": 704952, "vd": 144653, "checks": 667}, "Проспект Мира": {"to": 516854, "vd": 106843, "checks": 612}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 257434, "vd": 52885, "checks": 334}}}, {"week": 33, "from": "10.08.2026", "to": "16.08.2026", "ph": {"Азовская": {"to": 3767629, "vd": 262509, "checks": 992}, "Юбилейный": {"to": 746566, "vd": 149590, "checks": 690}, "Проспект Мира": {"to": 562930, "vd": 102577, "checks": 562}, "Маяковская": {"to": 0, "vd": 0, "checks": 0}, "Пятницкое": {"to": 329433, "vd": 71405, "checks": 420}}}, {"week": 34, "from": "17.08.2026", "to": "23.08.2026", "ph": {"Азовская": {"to": 1223766, "vd": 211515, "checks": 997}, "Юбилейный": {"to": 615279, "vd": 123007, "checks": 593}, "Проспект Мира": {"to": 607492, "vd": 132204, "checks": 605}, "Маяковская": {"to": 2989, "vd": 788, "checks": 8}, "Пятницкое": {"to": 386242, "vd": 70450, "checks": 388}}}, {"week": 35, "from": "24.08.2026", "to": "30.08.2026", "ph": {"Азовская": {"to": 1447624, "vd": 250796, "checks": 983}, "Юбилейный": {"to": 739537, "vd": 150361, "checks": 688}, "Проспект Мира": {"to": 517468, "vd": 92804, "checks": 575}, "Маяковская": {"to": 97413, "vd": 19500, "checks": 142}, "Пятницкое": {"to": 382164, "vd": 74616, "checks": 426}}}, {"week": 36, "from": "31.08.2026", "to": "06.09.2026", "ph": {"Азовская": {"to": 1284067, "vd": 227418, "checks": 1031}, "Юбилейный": {"to": 769982, "vd": 151980, "checks": 742}, "Проспект Мира": {"to": 556473, "vd": 106575, "checks": 614}, "Маяковская": {"to": 142917, "vd": 21380, "checks": 189}, "Пятницкое": {"to": 388844, "vd": 80771, "checks": 443}}}, {"week": 37, "from": "07.09.2026", "to": "13.09.2026", "ph": {"Азовская": {"to": 1900814, "vd": 294656, "checks": 1263}, "Юбилейный": {"to": 865242, "vd": 175045, "checks": 804}, "Проспект Мира": {"to": 649653, "vd": 118703, "checks": 635}, "Маяковская": {"to": 167829, "vd": 26410, "checks": 211}, "Пятницкое": {"to": 453218, "vd": 90964, "checks": 475}}}], "weekPlanDivider": 4.3, "expRate": 17.0, "monthWeeks": {"Сентябрь": [35, 36, 37, 38, 39], "Октябрь": [40, 41, 42, 43, 44], "Ноябрь": [45, 46, 47, 48, 49], "Декабрь": [50, 51, 52, 53]}, "currentMonthIdx": 0, "asOf": "нед. 37 (07.09.2026–13.09.2026)"};
 const PH = DATA.pharm;
 const FACT = DATA.factWeeks;
 const LAST2 = FACT.slice(-2);              // последние 2 завершённые недели
@@ -177,7 +188,7 @@ PH.forEach(p => addSeg(p.name, p.name, p.color));
 function select(id){
   current = id;
   document.querySelectorAll('.seg').forEach(s => s.classList.toggle('active', s.dataset.id===id));
-  renderKpis(); renderMain(); renderTable(); highlightPie();
+  renderKpis(); renderMain(); renderTable(); renderMonths(); highlightPie();
 }
 function highlightPie(){
   if (!pieChart) return;
@@ -221,13 +232,27 @@ function renderKpis(){
   }
   const pct = factTo/planTo*100;
   const margin = factTo>0 ? factVd/factTo*100 : 0;
+  // Прогноз сентября: факт за прошедшие недели сентября масштабируем на 5 плановых недель
+  const septWeeks = FACT.filter(r => r.week >= 35 && r.week <= 39);
+  const septFact = (current==='all'
+    ? septWeeks.reduce((s,r)=>s+PH.reduce((a,p)=>a+(weekTo(r,p.name)||0),0),0)
+    : septWeeks.reduce((s,r)=>s+(weekTo(r,current)||0),0));
+  const nSept = septWeeks.length || 1;
+  const forecast = septFact / nSept * 5;
+  const fPct = planMonth>0 ? forecast/planMonth*100 : 0;
+  const expRate = DATA.expRate;
+  const profit2 = factTo * (1 - expRate/100) && factTo>0 ? factTo*margin/100 - factTo*expRate/100 : 0;
   const kpis = [
     {t:'ТО за 2 недели', v:fmtM(factTo), p:'план '+fmtM(planTo),
      badge:Math.round(pct)+'% плана', bc:badgeCls(pct), bar:Math.min(pct,100), col:barColor(pct)},
     {t:'Валовый доход', v:fmtK(factVd), p:'за те же 2 недели'},
     {t:'Маржа факт', v:margin.toFixed(1).replace('.',',')+'%', p:'план 22,2%'},
+    {t:'Прибыль (оценка)', v:fmtK(profit2), p:'расходы '+expRate.toFixed(0).replace('.',',')+'% ТО'},
+    {t:'Прогноз сентября', v:fmtM(forecast), p:Math.round(fPct)+'% плана '+fmtM(planMonth),
+     badge:Math.round(fPct)+'%', bc:badgeCls(fPct), bar:Math.min(fPct,100), col:barColor(fPct)},
     {t:'Чеков за неделю', v:Math.round(checks/2).toLocaleString('ru-RU'), p:'в среднем'},
     {t:'План сентября', v:fmtM(planMonth), p:'полный месяц'},
+    {t:'Расходы (2 нед, оценка)', v:fmtK(factTo*expRate/100), p:'норматив '+expRate.toFixed(0).replace('.',',')+'% от ТО'},
   ];
   document.getElementById('kpis').innerHTML = kpis.map(k=>`
     <div class="kpi">
@@ -282,6 +307,33 @@ pieChart = new Chart(document.getElementById('cPie'), {
     plugins:{legend:{position:'right',labels:{boxWidth:9,usePointStyle:true,pointStyle:'circle',padding:10}},
       tooltip:{...TT,callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);
         return ' '+c.label+': '+fmtM(c.parsed)+' ₽ ('+(c.parsed/t*100).toFixed(1)+'%)';}}}}}});
+
+/* ---------- Срез по месяцам ---------- */
+function renderMonths(){
+  const tb = document.querySelector('#tblMonths tbody');
+  const rows = DATA.months.map((mo, mi) => {
+    const wk = (DATA.monthWeeks[mo]||[]);
+    const inPlan = mi <= DATA.currentMonthIdx;
+    let fact = 0, seen = 0;
+    FACT.forEach(r => { if (wk.includes(r.week)) { seen++; fact += (current==='all'
+      ? PH.reduce((a,p)=>a+(weekTo(r,p.name)||0),0) : (weekTo(r,current)||0)); } });
+    const planM = (current==='all' ? PH.reduce((a,p)=>a+p.to[mi],0) : PH.find(p=>p.name===current).to[mi]);
+    const perWeek = seen>0 ? fact/seen : (mi===0 ? PLAN_W(current==='all'?PH[0]:PH.find(p=>p.name===current)) : 0);
+    const allW = wk.length || 4.3;
+    const forecast = seen>0 ? perWeek*allW : (mi===DATA.currentMonthIdx ? fact : 0);
+    const pct = forecast>0 && planM>0 ? forecast/planM*100 : null;
+    const shown = pct!=null ? forecast : (inPlan?0:null);
+    return `<tr>
+      <td><b>${mo}</b>${mi===DATA.currentMonthIdx?' <span class="st b-orange" style="margin-left:6px">текущий</span>':''}</td>
+      <td>${fmtM(planM)}</td>
+      <td>${inPlan ? (seen>0?fmtM(fact):'—') : '—'}</td>
+      <td>${shown!=null?fmtM(shown):'—'}</td>
+      <td>${pct!=null?`<span class="${pct>=100?'pos':'neg'}">${Math.round(pct)}%</span>`:'—'}</td>
+      <td>${pct!=null?`<span class="st ${badgeCls(pct)}">${pct>=100?'В плане':pct>=85?'Риск':'Отставание'}</span>`:'<span style="color:var(--mut)">впереди</span>'}</td>
+    </tr>`;
+  });
+  tb.innerHTML = rows.join('');
+}
 
 /* ---------- Таблица ---------- */
 function renderTable(){

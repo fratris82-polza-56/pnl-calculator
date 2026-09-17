@@ -858,6 +858,7 @@
             try {
                 const r = window._lastResults || {};
                 const n = function(v) { return Math.round(v || 0); };
+                const st = collectState(); // полный снимок: params + персонал + планировщик
                 const payload = {
                     t: 'plan', d: new Date().toISOString().slice(0, 10),
                     ph: (window.__pnlPharmacy || ''),
@@ -865,7 +866,8 @@
                     exp: n(r.operatingExpenses), op: n(r.opProfit),
                     np: n(r.netProfit),
                     rw: n(params.revenueWarehouse), rr: n(params.revenueRetail), re: n(params.revenueEcom),
-                    mr: params.marginRetail, me: params.marginEcom, mw: params.marginWarehouse
+                    mr: params.marginRetail, me: params.marginEcom, mw: params.marginWarehouse,
+                    st: st // полное состояние для обратного импорта (#plan=)
                 };
                 const code = 'PNL1.' + encodeState(payload);
                 copyToClipboard(code, 'Код плана скопирован — пришли его Стэну в Telegram');
@@ -1860,6 +1862,45 @@
                 updateRevenueDetail();
                 if (fromUrl) { try { localStorage.setItem(STATE_STORAGE_KEY, encodeState(collectState())); } catch(e) {} }
             }
+        })();
+        // Обратный импорт: #plan=PNL1.<код> — восстановить план в калькулятор (кнопка на тосте)
+        (function importPlan() {
+            try {
+                const m = location.hash.match(/(?:^|[#&])plan=(PNL1\.[A-Za-z0-9\-_]+)/);
+                if (!m || !m[1]) return;
+                const code = m[1];
+                const p = decodeState(code.slice(5));
+                if (!p || p.t !== 'plan') return;
+                history.replaceState(null, '', location.pathname + location.search + '#plan=imported');
+                const bar = document.createElement('div');
+                bar.style.cssText = 'position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#03c854;color:#fff;padding:12px 20px;border-radius:10px;font-family:Montserrat,sans-serif;font-size:0.9rem;z-index:9998;box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;gap:12px;align-items:center;';
+                const label = document.createElement('span');
+                label.textContent = 'План' + (p.ph ? ' (' + p.ph + ')' : '') + ' от ' + (p.d || '') + ' — загрузить в калькулятор?';
+                const yes = document.createElement('button');
+                yes.textContent = 'Загрузить';
+                yes.style.cssText = 'background:#fff;color:#0a7d3c;border:0;border-radius:7px;padding:7px 14px;font-weight:700;cursor:pointer;font-family:inherit;';
+                const no = document.createElement('button');
+                no.textContent = 'Нет';
+                no.style.cssText = 'background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:7px;padding:7px 14px;cursor:pointer;font-family:inherit;';
+                yes.onclick = function() {
+                    try {
+                        if (p.st && applyState(p.st)) {
+                            window.__pnlRestored = true;
+                            syncDomFromParams();
+                            document.querySelectorAll('#paramsPanel input[type="range"]').forEach(function(s){ updateSliderFillById(s.id); });
+                            STATE_BE_KEYS.forEach(updateSliderFillById);
+                            updateStaffDisplay();
+                            updateRevenueDetail();
+                            try { localStorage.setItem(STATE_STORAGE_KEY, encodeState(collectState())); } catch(e) {}
+                        }
+                    } catch(e) {}
+                    bar.remove();
+                    showToast('План загружен в калькулятор');
+                };
+                no.onclick = function() { bar.remove(); };
+                bar.appendChild(label); bar.appendChild(yes); bar.appendChild(no);
+                document.body.appendChild(bar);
+            } catch(e) {}
         })();
         beResetToDefaults();
         window.addEventListener('pageshow', beResetToDefaults);
