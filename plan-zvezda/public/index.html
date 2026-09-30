@@ -2,93 +2,139 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#003c88">
 <title>План «Звезда» · аптеки сен–дек 2026</title>
 <script src="chart.min.js"></script>
 <style>
+/* ===== Mobile first: база = телефон ===== */
 :root{
   --navy:#003c88; --blue:#4277c2; --green:#6dc47b; --bright:#03c854;
   --orange:#f9a968; --gold:#ffc61a; --bg:#f7f9fc; --tx:#161e25; --mut:#8b8f92;
   --card:#ffffff; --line:#e4e9f1; --red:#e5484d;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
 body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
-.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 50px}
-.topbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
-.logo{width:38px;height:38px;border-radius:10px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px}
-.topbar h1{font-size:17px;font-weight:700}
-.topbar .sub{font-size:12px;color:var(--mut)}
-.topbar .spacer{flex:1}
-select{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:600;color:var(--navy)}
-.grid{display:grid;gap:12px;margin-bottom:14px}
-.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.kpi .t{font-size:11.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
-.kpi .v{font-size:21px;font-weight:750;margin:3px 0 1px}
-.kpi .s{font-size:11.5px;color:var(--mut)}
-.kpi .b{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:700}
+.wrap{max-width:1180px;margin:0 auto;padding:12px 10px calc(40px + env(safe-area-inset-bottom))}
+
+/* --- шапка: на мобиле колонкой, фильтры сеткой 2×1 --- */
+.topbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;flex:none;border-radius:10px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px}
+.brand h1{font-size:15px;font-weight:700;line-height:1.25}
+.brand .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:16px;font-weight:600;color:var(--navy);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23003c88' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+
+/* --- сетки --- */
+.grid{display:grid;gap:10px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+
+/* --- KPI: 2 колонки на телефоне, все видны без скролла --- */
+.kpis{grid-template-columns:repeat(2,1fr)}
+.kpi .t{font-size:10.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.kpi .v{font-size:clamp(16px,4.6vw,21px);font-weight:750;margin:3px 0 1px}
+.kpi .s{font-size:11px;color:var(--mut)}
+.kpi .b{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
 .b-ok{background:#e5f9ec;color:#0a7d3c}.b-warn{background:#fdf1e2;color:#a05a00}.b-bad{background:#fde8e8;color:#c0272d}
-.charts{grid-template-columns:1fr 1fr}
-@media(max-width:900px){.charts{grid-template-columns:1fr}}
-.chart-card h3{font-size:13px;margin-bottom:8px;color:var(--navy)}
-.chart-box{position:relative;height:260px}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);text-align:right;padding:6px 8px;border-bottom:1px solid var(--line)}
+
+/* --- графики: столбиком на телефоне --- */
+.charts{grid-template-columns:1fr}
+.chart-card h3{font-size:12.5px;margin-bottom:8px;color:var(--navy);line-height:1.3}
+.chart-box{position:relative;height:215px}
+
+/* --- таблицы: горизонтальный скролл, sticky первая колонка --- */
+.h2row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:16px 0 8px;flex-wrap:wrap}
+.h2row h2{font-size:13.5px;color:var(--navy)}
+.h2row .note{font-size:11px;color:var(--mut)}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th.l,td.l{text-align:left}
-td{padding:6px 8px;text-align:right;border-bottom:1px solid #eef2f7}
+td{padding:7px 8px;text-align:right;border-bottom:1px solid #eef2f7;white-space:nowrap}
 tr:last-child td{border-bottom:none}
+th.stick,td.stick{position:sticky;left:0;background:var(--card);z-index:1;box-shadow:2px 0 4px -2px rgba(0,0,0,.06)}
 .num{font-variant-numeric:tabular-nums}
 .pos{color:#0a7d3c;font-weight:700}.neg{color:#c0272d;font-weight:700}
 .mut{color:var(--mut)}
-.h2row{display:flex;align-items:baseline;gap:10px;margin:18px 0 8px}
-.h2row h2{font-size:14px;color:var(--navy)}
-.h2row .note{font-size:11.5px;color:var(--mut)}
-.bar{height:6px;border-radius:4px;background:#edf1f7;overflow:hidden;min-width:90px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+.bar{height:6px;border-radius:4px;background:#edf1f7;overflow:hidden;min-width:70px}
 .bar i{display:block;height:100%;border-radius:4px}
-/* API block */
-.api{margin-top:22px}
-.api .card{padding:16px 18px}
-.api h2{font-size:14px;color:var(--navy);margin-bottom:6px}
-.api p{font-size:12.5px;color:var(--tx);margin:4px 0}
-.api code{background:#eef3fa;border:1px solid #dfe8f3;border-radius:6px;padding:1px 6px;font-size:11.5px;font-family:ui-monospace,Consolas,monospace;color:var(--navy)}
-pre{background:#0e1726;color:#cde3ff;border-radius:10px;padding:12px 14px;font-size:11.5px;line-height:1.5;overflow-x:auto;font-family:ui-monospace,Consolas,monospace;margin:8px 0}
+/* второстепенные колонки скрыты на телефоне */
+.m-hide{display:none}
+
+/* --- API-блок --- */
+.api{margin-top:20px}
+.api .card{padding:14px}
+.api h2{font-size:13.5px;color:var(--navy);margin-bottom:6px;line-height:1.35}
+.api p{font-size:12.5px;margin:5px 0}
+.api code{background:#eef3fa;border:1px solid #dfe8f3;border-radius:6px;padding:1px 6px;font-size:11px;font-family:ui-monospace,Consolas,monospace;color:var(--navy);word-break:break-all}
+pre{background:#0e1726;color:#cde3ff;border-radius:10px;padding:12px;font-size:10.5px;line-height:1.55;overflow-x:auto;font-family:ui-monospace,Consolas,monospace;margin:8px 0}
 pre .c{color:#7d93b8}
-.api-cols{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
-@media(max-width:900px){.api-cols{grid-template-columns:1fr}}
+.api-cols{display:grid;grid-template-columns:1fr;gap:14px}
 .log{font-size:12px;max-height:220px;overflow:auto}
-.log .row{display:flex;gap:8px;padding:4px 0;border-bottom:1px solid #eef2f7}
-.log .d{color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap}
-.badge{display:inline-block;background:#eef3fa;color:var(--navy);border-radius:99px;padding:2px 9px;font-size:11px;font-weight:700;margin-left:6px}
-button.btn{border:1px solid var(--line);background:#fff;color:var(--navy);padding:7px 13px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer}
-button.btn:hover{border-color:var(--blue)}
+.log .row{display:flex;flex-wrap:wrap;gap:2px 8px;padding:5px 0;border-bottom:1px solid #eef2f7}
+.log .d{color:var(--mut);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:11px;width:100%}
+.badge{display:inline-block;background:#eef3fa;color:var(--navy);border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:700;margin-left:6px;vertical-align:middle}
+button.btn{border:1px solid var(--line);background:#fff;color:var(--navy);padding:9px 14px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:40px}
+button.btn:active{background:#eef3fa}
 .ok-line{color:#0a7d3c;font-weight:600}.err-line{color:#c0272d;font-weight:600}
+
+/* ===== Планшет и шире ===== */
+@media (min-width:640px){
+  .kpis{grid-template-columns:repeat(3,1fr)}
+  .chart-box{height:240px}
+  .m-hide{display:table-cell}
+  .log .d{width:auto}
+}
+@media (min-width:860px){
+  .wrap{padding:18px 16px 50px}
+  .topbar{flex-direction:row;align-items:center;flex-wrap:wrap}
+  .brand{margin-right:auto}
+  .brand h1{font-size:17px}
+  .filters{display:flex;grid-template-columns:none;width:auto}
+  .filters select{width:auto;min-width:170px;min-height:38px;font-size:13px;padding:8px 30px 8px 10px}
+  .grid{gap:12px;margin-bottom:14px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+  .charts{grid-template-columns:1fr 1fr}
+  .chart-box{height:260px}
+  .chart-card h3{font-size:13px}
+  table{min-width:0;font-size:12.5px}
+  .api-cols{grid-template-columns:1.2fr .8fr}
+  .api .card{padding:16px 18px}
+  .api h2{font-size:14px}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="topbar">
-    <div class="logo">З</div>
-    <div>
-      <h1>План «Звезда» · аптеки сентябрь–декабрь 2026</h1>
-      <div class="sub" id="asOf">план/факт · прогноз выполнения</div>
+    <div class="brand">
+      <div class="logo">З</div>
+      <div>
+        <h1>План «Звезда» · аптеки сентябрь–декабрь 2026</h1>
+        <div class="sub" id="asOf">план/факт · прогноз выполнения</div>
+      </div>
     </div>
-    <div class="spacer"></div>
-    <select id="fPh"><option value="">Все аптеки</option></select>
-    <select id="fMonth"><option value="">Все месяцы</option></select>
+    <div class="filters">
+      <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
+      <select id="fMonth" aria-label="Месяц"><option value="">Все месяцы</option></select>
+    </div>
   </div>
 
   <div class="grid kpis" id="kpis"></div>
 
   <div class="grid charts">
     <div class="card chart-card"><h3>План и факт по месяцам (выручка, млн ₽)</h3><div class="chart-box"><canvas id="chMonth"></canvas></div></div>
-    <div class="card chart-card"><h3 id="chDayTitle">Накопленный план/факт по дням (сентябрь)</h3><div class="chart-box"><canvas id="chDay"></canvas></div></div>
+    <div class="card chart-card"><h3 id="chDayTitle">Накопленный план/факт по дням</h3><div class="chart-box"><canvas id="chDay"></canvas></div></div>
   </div>
 
-  <div class="h2row"><h2>Сводная таблица</h2><span class="note">прогноз = факт/день × дней в месяце; % — к плану</span></div>
-  <div class="card" style="overflow:auto"><table id="tbl"></table></div>
+  <div class="h2row"><h2>Сводная таблица</h2><span class="note">прогноз = факт/день × дней в месяце</span></div>
+  <div class="card tbl-wrap"><table id="tbl"></table></div>
 
-  <div class="h2row"><h2>Сотрудники</h2><span class="note">личный план = план аптеки × доля; доли правится в API (PATCH /api/employee/:id)</span></div>
-  <div class="card" style="overflow:auto"><table id="tblEmp"></table></div>
+  <div class="h2row"><h2>Сотрудники</h2><span class="note">личный план = план аптеки × доля</span></div>
+  <div class="card tbl-wrap"><table id="tblEmp"></table></div>
 
   <div class="api">
     <div class="card">
@@ -111,9 +157,9 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
           <p><b>PATCH</b> <code>/api/employee/:id</code> — ФИО/доля сотрудника</p>
         </div>
         <div>
-          <p><b>Журнал импорта</b> <button class="btn" id="btnSim" style="float:right">Тестовая продажа</button></p>
+          <p><b>Журнал импорта</b> <button class="btn" id="btnSim">Тестовая продажа</button></p>
           <div class="log" id="log"></div>
-          <p class="note" style="font-size:11.5px;color:var(--mut);margin-top:6px">«Тестовая продажа» отправляет демо-чек через тот же endpoint, что и аптечное ПО.</p>
+          <p style="font-size:11.5px;color:var(--mut);margin-top:6px">«Тестовая продажа» отправляет демо-чек через тот же endpoint, что и аптечное ПО.</p>
         </div>
       </div>
     </div>
@@ -142,58 +188,60 @@ function renderKpis(sum, phId, month){
   const fpct = t.plan? t.frc/t.plan*100 : 0;
   const vdPct = t.pvd? t.fvd/t.pvd*100 : 0;
   const scope = phId? CAT.pharmacy.find(p=>p.id==phId).name : '5 аптек';
-  const mlab = month|| 'сен–дек';
+  const mlab = month || 'сен–дек';
   $('#kpis').innerHTML =
     kpi(`План ТО · ${mlab}`, fmtM(t.plan), scope) +
-    kpi(`Факт ТО · ${mlab}`, fmtM(t.fact), `${vdPct.toFixed(1)}% плана ВД по ВД`) +
-    kpi('Выполнение', pct.toFixed(1)+'%', `факт/план ТО`, pct.toFixed(0)+'%', cls(pct)) +
-    kpi('Прогноз ТО', fmt(t.frc), 'по темпу факта') +
+    kpi(`Факт ТО · ${mlab}`, fmtM(t.fact), `ВД: ${fmtM(t.fvd)} (${vdPct.toFixed(0)}% плана)`) +
+    kpi('Выполнение', pct.toFixed(1)+'%', 'факт/план ТО', pct.toFixed(0)+'%', cls(pct)) +
+    kpi('Прогноз ТО', fmtM(t.frc), 'по темпу факта') +
     kpi('Прогноз выполнения', fpct.toFixed(1)+'%', 'к плану ТО', fpct.toFixed(0)+'%', cls(fpct)) +
-    kpi('Валовый доход', fmt(t.fvd), `план ${fmt(t.pvd)} (${vdPct.toFixed(0)}%)`);
+    kpi('План ВД', fmtM(t.pvd), `факт ${fmtM(t.fvd)}`);
 }
 
 function renderTable(sum){
-  let h = '<tr><th class="l">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th>План ВД</th><th>Факт ВД</th><th>Чеков</th><th>Дней</th></tr>';
+  let h = '<thead><tr><th class="l stick">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th class="m-hide">План ВД</th><th class="m-hide">Факт ВД</th><th class="m-hide">Чеков</th><th class="m-hide">Дней</th></tr></thead><tbody>';
   sum.rows.forEach(r=>{
     const pc = r.fact_revenue/r.plan_revenue*100;
-    h += `<tr><td class="l"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${CAT.pharmacy.find(p=>p.id===r.pharmacy_id).color};margin-right:6px"></span>${r.pharmacy}</td>`+
-      `<td class="l">${r.month}</td><td class="num">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td>`+
+    const ph = CAT.pharmacy.find(p=>p.id===r.pharmacy_id);
+    h += `<tr><td class="l stick"><span class="dot" style="background:${ph.color}"></span>${r.pharmacy}</td>`+
+      `<td class="l">${r.month}</td><td class="num m-hide">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td>`+
       `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,pc)}%;background:${pc>=100?'var(--green)':pc>=90?'var(--gold)':'var(--red)'}"></i></div>${pc.toFixed(1)}%</div></td>`+
-      `<td class="num">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct>=100?'pos':'neg'}">${r.forecast_pct}%</td>`+
-      `<td class="num">${fmt(r.plan_margin)}</td><td class="num">${fmt(r.fact_margin)}</td>`+
-      `<td class="num">${r.fact_checks||'—'}</td><td class="num mut">${r.fact_days}/${r.total_days}</td></tr>`;
+      `<td class="num m-hide">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct>=100?'pos':'neg'}">${r.forecast_pct}%</td>`+
+      `<td class="num m-hide">${fmt(r.plan_margin)}</td><td class="num m-hide">${fmt(r.fact_margin)}</td>`+
+      `<td class="num m-hide">${r.fact_checks||'—'}</td><td class="num mut m-hide">${r.fact_days}/${r.total_days}</td></tr>`;
   });
-  $('#tbl').innerHTML = h;
+  $('#tbl').innerHTML = h+'</tbody>';
 }
 
 function renderEmp(sum, phId){
   const emps = phId? sum.employees.filter(e=>e.pharmacy_id==phId) : sum.employees;
-  let h = '<tr><th class="l">Сотрудник</th><th class="l">Аптека</th><th>Доля</th><th>Личный план (мес)</th><th>Факт ТО</th><th>% вып.</th><th>Факт ВД</th></tr>';
-  if(!emps.length){ $('#tblEmp').innerHTML = '<tr><td class="l mut">нет данных по факту — заведите сотрудников или пришлите продажи через API</td></tr>'; return; }
+  let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th class="m-hide">Доля</th><th class="m-hide">Личный план (мес)</th><th>Факт ТО</th><th>% вып.</th><th class="m-hide">Факт ВД</th></tr></thead><tbody>';
+  if(!emps.length){ $('#tblEmp').innerHTML = '<tbody><tr><td class="l mut">нет данных по факту — пришлите продажи через API</td></tr></tbody>'; return; }
   emps.forEach(e=>{
     const ph = CAT.pharmacy.find(p=>p.id===e.pharmacy_id);
     const midx = $('#fMonth').value? MONTHS.indexOf($('#fMonth').value) : 0;
     const planRow = CAT.plan.find(p=>p.pharmacy_id===e.pharmacy_id && p.month===MONTHS[midx]);
     const personal = planRow? planRow.revenue*(e.share||0) : null;
     const pc = personal? e.revenue/personal*100 : null;
-    h += `<tr><td class="l">${e.fio}</td><td class="l">${ph.name}</td><td class="num">${(e.share*100).toFixed(0)}%</td>`+
-      `<td class="num">${personal?fmt(personal):'—'}</td><td class="num">${fmt(e.revenue)}</td>`+
-      `<td class="num ${pc!=null?(pc>=100?'pos':'neg'):''}">${pc!=null?pc.toFixed(1)+'%':'—'}</td><td class="num">${fmt(e.margin)}</td></tr>`;
+    h += `<tr><td class="l stick">${e.fio}</td><td class="l"><span class="dot" style="background:${ph.color}"></span>${ph.name}</td><td class="num m-hide">${(e.share*100).toFixed(0)}%</td>`+
+      `<td class="num m-hide">${personal?fmt(personal):'—'}</td><td class="num">${fmt(e.revenue)}</td>`+
+      `<td class="num ${pc!=null?(pc>=100?'pos':'neg'):''}">${pc!=null?pc.toFixed(1)+'%':'—'}</td><td class="num m-hide">${fmt(e.margin)}</td></tr>`;
   });
-  $('#tblEmp').innerHTML = h;
+  $('#tblEmp').innerHTML = h+'</tbody>';
 }
 
 function drawMonth(sum){
   const labels = MONTHS;
-  const plan = MONTHS.map(m=>{const r=sum.rows.find(x=>x.month===m&&(!$('#fPh').value||x.pharmacy_id==$('#fPh').value));return r? r.plan_revenue/1e6:0});
-  const fact = MONTHS.map(m=>{const r=sum.rows.find(x=>x.month===m&&(!$('#fPh').value||x.pharmacy_id==$('#fPh').value));return r? r.fact_revenue/1e6:0});
-  const fc = MONTHS.map(m=>{const r=sum.rows.find(x=>x.month===m&&(!$('#fPh').value||x.pharmacy_id==$('#fPh').value));return r? r.forecast_revenue/1e6:0});
+  const pick = m => sum.rows.find(x=>x.month===m&&(!$('#fPh').value||x.pharmacy_id==$('#fPh').value))||{plan_revenue:0,fact_revenue:0,forecast_revenue:0};
+  const plan = MONTHS.map(m=>pick(m).plan_revenue/1e6);
+  const fact = MONTHS.map(m=>pick(m).fact_revenue/1e6);
+  const fc = MONTHS.map(m=>pick(m).forecast_revenue/1e6);
   if(chM) chM.destroy();
   chM = new Chart($('#chMonth'), {type:'bar',data:{labels,datasets:[
     {label:'План',data:plan,backgroundColor:'#dce7f5',borderRadius:5},
     {label:'Факт',data:fact,backgroundColor:'#4277c2',borderRadius:5},
     {label:'Прогноз',type:'line',data:fc,borderColor:'#f9a968',borderDash:[6,4],borderWidth:2,pointRadius:3,tension:.3}
-  ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},
+  ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}}},
     scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:10}}}}}});
 }
 
@@ -245,7 +293,6 @@ async function refresh(){
   const phId=$('#fPh').value, month=$('#fMonth').value;
   const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId); if(month)q.set('month',month);
   const sum = await api('/api/summary?'+q);
-  sum.rows.forEach(r=>{});
   renderKpis(sum, phId, month);
   renderTable(sum);
   renderEmp(sum, phId);
