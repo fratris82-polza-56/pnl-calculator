@@ -184,7 +184,7 @@ def profit_margin(weeks):
             continue
         x = pad_l + i * bw + bw / 2
         y = pad_t + plot_h * (1 - mv / mx_m)
-        if w['week'] == 37:
+        if w is weeks[-1]:
             parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="{C["gold"]}"/>')
     parts.append(f'<text x="{pad_l - 6}" y="{pad_t - 8}" text-anchor="end" fill="{C["mut"]}" '
                  f'font-size="10">тыс ₽</text>')
@@ -232,7 +232,7 @@ def checks_chart(weeks):
         x = pad_l + i * bw + bw / 2
         y = pad_t + plot_h * (1 - av / mx_a)
         pts.append(f"{x:.1f},{y:.1f}")
-        if w['week'] == 37:
+        if w is weeks[-1]:
             parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="4" fill="{C["purple"]}"/>')
     parts.append(f'<polyline points="{" ".join(pts)}" fill="none" stroke="{C["purple"]}" '
                  f'stroke-width="2" stroke-linejoin="round"/>')
@@ -290,18 +290,18 @@ def build():
     avg_margin = sum(margins) / len(margins)
 
     kpis = ''.join([
-        kpi_card('Выручка, нед. 37', mln(t['выручка']) + ' млн ₽',
+        kpi_card(f'Выручка, нед. {cur["week"]}', mln(t['выручка']) + ' млн ₽',
                  delta_badge(t['выручка'], p['выручка']),
-                 f"нед. 36: {mln(p['выручка'])} млн"),
-        kpi_card('Прибыль, нед. 37', rub(t['прибыль']) + ' ₽',
+                 f"нед. {prev['week']}: {mln(p['выручка'])} млн"),
+        kpi_card(f'Прибыль, нед. {cur["week"]}', rub(t['прибыль']) + ' ₽',
                  delta_badge(t['прибыль'], p['прибыль']),
-                 f"нед. 36: {rub(p['прибыль'])} ₽"),
-        kpi_card('Чеков, нед. 37', rub(t['чеков']),
+                 f"нед. {prev['week']}: {rub(p['прибыль'])} ₽"),
+        kpi_card(f'Чеков, нед. {cur["week"]}', rub(t['чеков']),
                  delta_badge(t['чеков'], p['чеков']),
-                 f"нед. 36: {rub(p['чеков'])}"),
+                 f"нед. {prev['week']}: {rub(p['чеков'])}"),
         kpi_card('Средний чек', rub(t['ср_чек']) + ' ₽',
                  delta_badge(t['ср_чек'], p['ср_чек']),
-                 f"нед. 36: {rub(p['ср_чек'])} ₽"),
+                 f"нед. {prev['week']}: {rub(p['ср_чек'])} ₽"),
         kpi_card('Наценка (всего)', f"{t['наценка']:.2f}".replace('.', ',') + '%',
                  pp_badge(t['наценка'], p['наценка']),
                  f"розница {cur['rose']['наценка']:.2f}% · ИЗ {cur['iz']['наценка']:.2f}%".replace('.', ',')),
@@ -346,7 +346,7 @@ def build():
         wow = ((w['all']['выручка'] / pw['выручка'] - 1) * 100) if (pw and pw.get('выручка')) else None
         py = prev_year.get(w['week'])
         yoy = ((w['all']['выручка'] / py['выручка'] - 1) * 100) if py else None
-        cls = ' class="cur"' if w['week'] == 37 else ''
+        cls = ' class="cur"' if w is weeks[-1] else ''
         short = ' *' if (w['week'] == 1) else ''
         wow_html = ('<span class="{}">{}%</span>'.format(
             'pos' if wow >= 0 else 'neg', f"{wow:+.1f}".replace('.', ','))
@@ -435,7 +435,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 </style></head><body>
 
 <h1>Еженедельные показатели аптеки <span class="badge">2026 · недели 1–39</span></h1>
-<div class="sub">Свежая неделя: <strong>№37, 07–13.09.2026</strong> (из выгрузок FastReport) · история 1–36 — из таблицы «Неделя к неделе без ИЗ» · {gen}</div>
+<div class="sub">Свежая неделя: <strong>№{cur['week']}, {cur['from']}–{cur['to']}</strong> (из выгрузок FastReport) · история — из таблицы «Неделя к неделе без ИЗ» + выгрузки · {gen}</div>
 
 <div class="grid kpis">{kpis}</div>
 
@@ -454,7 +454,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 
 <div class="card">
 <h2>Выручка по неделям: розница + ИЗ</h2>
-{legend([('розница', C['blue']), ('ИЗ', C['gold']), ('неделя 37', C['tx'])])}
+{legend([('розница', C['blue']), ('ИЗ', C['gold']), ('последняя неделя', C['tx'])])}
 {ch1}
 <div class="note">Наведение на столбец — точные цифры недели.</div>
 </div>
@@ -476,7 +476,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 <h2>По месяцам</h2>
 <table><tr><th class=l>Месяц</th><th>Нед.</th><th>Выручка ₽</th><th>Прибыль ₽</th><th>Наценка</th><th>Чеков</th></tr>
 {''.join(mrows)}</table>
-<div class="note">Месяц — по дате окончания недели; неделя 1 и 37 неполные.</div>
+<div class="note">Месяц — по дате окончания недели; неделя 1 неполная (4 дня).</div>
 </div>
 <div class="card">
 <h2>Последняя неделя · розница</h2>
