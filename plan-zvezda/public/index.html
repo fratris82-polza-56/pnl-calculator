@@ -50,6 +50,10 @@ select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;b
 .h2row .note{font-size:11px;color:var(--mut)}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
 table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px}
+#tbl tr.ph-row td{border-top:2px solid var(--line);font-weight:600;background:#fbfcfe}
+#tbl tr.ph-row:hover td{background:#f0f4fa}
+#tbl tr.sub td{color:#4a5560;padding-top:5px;padding-bottom:5px}
+#tbl tr.sub td:first-child{border-left:3px solid #d7e0ec}
 th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th.l,td.l{text-align:left}
 td{padding:7px 8px;text-align:right;border-bottom:1px solid #eef2f7;white-space:nowrap}
@@ -136,6 +140,9 @@ button.btn:active{background:#eef3fa}
   <div class="h2row"><h2>Сотрудники</h2><span class="note">личный план = план аптеки × доля</span></div>
   <div class="card tbl-wrap"><table id="tblEmp"></table></div>
 
+  <div class="h2row"><h2>KPI квартала</h2><span class="note">чеков/день и ср.чек — из факта; купоны — возвраты по промо</span></div>
+  <div class="card tbl-wrap"><table id="tblKpi"></table></div>
+
   <div class="api">
     <div class="card">
       <h2>Обмен данными с аптечным ПО <span class="badge">REST API</span></h2>
@@ -155,11 +162,44 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
           <p><b>GET</b> <code>/api/catalog</code> — аптеки, план, сотрудники</p>
           <p><b>POST</b> <code>/api/fact</code> — ручная правка дня</p>
           <p><b>PATCH</b> <code>/api/employee/:id</code> — ФИО/доля сотрудника</p>
+          <p><b>POST</b> <code>/api/stockout</code> · <b>GET</b> <code>/api/stockout/top?days=7</code> — отказы и топ</p>
+          <p><b>POST</b> <code>/api/coupon</code> — возвраты купонов · <b>GET</b> <code>/api/kpi</code> — KPI квартала</p>
         </div>
         <div>
           <p><b>Журнал импорта</b> <button class="btn" id="btnSim">Тестовая продажа</button></p>
           <div class="log" id="log"></div>
           <p style="font-size:11.5px;color:var(--mut);margin-top:6px">«Тестовая продажа» отправляет демо-чек через тот же endpoint, что и аптечное ПО.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="api">
+    <div class="card">
+      <h2>Маркетинг Q4: отказы и купоны <span class="badge">KPI</span></h2>
+      <p>Отказ («нет в наличии») — потерянный чек: копим топ-позиции и дозакупаем еженедельно. Купон из листовки промоутера — единственный честный KPI раздач: считаем возвраты.</p>
+      <div class="api-cols">
+        <div>
+          <p><b>Записать отказ</b></p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <select id="soPh" style="max-width:150px"></select>
+            <input id="soProduct" placeholder="Препарат" style="flex:1;min-width:140px;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px">
+            <input id="soQty" type="number" value="1" min="1" style="width:64px;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:8px;font-size:13px">
+            <button class="btn" id="btnSo">+</button>
+          </div>
+          <p id="soMsg" style="font-size:11.5px;min-height:16px"></p>
+          <p><b>Топ отказов за 7 дней</b> <button class="btn" id="btnSoTop">Показать</button></p>
+          <div class="log" id="soTop"></div>
+        </div>
+        <div>
+          <p><b>Возвраты купонов за день</b></p>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <select id="cpPh" style="max-width:150px"></select>
+            <input id="cpQty" type="number" value="1" min="1" style="width:64px;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:8px;font-size:13px">
+            <input id="cpCampaign" placeholder="Акция" value="листовка" style="flex:1;min-width:120px;min-height:40px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px">
+            <button class="btn" id="btnCp">+</button>
+          </div>
+          <p id="cpMsg" style="font-size:11.5px;min-height:16px"></p>
         </div>
       </div>
     </div>
@@ -198,19 +238,52 @@ function renderKpis(sum, phId, month){
     kpi('План ВД', fmtM(t.pvd), `факт ${fmtM(t.fvd)}`);
 }
 
-function renderTable(sum){
+  function renderTable(sum){
+  const COLLAPSE_KEY='pz.tbl.collapsed';
+  let collapsed;
+  try{ collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY)||'{}'); }catch(e){ collapsed={}; }
+  const phId = $('#fPh').value;
+  const groups = [];
+  CAT.pharmacy.forEach(p=>{
+    const rows = sum.rows.filter(r=>r.pharmacy_id===p.id);
+    if(rows.length) groups.push({ph:p, rows});
+  });
+  const rest = sum.rows.filter(r=>!CAT.pharmacy.find(p=>p.id===r.pharmacy_id));
+  if(rest.length) groups.push({ph:{id:0,name:'Прочее',color:'#999'}, rows:rest});
   let h = '<thead><tr><th class="l stick">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th class="m-hide">План ВД</th><th class="m-hide">Факт ВД</th><th class="m-hide">Чеков</th><th class="m-hide">Дней</th></tr></thead><tbody>';
-  sum.rows.forEach(r=>{
-    const pc = r.fact_revenue/r.plan_revenue*100;
-    const ph = CAT.pharmacy.find(p=>p.id===r.pharmacy_id);
-    h += `<tr><td class="l stick"><span class="dot" style="background:${ph.color}"></span>${r.pharmacy}</td>`+
-      `<td class="l">${r.month}</td><td class="num m-hide">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td>`+
-      `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,pc)}%;background:${pc>=100?'var(--green)':pc>=90?'var(--gold)':'var(--red)'}"></i></div>${pc.toFixed(1)}%</div></td>`+
-      `<td class="num m-hide">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct>=100?'pos':'neg'}">${r.forecast_pct}%</td>`+
-      `<td class="num m-hide">${fmt(r.plan_margin)}</td><td class="num m-hide">${fmt(r.fact_margin)}</td>`+
-      `<td class="num m-hide">${r.fact_checks||'—'}</td><td class="num mut m-hide">${r.fact_days}/${r.total_days}</td></tr>`;
+  groups.forEach(g=>{
+    const open = phId ? true : !collapsed[g.ph.id];
+    const agg = g.rows.reduce((a,r)=>{a.plan+=r.plan_revenue;a.fact+=r.fact_revenue;a.frc+=r.forecast_revenue;a.pm+=r.plan_margin;a.fm+=r.fact_margin;return a;},{plan:0,fact:0,frc:0,pm:0,fm:0});
+    const apc = agg.plan? agg.fact/agg.plan*100 : 0;
+    const rowsHtml = g.rows.map(r=>{
+      const pc = r.fact_revenue/r.plan_revenue*100;
+      return `<tr class="sub"><td class="l stick"></td><td class="l">${r.month}</td><td class="num m-hide">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td>`+
+        `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,pc)}%;background:${pc>=100?'var(--green)':pc>=90?'var(--gold)':'var(--red)'}"></i></div>${pc.toFixed(1)}%</div></td>`+
+        `<td class="num m-hide">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct>=100?'pos':'neg'}">${r.forecast_pct}%</td>`+
+        `<td class="num m-hide">${fmt(r.plan_margin)}</td><td class="num m-hide">${fmt(r.fact_margin)}</td>`+
+        `<td class="num m-hide">${r.fact_checks||'—'}</td><td class="num mut m-hide">${r.fact_days}/${r.total_days}</td></tr>`;
+    }).join('');
+    h += `<tr class="ph-row" data-ph="${g.ph.id}" style="cursor:pointer" title="Нажмите, чтобы ${open?'свернуть':'развернуть'}">`+
+      `<td class="l stick"><span class="dot" style="background:${g.ph.color}"></span>${g.ph.name} <span style="font-size:13px;color:var(--blue);font-weight:700">${open?'▾':'▸'}</span></td>`+
+      `<td class="l mut">итого</td><td class="num m-hide">${fmt(agg.plan)}</td><td class="num">${fmt(agg.fact)}</td>`+
+      `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,apc)}%;background:${apc>=100?'var(--green)':apc>=90?'var(--gold)':'var(--red)'}"></i></div>${apc.toFixed(1)}%</div></td>`+
+      `<td class="num m-hide">${fmt(agg.frc)}</td><td class="num"></td>`+
+      `<td class="num m-hide">${fmt(agg.pm)}</td><td class="num m-hide">${fmt(agg.fm)}</td>`+
+      `<td class="num m-hide"></td><td class="num mut m-hide"></td></tr>`;
+    if(open) h += rowsHtml;
   });
   $('#tbl').innerHTML = h+'</tbody>';
+  window.__lastSum = sum;
+  if(!phId){
+    $('#tbl').querySelectorAll('tr.ph-row').forEach(tr=>{
+      tr.addEventListener('click', ()=>{
+        const id = tr.dataset.ph;
+        collapsed[id] = !collapsed[id];
+        try{localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));}catch(e){}
+        renderTable(window.__lastSum);
+      });
+    });
+  }
 }
 
 function renderEmp(sum, phId){
@@ -283,6 +356,58 @@ async function loadLog(){
   $('#log').innerHTML = (r.events||[]).map(e=>`<div class="row"><span class="d">${e.at}</span><span>${e.text}</span></div>`).join('') || '<div class="row mut">пока пусто</div>';
 }
 
+function renderKpi(k){
+  const pc = (fact, tgt, inv) => {
+    if (fact == null || tgt == null || !tgt) return '';
+    const p = fact/tgt*100;
+    const c = inv ? (p>=100?'neg':p>=85?'':'pos') : (p>=100?'pos':p>=85?'':'neg');
+    return `<span class="${c}">${p.toFixed(0)}%</span>`;
+  };
+  let h = '<thead><tr><th class="l stick">Месяц</th><th>Чеков/день</th><th>Ср.чек</th><th class="m-hide">Чеки 2+ поз.</th><th class="m-hide">Купонов (мес)</th></tr></thead><tbody>';
+  k.rows.sort((a,b)=>MONTHS.indexOf(a.month)-MONTHS.indexOf(b.month)).forEach(r=>{
+    const isFuture = MONTHS.indexOf(r.month) > MONTHS.indexOf(MONTHS[new Date().getUTCMonth()-9]);
+    const fcpd = isFuture? '—' : (r.fact_checks_per_day!=null? r.fact_checks_per_day : '—');
+    const fac = isFuture? '—' : (r.fact_avg_check!=null? fmt(r.fact_avg_check) : '—');
+    const pcpd = pc(r.fact_checks_per_day, r.target_checks_per_day, isFuture||!r.fact_days);
+    const pac = pc(r.fact_avg_check, r.target_avg_check, isFuture||!r.fact_days);
+    const pcp = r.target_coupons_per_week? `${r.fact_coupons} / ${Math.round(r.target_coupons_per_week*4.3)} ${pc(r.fact_coupons, r.target_coupons_per_week*4.3, !r.fact_coupons)}` : '—';
+    h += `<tr><td class="l stick">${r.month}</td>`+
+      `<td class="num">${fcpd} <span class="mut">/ ${r.target_checks_per_day??'—'}</span> ${pcpd}</td>`+
+      `<td class="num">${fac} <span class="mut">/ ${r.target_avg_check?fmt(r.target_avg_check):'—'}</span> ${pac}</td>`+
+      `<td class="num m-hide mut">${r.target_multi_share!=null?('цель +'+Math.round(r.target_multi_share*100)+' п.п.'):'—'}</td>`+
+      `<td class="num m-hide">${pcp}</td></tr>`;
+  });
+  $('#tblKpi').innerHTML = h+'</tbody>';
+}
+
+async function loadKpi(){ const k = await api('/api/kpi'); renderKpi(k); }
+
+async function phOptions(sel){
+  CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o)});
+}
+
+async function addSo(){
+  const today = new Date().toISOString().slice(0,10);
+  const body = {pharmacy_id:Number($('#soPh').value||1), d:today, product:$('#soProduct').value.trim(), qty:Number($('#soQty').value||1)};
+  if(!body.product){ $('#soMsg').innerHTML='<span class="err-line">укажите препарат</span>'; return; }
+  const r = await api('/api/stockout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  $('#soMsg').innerHTML = r.ok? '<span class="ok-line">отказ записан</span>' : `<span class="err-line">${r.error||'ошибка'}</span>`;
+  if(r.ok){ $('#soProduct').value=''; loadSoTop(); }
+}
+
+async function loadSoTop(){
+  const r = await api('/api/stockout/top?days=7');
+  $('#soTop').innerHTML = (r.top||[]).map(t=>`<div class="row"><span>${t.product}</span><span class="d">×${t.times} · ${t.qty} шт · ${t.pharmacies}</span></div>`).join('') || '<div class="row mut">пока пусто</div>';
+}
+
+async function addCp(){
+  const today = new Date().toISOString().slice(0,10);
+  const body = {pharmacy_id:Number($('#cpPh').value||1), d:today, qty:Number($('#cpQty').value||1), campaign:$('#cpCampaign').value.trim()||'листовка'};
+  const r = await api('/api/coupon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  $('#cpMsg').innerHTML = r.ok? '<span class="ok-line">купоны записаны</span>' : `<span class="err-line">${r.error||'ошибка'}</span>`;
+  if(r.ok) loadKpi();
+}
+
 $('#btnSim').onclick = async () => {
   const phId = Number($('#fPh').value || 1);
   const emps = CAT.employee.filter(e=>e.pharmacy_id===phId);
@@ -305,6 +430,7 @@ async function refresh(){
   renderEmp(sum, phId);
   drawMonth(sum);
   await drawDay();
+  await loadKpi();
 }
 
 (async function init(){
@@ -317,6 +443,10 @@ async function refresh(){
   $('#fPh').onchange=refresh; $('#fMonth').onchange=refresh;
   await refresh();
   await loadLog();
+  await loadKpi();
+  phOptions($('#soPh')); phOptions($('#cpPh'));
+  await loadSoTop();
+  $('#btnSo').onclick=addSo; $('#btnCp').onclick=addCp; $('#btnSoTop').onclick=loadSoTop;
   setInterval(loadLog, 15000);
 })();
 </script>

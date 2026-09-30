@@ -47,6 +47,30 @@ export function ensureSchema(db) {
     employee_name TEXT, amount REAL NOT NULL, margin REAL,
     imported_at TEXT NOT NULL DEFAULT (datetime('now')),
     state TEXT NOT NULL DEFAULT 'new' CHECK(state IN ('new','mapped','error')));
+  -- Отказы: «нет в наличии» —lost чеки, база для еженедельной дозакупки
+  CREATE TABLE IF NOT EXISTS stockout(
+    id INTEGER PRIMARY KEY,
+    pharmacy_id INTEGER NOT NULL REFERENCES pharmacy(id),
+    d TEXT NOT NULL,
+    product TEXT NOT NULL,
+    qty REAL NOT NULL DEFAULT 1,
+    note TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  CREATE INDEX IF NOT EXISTS i_stockout ON stockout(pharmacy_id, d);
+  -- Возвраты купонов из листовок/промо — единственный честный KPI промоутеров
+  CREATE TABLE IF NOT EXISTS coupon(
+    id INTEGER PRIMARY KEY,
+    pharmacy_id INTEGER NOT NULL REFERENCES pharmacy(id),
+    d TEXT NOT NULL,
+    qty INTEGER NOT NULL DEFAULT 1,
+    amount REAL,
+    campaign TEXT NOT NULL DEFAULT 'листовка',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  CREATE INDEX IF NOT EXISTS i_coupon ON coupon(pharmacy_id, d);
+  -- Цели KPI квартала (сеть): чеков/день, ср.чек, доля чеков 2+ позиции, купонов/нед/аптеку
+  CREATE TABLE IF NOT EXISTS kpi_target(
+    month TEXT PRIMARY KEY CHECK(month IN ('Сентябрь','Октябрь','Ноябрь','Декабрь')),
+    checks_per_day REAL, avg_check REAL, multi_share REAL, coupons_per_week REAL);
   `);
 }
 
@@ -93,7 +117,31 @@ export function seed(db) {
     const share = Math.round(100 / list.length) / 100;
     list.forEach(f => insEmp.run(id, f, f.startsWith('Зав') ? 'заведующая' : 'провизор', share));
   }
+
+  // Цели KPI квартала (сеть; см. docs/q4-action-plan.md) — при первом создании БД
+  const KPI = {
+    'Сентябрь': { checks_per_day: 449, avg_check: 899, multi_share: null, coupons_per_week: null },
+    'Октябрь':  { checks_per_day: 500, avg_check: 980, multi_share: 0.10, coupons_per_week: 30 },
+    'Ноябрь':   { checks_per_day: 545, avg_check: 1070, multi_share: 0.15, coupons_per_week: 40 },
+    'Декабрь':  { checks_per_day: 560, avg_check: 1100, multi_share: 0.15, coupons_per_week: 40 },
+  };
+  const insKpi = db.prepare('INSERT OR IGNORE INTO kpi_target(month,checks_per_day,avg_check,multi_share,coupons_per_week) VALUES (?,?,?,?,?)');
+  for (const [m, k] of Object.entries(KPI)) insKpi.run(m, k.checks_per_day, k.avg_check, k.multi_share, k.coupons_per_week);
   return true;
+}
+
+// Цели KPI квартала (сеть; см. docs/q4-action-plan.md) — идемпотентно, досаждаются при каждом старте
+export function ensureKpiTargets(db) {
+  const KPI = {
+    'Сентябрь': { checks_per_day: 449, avg_check: 899, multi_share: null, coupons_per_week: null },
+    'Октябрь':  { checks_per_day: 500, avg_check: 980, multi_share: 0.10, coupons_per_week: 30 },
+    'Ноябрь':   { checks_per_day: 545, avg_check: 1070, multi_share: 0.15, coupons_per_week: 40 },
+    'Декабрь':  { checks_per_day: 560, avg_check: 1100, multi_share: 0.15, coupons_per_week: 40 },
+  };
+  const insKpi = db.prepare('INSERT OR IGNORE INTO kpi_target(month,checks_per_day,avg_check,multi_share,coupons_per_week) VALUES (?,?,?,?,?)');
+  let n = 0;
+  for (const [m, k] of Object.entries(KPI)) n += insKpi.run(m, k.checks_per_day, k.avg_check, k.multi_share, k.coupons_per_week).changes;
+  return n;
 }
 
 // Демо-факт: сентябрь по вчера, план/день с разбросом, разбивка по сотрудникам по share.

@@ -2,10 +2,11 @@
 import http from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
-import { openDb, ensureSchema, seed, seedDemo, ROOT } from './db.mjs';
+import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ROOT } from './db.mjs';
 
 const db = openDb();
 ensureSchema(db);
+ensureKpiTargets(db);
 if (seed(db)) {
   const n = seedDemo(db);
   console.log(`seed: план+сотрудники созданы, демо-факт дней: ${n}`);
@@ -229,6 +230,88 @@ function fmtStatic(v) {
 route('DELETE', /^\/api\/demo$/, (req, res) => {
   const n = db.prepare("DELETE FROM fact_day WHERE source='demo'").run().changes;
   json(res, 200, { removed: n });
+});
+
+// ---------- KPI: отказы, купоны, цели ----------
+// Отказ «нет в наличии»: {pharmacy_id, d, product, qty?, note?}
+route('POST', '/api/stockout', async (req, res) => {
+  const b = await readBody(req);
+  if (!b.pharmacy_id || !b.d || !b.product) {
+    return json(res, 400, { error: 'нужны pharmacy_id, d (YYYY-MM-DD), product' });
+  }
+  db.prepare('INSERT INTO stockout(pharmacy_id,d,product,qty,note) VALUES (?,?,?,?,?)')
+    .run(b.pharmacy_id, b.d, String(b.product), Number(b.qty || 1), b.note ? String(b.note) : null);
+  json(res, 201, { ok: true });
+});
+
+// Топ отказов за период (по умолчанию 7 дней) — база еженедельной дозакупки
+route('GET', /^\/api\/stockout\/top(?:\?|$)/, (req, res, m, url) => {
+  const days = Math.min(Number(url.searchParams.get('days') || 7), 90);
+  const rows = db.prepare(`
+    SELECT s.product,
+           COUNT(*) times,
+           SUM(s.qty) qty,
+           GROUP_CONCAT(DISTINCT ph.name) pharmacies
+    FROM stockout s JOIN pharmacy ph ON ph.id = s.pharmacy_id
+    WHERE s.d >= date('now', ?)
+    GROUP BY lower(s.product) ORDER BY times DESC, qty DESC LIMIT 30`)
+    .all(`-${days} days`);
+  json(res, 200, { days, top: rows });
+});
+
+// Купоны: возврат {pharmacy_id, d, qty?, amount?, campaign?}
+route('POST', '/api/coupon', async (req, res) => {
+  const b = await readBody(req);
+  if (!b.pharmacy_id || !b.d) {
+    return json(res, 400, { error: 'нужны pharmacy_id, d (YYYY-MM-DD)' });
+  }
+  db.prepare('INSERT INTO coupon(pharmacy_id,d,qty,amount,campaign) VALUES (?,?,?,?,?)')
+    .run(b.pharmacy_id, b.d, Number(b.qty || 1), b.amount != null ? Number(b.amount) : null,
+         String(b.campaign || 'листовка'));
+  json(res, 201, { ok: true });
+});
+
+// Цели KPI квартала
+route('GET', /^\/api\/kpi(?:\?|$)/, (req, res) => {
+  const targets = db.prepare('SELECT * FROM kpi_target').all();
+  // Сеть: фактические метрики по месяцам из fact_day
+  const byMonth = db.prepare(`
+    SELECT d,
+           SUM(revenue) revenue,
+           SUM(COALESCE(checks,0)) checks
+    FROM fact_day GROUP BY d`).all();
+  const months = {};
+  for (const f of byMonth) {
+    const mo = monthOf(f.d);
+    if (!mo) continue;
+    months[mo] ??= { revenue: 0, checks: 0, days: new Set() };
+    const a = months[mo];
+    a.revenue += f.revenue; a.checks += f.checks; a.days.add(f.d);
+  }
+  const coupByMonth = {};
+  for (const c of db.prepare('SELECT d, qty FROM coupon').all()) {
+    const mo = monthOf(c.d);
+    if (!mo) continue;
+    coupByMonth[mo] ??= 0;
+    coupByMonth[mo] += c.qty;
+  }
+  const out = targets.map(t => {
+    const f = months[t.month] || { revenue: 0, checks: 0, days: new Set() };
+    const days = Math.max(f.days.size, 1);
+    const avgCheck = f.checks ? f.revenue / f.checks : null;
+    return {
+      month: t.month,
+      target_checks_per_day: t.checks_per_day,
+      target_avg_check: t.avg_check,
+      target_multi_share: t.multi_share,
+      target_coupons_per_week: t.coupons_per_week,
+      fact_checks_per_day: f.days.size ? +(f.checks / days).toFixed(1) : null,
+      fact_avg_check: avgCheck != null ? Math.round(avgCheck) : null,
+      fact_coupons: coupByMonth[t.month] || 0,
+      fact_days: f.days.size,
+    };
+  });
+  json(res, 200, { rows: out });
 });
 
 // Здоровье
