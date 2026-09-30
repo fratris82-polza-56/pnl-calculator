@@ -237,12 +237,19 @@ function drawMonth(sum){
   const fact = MONTHS.map(m=>pick(m).fact_revenue/1e6);
   const fc = MONTHS.map(m=>pick(m).forecast_revenue/1e6);
   if(chM) chM.destroy();
-  chM = new Chart($('#chMonth'), {type:'bar',data:{labels,datasets:[
-    {label:'План',data:plan,backgroundColor:'#dce7f5',borderRadius:5},
-    {label:'Факт',data:fact,backgroundColor:'#4277c2',borderRadius:5},
-    {label:'Прогноз',type:'line',data:fc,borderColor:'#f9a968',borderDash:[6,4],borderWidth:2,pointRadius:3,tension:.3}
-  ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}}},
-    scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:10}}}}}});
+  chM = new Chart($('#chMonth'), {
+    type: 'bar',
+    data: {labels, datasets: [
+      {label:'План', data:plan, backgroundColor:'#dce7f5', borderRadius:5},
+      {label:'Факт', data:fact, backgroundColor:'#4277c2', borderRadius:5},
+      {label:'Прогноз', type:'line', data:fc, borderColor:'#f9a968', borderDash:[6,4], borderWidth:2, pointRadius:3, tension:.3}
+    ]},
+    options: {
+      maintainAspectRatio: false,
+      plugins: {legend:{labels:{boxWidth:10, font:{size:10}}}},
+      scales: {y:{ticks:{font:{size:10}}, grid:{color:'#eef2f7'}}, x:{ticks:{font:{size:10}}}}
+    }
+  });
 }
 
 async function drawDay(){
