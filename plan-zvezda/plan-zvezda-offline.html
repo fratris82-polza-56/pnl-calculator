@@ -118,6 +118,12 @@ select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;b
 .h2row h2{font-size:13.5px;color:var(--navy)}
 .h2row .note{font-size:11px;color:var(--mut)}
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px}
+/* на телефоне тень справа подсказывает, что таблицу можно скроллить */
+@media (max-width:639px){
+  .card.tbl-wrap{position:relative}
+  .card.tbl-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:18px;border-radius:0 12px 12px 0;background:linear-gradient(to left,rgba(120,145,175,.5),rgba(255,255,255,0));pointer-events:none}
+  .card.tbl-wrap.no-fade::after{content:none}
+}
 table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px}
 #tbl tr.ph-row td{border-top:2px solid var(--line);font-weight:600;background:#fbfcfe}
 #tbl tr.ph-row:hover td{background:#f0f4fa}
@@ -210,7 +216,7 @@ button.btn:active{background:#eef3fa}
   <div class="card tbl-wrap"><table id="tblEmp"></table></div>
 
   <div class="h2row"><h2>KPI квартала</h2><span class="note">чеков/день и ср.чек — из факта; купоны — возвраты по промо</span></div>
-  <div class="card tbl-wrap"><table id="tblKpi"></table></div>
+  <div class="card tbl-wrap no-fade"><table id="tblKpi"></table></div>
 
   <div class="h2row" style="margin-top:20px"><button class="btn" id="btnSettings">⚙️ Настройки</button></div>
   <div class="api" id="apiSettings" style="display:none">
