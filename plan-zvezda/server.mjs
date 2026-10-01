@@ -1,5 +1,6 @@
 // Сервер план-дашборда «Звезда»: статика + REST API (в т.ч. приём факта из аптечного ПО).
 import http from 'node:http';
+import crypto from 'node:crypto';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ROOT } from './db.mjs';
@@ -28,6 +29,21 @@ function json(res, code, obj) {
   res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(body);
 }
+
+// ---- интеграционный ключ доступа (tg_state.key='intg_key' или env INTEGRATION_KEY) ----
+function ensureIntgKey(db) {
+  const row = db.prepare("SELECT value FROM tg_state WHERE key='intg_key'").get();
+  if (row?.value) return row.value;
+  let k = process.env.INTEGRATION_KEY || '';
+  if (!k) k = crypto.randomBytes(16).toString('hex');
+  db.prepare("INSERT INTO tg_state(key,value) VALUES ('intg_key',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(k);
+  return k;
+}
+let INTG_KEY = '';
+function intgKey() {
+  if (!INTG_KEY) INTG_KEY = ensureIntgKey(db);
+  return INTG_KEY;
+}
 async function readBody(req) {
   const chunks = [];
   for await (const c of req) chunks.push(c);
@@ -38,6 +54,35 @@ async function readBody(req) {
 function monthOf(dateStr) { // YYYY-MM-DD -> 'Сентябрь'
   const m = Number(String(dateStr).slice(5, 7));
   return MONTHS[m - 9] || null;
+}
+
+// Текущий календарный месяц внутри периода проекта (сен–дек 2026), иначе null.
+// Вне периода «текущего» нет —Elapsed считается по фактическим дням, а не по дате.
+function currentProjectMonth() {
+  const now = new Date();
+  const mk = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+  return (mk >= '2026-09' && mk <= '2026-12') ? MONTHS[Number(mk.slice(5, 7)) - 9] : null;
+}
+
+// Нормализация ФИО для матчинга: lower, ё→е, без пунктуации и двойных пробелов.
+// «Иванова А.С.» и «иванова а с» → «иванова а с» — совпадают.
+function normFio(s) {
+  return String(s || '').toLowerCase().replace(/ё/g, 'е')
+    .replace(/[.,\-]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+// Матч сотрудника: 1) точная нормализованная форма; 2) фaмилия + инициалы;
+// 3) фамилия входит в norm(FIO) (падежи: «ивановой» → нет, но «иванова» → да).
+function makeEmpMatcher(db) {
+  const emps = db.prepare('SELECT id, pharmacy_id, fio FROM employee').all()
+    .map(e => ({ ...e, nf: normFio(e.fio), fam: normFio(e.fio).split(' ')[0] }));
+  return (pharmacyId, name) => {
+    const q = normFio(name);
+    if (!q) return null;
+    const inPh = emps.filter(e => e.pharmacy_id === pharmacyId);
+    return inPh.find(e => e.nf === q)
+        || inPh.find(e => q.startsWith(e.fam + ' ') && q.split(' ').length >= 2)
+        || inPh.find(e => e.nf.includes(q)) || null;
+  };
 }
 
 // ---------- роутер ----------
@@ -92,31 +137,88 @@ route('POST', '/api/fact', async (req, res) => {
   } catch (e) { json(res, 400, { error: String(e.message) }); }
 });
 
-// API для аптечного ПО: пакетная выгрузка продаж.
-// POST /api/integration/sales
-// {"pharmacy_id":1,"from":"2026-09-01","to":"2026-09-30","sales":[{"doc_id":"...","d":"2026-09-05","employee_name":"Иванова","amount":1250.5,"margin":310.2}]}
-// Ответ: {accepted, mapped, unmapped:[...]} ; employee_name матчится на employee.fio (ILIKE, без падежей — точное вхождение).
+// API для аптечного ПО: автоматическая выгрузка продаж (без ручной загрузки файлов).
+// POST /api/integration/sales   Заголовок: X-Intg-Key: <ключ>
+// {"pharmacy_id":1,"sales":[{"doc_id":"Ч-1042","d":"2026-09-29","employee_name":"Иванова А.С.","amount":1250.5,"margin":310.2}]}
+// Ответ: {ok, accepted, duplicates, mapped, unmapped:[...]}
+// Повтор той же партии не задвоит факт: строки с уже известным doc_id пропускаются.
+// Строки с doc_id СУММИРУЮТСЯ в факт (поток чеков), без doc_id — ЗАМЕНЯЮТ итог дня сотрудника (сводная выгрузка).
 route('POST', '/api/integration/sales', async (req, res) => {
+  if (String(req.headers['x-intg-key'] || '') !== intgKey()) {
+    return json(res, 401, { error: 'нет или неверный ключ доступа (заголовок X-Intg-Key)' });
+  }
   const b = await readBody(req);
   if (!b.pharmacy_id || !Array.isArray(b.sales)) {
     return json(res, 400, { error: 'нужны pharmacy_id и sales[]' });
   }
+  if (!db.prepare('SELECT id FROM pharmacy WHERE id=?').get(b.pharmacy_id)) {
+    return json(res, 400, { error: `нет аптеки pharmacy_id=${b.pharmacy_id} (список: GET /api/catalog)` });
+  }
+  const matchEmp = makeEmpMatcher(db);
+  const findDup = db.prepare('SELECT id FROM sale_raw WHERE pharmacy_id=? AND doc_id=? AND d=? LIMIT 1');
   const insRaw = db.prepare(`INSERT INTO sale_raw(pharmacy_id,doc_id,d,employee_name,amount,margin)
                              VALUES (?,?,?,?,?,?)`);
-  const findEmp = db.prepare('SELECT id FROM employee WHERE pharmacy_id=? AND lower(fio)=lower(?)');
-  let accepted = 0, mapped = 0;
+  const mark = db.prepare("UPDATE sale_raw SET state='mapped' WHERE id=?");
+  const insFactAcc = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,source)
+                             VALUES (?,?,?,?,?,1,'api')
+                             ON CONFLICT(pharmacy_id,employee_id,d,source)
+                             DO UPDATE SET revenue=revenue+excluded.revenue, margin=margin+excluded.margin, checks=checks+1`);
+  const insFactRep = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,source)
+                             VALUES (?,?,?,?,?,1,'api')
+                             ON CONFLICT(pharmacy_id,employee_id,d,source)
+                             DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin, checks=excluded.checks`);
+  let accepted = 0, mapped = 0, duplicates = 0;
   const unmapped = new Set();
   const tx = db.begin ? db.begin() : null;
   try {
     for (const s of b.sales) {
       if (!s.d || s.amount == null) continue;
       if (!monthOf(s.d)) continue;
-      insRaw.run(b.pharmacy_id, s.doc_id || null, s.d,
+      const docId = s.doc_id != null && String(s.doc_id) !== '' ? String(s.doc_id) : null;
+      if (docId && findDup.get(b.pharmacy_id, docId, s.d)) { duplicates++; continue; }
+      const emp = s.employee_name ? matchEmp(b.pharmacy_id, s.employee_name) : null;
+      const info = insRaw.run(b.pharmacy_id, docId, s.d,
                  s.employee_name || null, Number(s.amount), s.margin != null ? Number(s.margin) : null);
+      if (emp) {
+        mapped++;
+        mark.run(info.lastInsertRowid);
+        (docId ? insFactAcc : insFactRep)
+          .run(b.pharmacy_id, emp.id, s.d, Number(s.amount), s.margin != null ? Number(s.margin) : 0);
+      } else if (s.employee_name) {
+        unmapped.add(s.employee_name);
+      }
       accepted++;
-      if (s.employee_name) {
-        const e = findEmp.get(b.pharmacy_id, s.employee_name);
-        if (e) mapped++; else unmapped.add(s.employee_name);
+    }
+    if (tx) tx.commit();
+  } catch (e) {
+    if (tx) tx.rollback();
+    return json(res, 500, { error: String(e.message) });
+  }
+  json(res, 200, { ok: true, accepted, duplicates, mapped, unmapped: [...unmapped] });
+});
+
+// Повторная разметка нераспознанных продаж (после добавления/исправления ФИО)
+route('POST', '/api/integration/remap', async (req, res) => {
+  if (String(req.headers['x-intg-key'] || '') !== intgKey()) {
+    return json(res, 401, { error: 'нет или неверный ключ доступа' });
+  }
+  const matchEmp = makeEmpMatcher(db);
+  const rows = db.prepare(`SELECT id, pharmacy_id, d, employee_name, amount, margin
+                           FROM sale_raw WHERE state='new' AND employee_name IS NOT NULL`).all();
+  const mark = db.prepare("UPDATE sale_raw SET state='mapped' WHERE id=?");
+  const insFactAcc = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,source)
+                             VALUES (?,?,?,?,?,1,'api')
+                             ON CONFLICT(pharmacy_id,employee_id,d,source)
+                             DO UPDATE SET revenue=revenue+excluded.revenue, margin=margin+excluded.margin, checks=checks+1`);
+  let fixed = 0;
+  const tx = db.begin ? db.begin() : null;
+  try {
+    for (const r of rows) {
+      const emp = matchEmp(r.pharmacy_id, r.employee_name);
+      if (emp) {
+        mark.run(r.id);
+        insFactAcc.run(r.pharmacy_id, emp.id, r.d, r.amount, r.margin || 0);
+        fixed++;
       }
     }
     if (tx) tx.commit();
@@ -124,7 +226,104 @@ route('POST', '/api/integration/sales', async (req, res) => {
     if (tx) tx.rollback();
     return json(res, 500, { error: String(e.message) });
   }
-  json(res, 200, { accepted, mapped, unmapped: [...unmapped] });
+  json(res, 200, { ok: true, checked: rows.length, fixed });
+});
+
+// Состояние интеграции для карточки в настройках дашборда
+route('GET', /^\/api\/integration\/info(?:\?|$)/, (req, res) => {
+  const phs = db.prepare('SELECT id, name FROM pharmacy ORDER BY id').all();
+  const st = db.prepare('SELECT state, COUNT(*) n FROM sale_raw GROUP BY state').all();
+  const tot = { raw: 0, mapped: 0, new: 0 };
+  for (const s of st) { tot.raw += s.n; if (s.state === 'mapped') tot.mapped = s.n; if (s.state === 'new') tot.new = s.n; }
+  const last = db.prepare('SELECT imported_at, d FROM sale_raw ORDER BY id DESC LIMIT 1').get() || null;
+  const unmapped = db.prepare(`SELECT employee_name name, pharmacy_id, COUNT(*) n
+                           FROM sale_raw WHERE state='new' AND employee_name IS NOT NULL
+                           GROUP BY pharmacy_id, employee_name ORDER BY n DESC LIMIT 20`).all()
+    .map(u => ({ ...u, ph: phs.find(p => p.id === u.pharmacy_id)?.name || u.pharmacy_id }));
+  json(res, 200, { key: intgKey(), totals: tot, last, unmapped });
+});
+
+// Страница-спецификация для вендора аптечного ПО: GET /integration
+route('GET', /^\/integration\/?$/, (req, res) => {
+  const key = intgKey();
+  const host = req.headers.host || '<адрес-сервера>:8080';
+  const phs = db.prepare('SELECT id, name FROM pharmacy ORDER BY id').all()
+    .map(p => `<tr><td class="num">${p.id}</td><td>${p.name}</td></tr>`).join('');
+  const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>План «Звезда» — интеграция аптечного ПО</title>
+<style>
+body{font:14px/1.55 system-ui,sans-serif;max-width:860px;margin:24px auto;padding:0 16px;color:#1a2230}
+h1{font-size:22px}h2{font-size:16px;margin-top:28px}code,pre{background:#f2f4f8;border-radius:6px;font-size:12.5px}
+code{padding:1px 5px}pre{padding:12px;overflow-x:auto;border:1px solid #e3e7ee}
+table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #e3e7ee;padding:6px 9px;text-align:left;font-size:13px}
+th{background:#f2f4f8}.num{text-align:center}.mut{color:#66707f;font-size:12.5px}.key{font-family:monospace;background:#fff8e1;border:1px dashed #d9b300;padding:6px 10px;border-radius:6px;display:inline-block}
+.warn{background:#fff4f4;border-left:3px solid #d84a3f;padding:8px 12px;border-radius:4px}
+</style></head><body>
+<h1>Выгрузка продаж в дашборд «План-Звезда»</h1>
+<p>Сервер принимает продажи по HTTP (POST JSON). Достаточно отправлять пакет один-два раза в день (например в 07:00 и в течение дня каждый час). Повторная отправка того же пакета <b>безопасна</b> — чеки с уже известным номером пропускаются автоматически.</p>
+
+<h2>1. Адрес и ключ доступа</h2>
+<p><b>POST</b> <code>http://${host}/api/integration/sales</code></p>
+<p>В каждом запросе передавайте заголовок:</p>
+<p class="key">X-Intg-Key: ${key}</p>
+<p class="warn">Ключ секретный — хранить в настройках аптечного ПО, не публиковать.</p>
+
+<h2>2. Формат запроса</h2>
+<table>
+<tr><th>Поле</th><th>Тип</th><th>Обязательно</th><th>Описание</th></tr>
+<tr><td><code>pharmacy_id</code></td><td>число</td><td>да</td><td>код аптеки (таблица ниже)</td></tr>
+<tr><td><code>sales[]</code></td><td>массив</td><td>да</td><td>пакет продаж</td></tr>
+<tr><td><code>sales[].d</code></td><td>дата</td><td>да</td><td>дата чека, <code>ГГГГ-ММ-ДД</code></td></tr>
+<tr><td><code>sales[].amount</code></td><td>число</td><td>да</td><td>сумма чека, ₽</td></tr>
+<tr><td><code>sales[].doc_id</code></td><td>строка</td><td>рекомендуется</td><td>номер чека — защита от дублей</td></tr>
+<tr><td><code>sales[].employee_name</code></td><td>строка</td><td>желательно</td><td>ФИО продавца как в справочнике аптеки (совпадение по фамилии+инициалам)</td></tr>
+<tr><td><code>sales[].margin</code></td><td>число</td><td>нет</td><td>сумма чека (валовая прибыль), ₽</td></tr>
+</table>
+<p class="mut">Если передаются отдельные чеки — указывайте <code>doc_id</code>: они суммируются в факт. Если это сводная выгрузка итогов дня по продавцу — присылайте одну строку на продавца <b>без</b> <code>doc_id</code>: она заменит итог этого дня.</p>
+
+<h2>3. Коды аптек</h2>
+<table><tr><th class="num">id</th><th>Аптека</th></tr>${phs}</table>
+
+<h2>4. Пример: curl</h2>
+<pre>curl -X POST http://${host}/api/integration/sales \\
+  -H "Content-Type: application/json" \\
+  -H "X-Intg-Key: ${key}" \\
+  -d '{"pharmacy_id":1,"sales":[
+         {"doc_id":"Ч-1042","d":"2026-10-01","employee_name":"Иванова А.С.","amount":1250.50,"margin":310.20},
+         {"doc_id":"Ч-1043","d":"2026-10-01","employee_name":"Петров И.И.","amount":830.00}]}'</pre>
+
+<h2>5. Пример: Python</h2>
+<pre>import requests
+r = requests.post(
+    "http://${host}/api/integration/sales",
+    headers={"X-Intg-Key": "${key}"},
+    json={"pharmacy_id": 1, "sales": [
+        {"doc_id": "Ч-1042", "d": "2026-10-01",
+         "employee_name": "Иванова А.С.", "amount": 1250.50, "margin": 310.20},
+    ]}, timeout=15)
+print(r.json())</pre>
+
+<h2>6. Пример: 1С (HTTPСоединение)</h2>
+<pre>Заголовки = Новый Соответствие;
+Заголовки.Вставить("Content-Type", "application/json; charset=utf-8");
+Заголовки.Вставить("X-Intg-Key", "${key}");
+Соединение = Новый HTTPСоединение("${host.split(':')[0]}", ${host.includes(':') ? host.split(':')[1] : '8080'});
+Запрос = Новый HTTPЗапрос("/api/integration/sales", Заголовки);
+Запрос.УстановитьТелоИзСтроки(ТелоЖСОН); // сформированный JSON пакета
+Ответ = Соединение.Отправить(Запрос); // POST — пакет продаж
+// Ответ.КодСостояния = 200 — пакет принят</pre>
+
+<h2>7. Ответ сервера</h2>
+<pre>{"ok":true,"accepted":2,"duplicates":0,"mapped":2,"unmapped":[]}</pre>
+<p class="mut">Если <code>unmapped</code> не пусто — ФИО из пакета не нашлось в справочнике: продажа учтётся на аптеку, но не на сотрудника. Сообщите нам список — поправим ФИО в справочнике, данные доначислятся при следующей разметке.</p>
+
+<h2>8. Проверка связи</h2>
+<p><b>GET</b> <code>http://${host}/api/health</code> — без ключа, должен вернуть <code>{"ok":true,...}</code>.</p>
+<p class="mut">Коды месяцев: сентябрь–декабрь 2026. Даты вне этого периода отбрасываются без ошибки.</p>
+</body></html>`;
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
 });
 
 // Сводка для дашборда: план/факт/прогноз по аптеке(-ам), месяцу(-ам), сотрудникам
@@ -164,7 +363,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
               { revenue: 0, margin: 0, checks: 0, days: new Set() };
     const totalDays = DAYS_IN[p.month];
     const now = new Date();
-    const isCur = p.month === MONTHS[now.getUTCMonth() - 9];
+    const isCur = p.month === currentProjectMonth();
     const elapsed = isCur ? now.getUTCDate() : (f.days.size > 0 ? f.days.size : 0);
     const dayBase = Math.max(elapsed, 1);
     const forecastRev = (f.revenue / dayBase) * totalDays;
