@@ -353,10 +353,12 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
   }
 
   const empFact = db.prepare(`
-    SELECT f.pharmacy_id, f.employee_id, e.fio, e.share,
-           SUM(f.revenue) revenue, SUM(f.margin) margin
-    FROM fact_day f JOIN employee e ON e.id=f.employee_id
-    WHERE (? IS NULL OR f.pharmacy_id=?) GROUP BY f.pharmacy_id, f.employee_id`).all(phId, phId);
+    -- Все сотрудники аптеки, даже без факта (иначе дашборд «теряет» новых)
+    SELECT e.pharmacy_id, e.id employee_id, e.fio, e.share,
+           COALESCE(SUM(f.revenue),0) revenue, COALESCE(SUM(f.margin),0) margin
+    FROM employee e LEFT JOIN fact_day f ON f.employee_id=e.id
+    WHERE (? IS NULL OR e.pharmacy_id=?)
+    GROUP BY e.id ORDER BY e.pharmacy_id, e.id`).all(phId, phId);
 
   const out = planRows.map(p => {
     const f = factByPhMonth[`${p.pharmacy_id}|${p.month}`] ||
