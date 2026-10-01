@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#133367">
+<title>План-Звезда · кратко</title>
+<script src="chart.min.js"></script>
+<style>
+:root{
+  --navy:#133367; --blue:#4169aa; --green:#53a979; --bright:#6dc47b;
+  --orange:#f1974e; --gold:#ffc61a; --bg:#eef2f7; --tx:#161e25; --mut:#7d8894;
+  --card:#ffffff; --line:#e0e7ef; --red:#e5484d;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
+.wrap{max-width:560px;margin:0 auto;padding:12px 10px calc(28px + env(safe-area-inset-bottom))}
+
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.logo{width:34px;height:34px;flex:none;border-radius:9px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px}
+.topbar h1{font-size:15px;font-weight:700;line-height:1.2}
+.topbar .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
+.topbar a{margin-left:auto;font-size:11.5px;color:var(--blue);text-decoration:none;white-space:nowrap}
+
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:15px;font-weight:600;color:var(--navy);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+select:disabled{color:var(--mut);background-color:#f6f8fb}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+
+.hero{padding:14px}
+.hero .ttl{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.03em;display:flex;justify-content:space-between}
+.hero .ttl .days{color:var(--tx);text-transform:none;letter-spacing:0;font-weight:600}
+.hero .pct{font-size:52px;font-weight:800;color:var(--navy);line-height:1.05;margin:4px 0 2px}
+.hero .pct small{font-size:22px;font-weight:700;color:var(--mut)}
+.hero .bar{position:relative;height:14px;border-radius:99px;background:#e8edf4;margin:8px 0 4px;overflow:hidden}
+.hero .bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;transition:width .4s}
+.hero .bar .tick{position:absolute;top:-2px;bottom:-2px;width:3px;border-radius:2px;background:var(--navy);opacity:.85}
+.bar-legend{display:flex;justify-content:space-between;font-size:11.5px;color:#68737f;margin-bottom:10px}
+.hero .rows{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--line);padding-top:9px}
+.hero .rows .t{font-size:10.5px;color:#68737f;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.hero .rows .v{font-size:16px;font-weight:750;margin-top:2px}
+.hero .rows .v span{font-size:11.5px;font-weight:600;color:var(--mut)}
+.chip{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700}
+.c-ok{background:#e5f9ec;color:#0a7d3c}.c-warn{background:#fdf1e2;color:#a05a00}.c-bad{background:#fde8e8;color:#c0272d}
+
+.card h3{font-size:12.5px;color:var(--navy);margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+.card h3 .r{font-size:12px;color:var(--mut);font-weight:600}
+.mbar{height:9px;border-radius:99px;background:#e8edf4;position:relative;overflow:hidden;margin:6px 0 4px}
+.mbar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
+.mrow{display:flex;justify-content:space-between;font-size:12px;color:#68737f}
+.mrow b{color:var(--tx);font-weight:700}
+
+.chart-box{position:relative;height:130px}
+
+.team .emp{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:6px 10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.team .emp:last-child{border-bottom:none}
+.team .emp.me{background:#f2f6fc;margin:0 -8px;padding:7px 8px;border-radius:9px;border-bottom:1px solid transparent}
+.team .emp.me + .emp{border-top:none}
+.team .fio{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team .role{font-size:10.5px;color:var(--mut);font-weight:500}
+.team .pv{font-size:14px;font-weight:750;text-align:right}
+.team .emp .mbar{grid-column:1/3;margin:0}
+.team .hint{font-size:11px;color:var(--mut);margin-top:8px}
+
+.foot{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:2px}
+.err{background:#fde8e8;color:#c0272d;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:none}
+@media (min-width:560px){ .hero .pct{font-size:58px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo">З</div>
+    <div>
+      <h1>План-Звезда · кратко</h1>
+      <div class="sub" id="asOf">…</div>
+    </div>
+    <a href="/">Полная версия</a>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="filters">
+    <select id="selPh" aria-label="Аптека"></select>
+    <select id="selEmp" aria-label="Сотрудник"><option value="">Вся аптека</option></select>
+  </div>
+
+  <div class="card hero" id="hero"></div>
+
+  <div class="card" id="marginCard">
+    <h3>Валовая прибыль <span class="r" id="mVals"></span></h3>
+    <div class="mbar"><div class="fill" id="mFill"></div></div>
+    <div class="mrow"><b id="mPct">—</b><span id="mPlan"></span></div>
+  </div>
+
+  <div class="card">
+    <h3>Продажи по дням <span class="r" id="chHint"></span></h3>
+    <div class="chart-box"><canvas id="ch"></canvas></div>
+  </div>
+
+  <div class="card team">
+    <h3>Команда <span class="r" id="teamNote"></span></h3>
+    <div id="team"></div>
+    <div class="hint">Процент = личный факт к личному плану (план аптеки × доля).</div>
+  </div>
+
+  <div class="foot">
+    <span>Данные: <span id="footDate">—</span></span>
+    <span>сен–дек 2026</span>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ===== краткий дашборд: текущий месяц, одна аптека, личный план =====
+const MONTHS = {'2026-09':'Сентябрь','2026-10':'Октябрь','2026-11':'Ноябрь','2026-12':'Декабрь'};
+const MONTH_KEY = {}; // имя месяца в API → ключ
+for (const [k,v] of Object.entries(MONTHS)) MONTH_KEY[v] = k;
+const DAYS_IN = {'2026-09':30,'2026-10':31,'2026-11':30,'2026-12':31};
+const fmtRub = v => Math.round(v).toLocaleString('ru-RU') + ' ₽';
+const fmtML = v => (v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2}) + ' млн ₽';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toneCls = p => p >= 97 ? 'c-ok' : (p >= 85 ? 'c-warn' : 'c-bad');
+const toneCol = p => p >= 97 ? 'var(--green)' : (p >= 85 ? 'var(--orange)' : 'var(--red)');
+
+let catalog = [], sum = null, series = [];
+let phId = +(localStorage.getItem('sz_ph') || 1);
+let empId = localStorage.getItem('sz_emp') || '';
+
+function currentMonthKey(){
+  const now = new Date();
+  const k = `2026-${String(now.getUTCMonth()+1).padStart(2,'0')}`;
+  return MONTHS[k] ? k : null;
+}
+// row.month приходит словом («Октябрь») — нормализуем в ключ
+function rowKey(row){ return MONTH_KEY[row.month] || row.month; }
+function showError(t){
+  const e = document.getElementById('err');
+  e.textContent = t; e.style.display = 'block';
+}
+
+async function jget(url){
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${url} → HTTP ${r.status}`);
+  return r.json();
+}
+
+async function loadAll(){
+  try{
+    catalog = (await jget('/api/catalog')).pharmacy || [];
+    if (!catalog.find(p => p.id === phId)) phId = catalog[0]?.id || 1;
+    await loadPh();
+  }catch(e){ showError('Не удалось загрузить данные: ' + e.message); }
+}
+
+async function loadPh(){
+  localStorage.setItem('sz_ph', phId);
+  localStorage.setItem('sz_emp', empId);
+  const mk = currentMonthKey();
+  const mname = mk ? MONTHS[mk] : null;   // API принимает имя месяца
+  const qs = `pharmacy_id=${phId}` + (mname ? `&month=${encodeURIComponent(mname)}` : '');
+  const [s, ser] = await Promise.all([ jget(`/api/summary?${qs}`), jget(`/api/s.series?${qs}`) ]);
+  sum = s; series = ser.series || [];
+  render();
+}
+
+function monthRow(){
+  const cur = currentMonthKey();
+  const norm = r => rowKey(r);
+  return (sum.rows || []).find(r => norm(r) === cur) ||
+         // нет плана на текущий месяц (напр., декабрь ещё не заполнен) — берём последний с фактом
+         (sum.rows || []).filter(r => norm(r) < cur).sort((a,b) => norm(b).localeCompare(norm(a)))[0] ||
+         (sum.rows || [])[0] || null;
+}
+
+function dayBase(row){
+  const cur = currentMonthKey();
+  if (rowKey(row) === cur) return Math.max(new Date().getUTCDate(), 1);
+  return Math.max(row.fact_days || 0, 1);
+}
+
+function render(){
+  const row = monthRow();
+  if (!row){ showError('По этой аптеке нет плана.'); return; }
+  // сотрудники уже отфильтрованы сервером по месяцу; в персональном
+  // режиме метрики героя считаем по выбранному человеку
+  const empsAll = (sum.employees || []).slice().sort((a,b) => b.revenue - a.revenue);
+  const emp = empId ? (empsAll.find(e => String(e.employee_id) === empId) || null) : null;
+  const db = dayBase(row);
+  const isCur = rowKey(row) === currentMonthKey();
+  const daysLeft = isCur ? Math.max(DAYS_IN[rowKey(row)] - new Date().getUTCDate(), 0) : 0;
+
+  // персональные метрики: факт сотрудника за текущий месяц против
+  // личного плана (план аптеки × доля)
+  const plan   = emp ? row.plan_revenue * emp.share : row.plan_revenue;
+  const fact   = emp ? emp.revenue : row.fact_revenue;
+  const margin = emp ? emp.margin  : row.fact_margin;
+  const planM  = emp ? row.plan_margin * emp.share : row.plan_margin;
+  const fctPct = plan ? fact / plan * 100 : 0;
+  const fcVal  = fact / db * DAYS_IN[rowKey(row)];
+  const fcPct  = plan ? fcVal / plan * 100 : 0;
+  const mPct   = planM ? margin / planM * 100 : 0;
+
+  document.getElementById('asOf').textContent =
+    `${emp ? 'Лично: ' + emp.fio + ' · ' : ''}${MONTHS[rowKey(row)]}`;
+  document.getElementById('footDate').textContent = 'по ' + sum.asOf;
+
+  document.getElementById('hero').innerHTML = `
+    <div class="ttl"><span>${esc(emp ? 'Личный план' : 'План месяца')} · ${MONTHS[rowKey(row)]}</span>
+      <span class="days">${isCur ? 'осталось ' + daysLeft + ' дн.' : 'месяц закрыт'}</span></div>
+    <div class="pct">${Math.round(fctPct)}<small> %</small></div>
+    <div class="bar">
+      <div class="fill" style="width:${Math.min(fctPct,100)}%;background:${toneCol(fcPct)}"></div>
+      ${fcPct > 0.5 ? `<div class="tick" style="left:${Math.min(fcPct,100)}%" title="прогноз"></div>` : ''}
+    </div>
+    <div class="bar-legend"><span>собрано ${fmtRub(fact)}</span><span>план ${fmtRub(plan)}</span></div>
+    <div class="rows">
+      <div><div class="t">Прогноз месяца</div>
+        <div class="v">${fmtML(fcVal)} <span>· ${Math.round(fcPct)}% плана</span></div></div>
+      <div><div class="t">Чеков</div>
+        <div class="v">${emp ? '—' : (row.fact_checks || 0).toLocaleString('ru-RU')}</div></div>
+    </div>
+    <div class="chip ${toneCls(fcPct)}">${db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' :
+      'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения')}</div>`;
+  // маржа
+  document.getElementById('mVals').textContent =
+    `${fmtRub(margin)} из ${fmtRub(planM)}`;
+  const mf = document.getElementById('mFill');
+  mf.style.width = Math.min(mPct,100) + '%';
+  mf.style.background = toneCol(mPct);
+  document.getElementById('mPct').textContent = Math.round(mPct) + '%';
+  document.getElementById('mPlan').textContent =
+    'прогноз ' + fmtRub(margin / db * DAYS_IN[rowKey(row)]);
+
+  renderChart(row, emp);
+  renderTeam(empsAll, emp);
+}
+
+let chart = null;
+function renderChart(row, emp){
+  const cur = rowKey(row);
+  const total = DAYS_IN[cur];
+  const byDay = {};
+  for (const p of series){
+    const m = p.d.slice(0,7);
+    if (m !== cur) continue;
+    byDay[p.d] = p.fact;
+  }
+  const now = new Date();
+  const isCur = cur === currentMonthKey();
+  const lastDay = isCur ? Math.min(now.getUTCDate(), total) : total;
+  // ось X — весь месяц; столбики — по прошедшие дни (null = день ещё не наступил),
+  // пунктир плана идёт через весь месяц — виден даже 1-го числа
+  const labels = [], vals = [];
+  for (let d = 1; d <= total; d++){
+    const key = `${cur}-${String(d).padStart(2,'0')}`;
+    labels.push(d);
+    vals.push(d <= lastDay ? (byDay[key] || 0) : null);
+  }
+  // персона: график показывает ЛИЧНЫЕ продажи (доля × факт аптеки за день);
+  // план тоже личный (доля × план аптеки)
+  const k = emp ? (emp.share || 0) : 1;
+  const shown = vals.map(v => v == null ? null : Math.round(v * k));
+  const planPerDay = row.plan_revenue * k / total;
+  document.getElementById('chHint').textContent = 'пунктир — план дня';
+
+  if (chart) chart.destroy();
+  const ctx = document.getElementById('ch').getContext('2d');
+  chart = new Chart(ctx, {
+    data: {
+      labels,
+      datasets: [
+        { type:'bar', data: shown, backgroundColor:'#4169aa', borderRadius:3, barPercentage:.72, categoryPercentage:.9 },
+        { type:'line', data: labels.map(() => planPerDay), borderColor:'#133367',
+          borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false, animation:false,
+      plugins:{ legend:{display:false}, tooltip:{
+        callbacks:{ label: c => c.dataset.type === 'bar' ? fmtRub(c.parsed.y) : 'план дня: ' + fmtRub(planPerDay) } } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{ font:{size:9}, color:'#7d8894', maxRotation:0, autoSkip:true } },
+        y:{ grid:{color:'#eef2f7'}, border:{display:false},
+            ticks:{ font:{size:9}, color:'#7d8894', callback: v => v >= 1000 ? (v/1000)+'к' : v } }
+      }
+    }
+  });
+}
+
+function renderTeam(emps, me){
+  const box = document.getElementById('team');
+  document.getElementById('teamNote').textContent = emps.length + ' чел.';
+  if (!emps.length){ box.innerHTML = '<div class="hint">Нет данных по сотрудникам.</div>'; return; }
+  box.innerHTML = emps.map(e => {
+    const pp = monthRow().plan_revenue * (e.share || 0);
+    const pct = pp ? e.revenue / pp * 100 : 0;
+    const col = toneCol(pct);
+    return `<div class="emp${me && e.employee_id === me.employee_id ? ' me' : ''}">
+      <div><div class="fio">${esc(e.fio)}</div><div class="role">${fmtRub(e.revenue)} · ${MONTHS[rowKey(monthRow())].toLowerCase()}</div></div>
+      <div class="pv" style="color:${col}">${Math.round(pct)}%</div>
+      <div class="mbar"><div class="fill" style="width:${Math.min(pct,100)}%;background:${col}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ===== контролы =====
+function initControls(){
+  const selPh = document.getElementById('selPh');
+  selPh.innerHTML = '<option value="">Аптека…</option>' + catalog.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  selPh.value = String(phId);
+  if (selPh.value !== String(phId)) selPh.selectedIndex = 0;
+  selPh.onchange = () => {
+    phId = +selPh.value; empId = '';
+    document.getElementById('selEmp').innerHTML = '<option value="">Вся аптека</option>';
+    loadPh();
+  };
+  const selEmp = document.getElementById('selEmp');
+  selEmp.value = empId;
+  selEmp.onchange = () => { empId = selEmp.value; loadPh(); };
+}
+
+function fillEmployees(){
+  const selEmp = document.getElementById('selEmp');
+  selEmp.innerHTML = '<option value="">Вся аптека</option>' +
+    (sum.employees || []).map(e =>
+      `<option value="${e.employee_id}"${String(e.employee_id) === empId ? ' selected' : ''}>${esc(e.fio)}</option>`
+    ).join('');
+  selEmp.disabled = false;
+}
+
+const _loadPh = loadPh;
+loadPh = async function(){ await _loadPh(); fillEmployees(); };
+
+// селекторы наполняем после загрузки каталога (catalog приходит из /api/catalog)
+loadAll().then(() => initControls());
+</script>
+</body>
+</html>

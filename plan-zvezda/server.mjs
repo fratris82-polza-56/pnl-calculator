@@ -352,13 +352,19 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     a.revenue += f.revenue; a.margin += f.margin; a.checks += f.checks; a.days.add(f.d);
   }
 
+  const MONTH_KEYS = {'Сентябрь':'2026-09','Октябрь':'2026-10','Ноябрь':'2026-11','Декабрь':'2026-12'};
+  const mKey = month ? (MONTH_KEYS[month] || null) : null;   // для фильтра дат факта
+  const mLike = mKey ? mKey + '%' : null;                     // LIKE '2026-10%'
   const empFact = db.prepare(`
     -- Все сотрудники аптеки, даже без факта (иначе дашборд «теряет» новых)
+    -- month (имя месяца) фильтрует факт по сотруднику; без month — за всё время
     SELECT e.pharmacy_id, e.id employee_id, e.fio, e.share,
            COALESCE(SUM(f.revenue),0) revenue, COALESCE(SUM(f.margin),0) margin
-    FROM employee e LEFT JOIN fact_day f ON f.employee_id=e.id
+    FROM employee e LEFT JOIN fact_day f
+      ON f.employee_id=e.id AND (? IS NULL OR f.d LIKE ?)
     WHERE (? IS NULL OR e.pharmacy_id=?)
-    GROUP BY e.id ORDER BY e.pharmacy_id, e.id`).all(phId, phId);
+    GROUP BY e.id ORDER BY e.pharmacy_id, e.id`)
+    .all(mKey, mLike, phId, phId);
 
   const out = planRows.map(p => {
     const f = factByPhMonth[`${p.pharmacy_id}|${p.month}`] ||
