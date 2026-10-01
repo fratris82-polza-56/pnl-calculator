@@ -1,3 +1,4 @@
 data/
 server.log
 server.pid
+node_modules/
