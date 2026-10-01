@@ -63,6 +63,11 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .team .pv{font-size:14px;font-weight:750;text-align:right}
 .team .emp .mbar{grid-column:1/3;margin:0}
 .team .hint{font-size:11px;color:var(--mut);margin-top:8px}
+.rec{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #eef2f7;font-size:12.5px;line-height:1.45}
+.rec:last-child{border-bottom:none}
+.rec svg{flex:none;margin-top:1px}
+.rec b{font-weight:700}
+.rec .sub{color:#68737f;font-size:11.5px;margin-top:1px}
 
 .foot{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:2px}
 .err{background:#fde8e8;color:#c0272d;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:none}
@@ -98,6 +103,11 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
   <div class="card">
     <h3>Продажи по дням <span class="r" id="chHint"></span></h3>
     <div class="chart-box"><canvas id="ch"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h3>На что обратить внимание <span class="r" id="recNote"></span></h3>
+    <div id="recs"><div class="hint">Загрузка…</div></div>
   </div>
 
   <div class="card team">
@@ -332,7 +342,57 @@ function fillEmployees(){
 }
 
 const _loadPh = loadPh;
-loadPh = async function(){ await _loadPh(); fillEmployees(); };
+loadPh = async function(){ await _loadPh(); fillEmployees(); loadRecs(); };
+
+// ===== рекомендации =====
+const ICO_AT = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#c0392b" stroke-width="1.6"/><path d="M8 4.8v3.8" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11" r=".9" fill="#c0392b"/></svg>';
+const ICO_GO = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2.5 8.5l3.2 3.2 7.8-7.9" stroke="#1e8e4e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+async function loadRecs(){
+  const box = document.getElementById('recs');
+  const note = document.getElementById('recNote');
+  const mk = currentMonthKey();
+  const mname = mk ? MONTHS[mk] : null;
+  const row = monthRow();
+  const items = [];
+  // 1) цели месяца из /api/kpi (чеки/средний чек/купоны) — только для всей аптеки
+  try {
+    const k = await jget('/api/kpi?pharmacy_id=' + phId);
+    const kr = (k.rows || []).find(r => r.month === mname);
+    if (kr && !empId){
+      const gaps = [];
+      if (kr.target_checks_per_day != null && kr.fact_checks_per_day != null && kr.fact_checks_per_day < kr.target_checks_per_day)
+        gaps.push(`<b>чеков в день:</b> ${kr.fact_checks_per_day} из ${kr.target_checks_per_day}`);
+      if (kr.target_avg_check != null && kr.fact_avg_check != null && kr.fact_avg_check < kr.target_avg_check)
+        gaps.push(`<b>средний чек:</b> ${Math.round(kr.fact_avg_check)} из ${kr.target_avg_check} ₽`);
+      if (kr.target_multi_share != null && kr.fact_multi_share != null && kr.fact_multi_share < kr.target_multi_share)
+        gaps.push(`<b>доля мультичеков:</b> ${Math.round(kr.fact_multi_share*100)} из ${Math.round(kr.target_multi_share*100)}%`);
+      if (kr.target_coupons_per_week != null && (kr.fact_coupons || 0) < kr.target_coupons_per_week)
+        gaps.push(`<b>купоны:</b> ${kr.fact_coupons || 0} за период, цель ${kr.target_coupons_per_week}/нед`);
+      if (gaps.length) items.push({ico: ICO_GO, html: 'Цели месяца: ' + gaps.join(' · ') + '. Ближайший рычаг — предложить товар-спутник к частым покупкам.'});
+    }
+  } catch(e) { /* kpi недоступен — пропускаем */ }
+  // 2) дефектуры (отказы за 7 дней) — клиенты уходят с пустыми руками
+  try {
+    const so = await jget('/api/stockout/top?days=7');
+    const phName = (catalog.find(p => p.id === phId) || {}).name || '';
+    const mine = (so.top || []).filter(t => (t.pharmacies || '').includes(phName));
+    if (mine.length) {
+      const t = mine[0];
+      const rest = mine.length > 1 ? ` <span class="sub">Ещё: ${mine.slice(1,4).map(x=>esc(x.product)).join(', ')}</span>` : '';
+      items.push({ico: ICO_AT, html: `<b>Отказы за 7 дней:</b> «${esc(t.product)}» — ${t.times} раз(а). Проверить остатки и заказ.${rest}`});
+      if (mine.length > 1) note.textContent = `отказов: ${mine.length}`;
+    }
+  } catch(e) { /* stockout недоступен */ }
+  // 3) вывод
+  if (!items.length){
+    box.innerHTML = '<div class="hint">Заметных отклонений нет. Держим темп.</div>';
+    if (!note.textContent) note.textContent = '';
+    return;
+  }
+  box.innerHTML = items.map(i => `<div class="rec">${i.ico}<div>${i.html}</div></div>`).join('');
+}
+
 
 // селекторы наполняем после загрузки каталога (catalog приходит из /api/catalog)
 loadAll().then(() => initControls());
