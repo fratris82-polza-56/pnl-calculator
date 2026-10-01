@@ -6,8 +6,8 @@
 <title>Мой план — План-Звезда</title>
 <style>
 :root{
-  --bg:#f4f6fa; --card:#fff; --ink:#17212b; --mut:#6b7a8d; --line:#e3e9f1;
-  --acc:#2f6fed; --ok:#1e9e5a; --warn:#e08a00; --bad:#d64545;
+  --bg:#eef2f7; --card:#fff; --ink:#133367; --mut:#7d8894; --line:#e0e7ef;
+  --acc:#4169aa; --ok:#53a979; --warn:#e08a00; --bad:#d64545;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -30,7 +30,7 @@ body{font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,san
 .bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.bad{background:var(--bad)}
 .pct{font-size:13px;font-weight:700;margin-top:6px}
 .pct.ok{color:var(--ok)} .pct.warn{color:var(--warn)} .pct.bad{color:var(--bad)}
-.tip{background:#f0f6ff;border:1px solid #d5e3fb;border-radius:12px;padding:11px 12px;font-size:14px;line-height:1.45;color:#1c3a68}
+.tip{background:#e2f3e5;border:1px solid #bfe2c6;border-radius:12px;padding:11px 12px;font-size:14px;line-height:1.45;color:#2c5e3f}
 .tip::before{content:'💡 ';}
 table.days{width:100%;border-collapse:collapse;font-size:13.5px}
 table.days td{padding:6px 4px;border-top:1px solid var(--line)}
@@ -38,7 +38,7 @@ table.days td:last-child{text-align:right;font-variant-numeric:tabular-nums;font
 .mut{color:var(--mut)}
 form{display:flex;flex-direction:column;gap:10px}
 input,select,textarea{font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%}
-input:focus,select:focus{outline:2px solid #bcd2f7;border-color:var(--acc)}
+input:focus,select:focus{outline:2px solid #bfe2c6;border-color:var(--acc)}
 button.btn{font:inherit;font-weight:650;padding:12px;border:none;border-radius:10px;background:var(--acc);color:#fff;cursor:pointer}
 button.btn:active{opacity:.85}
 button.btn.gray{background:#eef2f8;color:var(--ink)}
@@ -60,7 +60,7 @@ label{font-size:12.5px;color:var(--mut);font-weight:600}
 <!-- Экран входа -->
 <div id="login" class="hidden">
   <div class="card" style="margin-top:12vh;text-align:center">
-    <div style="font-size:34px">⭐</div>
+    <svg width="36" height="36" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19C5 10 11 5 20 5c0 9-5 15-14 15" fill="#6dc47b"/><path d="M5 19c3-5 7-9 11-11" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>
     <h2 style="margin:6px 0 2px;color:var(--ink);text-transform:none;font-size:18px">Мой план</h2>
     <p class="kv" style="margin-bottom:14px">Введи личный код из 6 знаков.<br>Этот же код привяжет твой Telegram.</p>
     <form id="fLogin">

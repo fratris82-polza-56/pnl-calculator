@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#003c88">
+<meta name="theme-color" content="#133367">
 <title>План «Звезда» · аптеки сен–дек 2026</title>
 <script src="chart.min.js"></script>
 <style>
 /* ===== Mobile first: база = телефон ===== */
 :root{
-  --navy:#003c88; --blue:#4277c2; --green:#6dc47b; --bright:#03c854;
-  --orange:#f9a968; --gold:#ffc61a; --bg:#f7f9fc; --tx:#161e25; --mut:#8b8f92;
-  --card:#ffffff; --line:#e4e9f1; --red:#e5484d;
+  --navy:#133367; --blue:#4169aa; --green:#53a979; --bright:#6dc47b;
+  --orange:#f1974e; --gold:#ffc61a; --bg:#eef2f7; --tx:#161e25; --mut:#7d8894;
+  --card:#ffffff; --line:#e0e7ef; --red:#e5484d;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
@@ -25,7 +25,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .brand h1{font-size:15px;font-weight:700;line-height:1.25}
 .brand .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
 .filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:16px;font-weight:600;color:var(--navy);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23003c88' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:16px;font-weight:600;color:var(--navy);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
 
 /* --- сетки --- */
 .grid{display:grid;gap:10px;margin-bottom:12px}
@@ -121,7 +121,7 @@ button.btn:active{background:#eef3fa}
 <div class="wrap">
   <div class="topbar">
     <div class="brand">
-      <div class="logo">З</div>
+      <div class="logo" style="background:var(--bright)">З</div>
       <div>
         <h1>План «Звезда» · аптеки сентябрь–декабрь 2026</h1>
         <div class="sub" id="asOf">план/факт · прогноз выполнения · <a href="/me.html" style="color:inherit">личный кабинет</a></div>
@@ -336,8 +336,8 @@ function drawMonth(sum){
     type: 'bar',
     data: {labels, datasets: [
       {label:'План', data:plan, backgroundColor:'#dce7f5', borderRadius:5},
-      {label:'Факт', data:fact, backgroundColor:'#4277c2', borderRadius:5},
-      {label:'Прогноз', type:'line', data:fc, borderColor:'#f9a968', borderDash:[6,4], borderWidth:2, pointRadius:3, tension:.3}
+      {label:'Факт', data:fact, backgroundColor:'#4169aa', borderRadius:5},
+      {label:'Прогноз', type:'line', data:fc, borderColor:'#f1974e', borderDash:[6,4], borderWidth:2, pointRadius:3, tension:.3}
     ]},
     options: {
       maintainAspectRatio: false,
@@ -368,7 +368,7 @@ async function drawDay(){
   if(chD) chD.destroy();
   chD = new Chart($('#chDay'), {type:'line',data:{labels,datasets:[
     {label:'План (накопл.)',data:cPlan,borderColor:'#8ea0bf',borderDash:[6,4],borderWidth:2,pointRadius:0},
-    {label:'Факт (накопл.)',data:cFact,borderColor:'#03c854',borderWidth:2.5,pointRadius:0,fill:true,backgroundColor:'rgba(3,200,84,.07)',tension:.25}
+    {label:'Факт (накопл.)',data:cFact,borderColor:'#53a979',borderWidth:2.5,pointRadius:0,fill:true,backgroundColor:'rgba(109,196,123,.12)',tension:.25}
   ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},
     scales:{y:{ticks:{font:{size:10},callback:v=>v+' млн'},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxTicksLimit:16}}}}});
 }
