@@ -36,6 +36,8 @@ window.fetch = async function(url){
     return mk({series: ser});
   }
   if(u.includes('/api/integration/log')) return mk([]);
+  if(u.includes('/api/tg/status')) return mk({token:false, employees:[], last_broadcast:null});
+  if(u.includes('/api/tg/check')||u.includes('/api/tg/broadcast')) return mk({error:'недоступно в автономном режиме'});
   if(u.includes('/api/kpi')) return mk(SNAPSHOT.kpi);
   if(u.includes('/api/stockout/top')) return mk({rows:[]});
   if(u.includes('/api/stockout')) return mk({rows:[],days:14});
@@ -237,6 +239,17 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
           <p style="font-size:11.5px;color:var(--mut);margin-top:6px">«Тестовая продажа» отправляет демо-чек через тот же endpoint, что и аптечное ПО.</p>
         </div>
       </div>
+    </div>
+    <div class="card">
+      <h2>Telegram-рассылка сотрудникам <span class="badge">бот</span></h2>
+      <p>Каждое утро в 08:00 бот шлёт каждому сотруднику: личный план и % выполнения, % аптеки и сети, прогноз до конца месяца. Привязка: сотрудник пишет боту <code>/start КОД</code> — код его из таблицы ниже.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0">
+        <button class="btn" id="btnTgCheck">Проверить привязки</button>
+        <button class="btn" id="btnTgSend">Разослать сейчас</button>
+        <span id="tgState" class="mut" style="font-size:12px"></span>
+      </div>
+      <div class="tbl-wrap"><table id="tblTg"></table></div>
+      <p id="tgMsg" style="font-size:12px;min-height:16px;margin-top:8px"></p>
     </div>
   </div>
 
@@ -448,6 +461,18 @@ function renderKpi(k){
 
 async function loadKpi(){ const k = await api('/api/kpi'); renderKpi(k); }
 
+async function loadTg(){
+  const s = await api('/api/tg/status');
+  $('#tgState').textContent = s.token ? (s.last_broadcast? `последняя рассылка: ${s.last_broadcast.slice(0,16).replace('T',' ')}` : 'бот подключён, рассылок ещё не было') : '⚠️ токен бота не задан';
+  let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th>Доля</th><th class="l">Код привязки</th><th class="l">Статус</th></tr></thead><tbody>';
+  ;(s.employees||[]).forEach(e=>{
+    h += `<tr><td class="l stick">${e.fio}</td><td class="l">${e.ph}</td><td class="num">${(e.share*100).toFixed(0)}%</td>`+
+      `<td class="l"><code>${e.bound? '—' : e.code}</code></td>`+
+      `<td class="l">${e.bound? `<span class="ok-line">✓ ${e.username? '@'+e.username : 'привязан'}</span>` : '<span class="mut">ждёт /start</span>'}</td></tr>`;
+  });
+  $('#tblTg').innerHTML = h+'</tbody>';
+}
+
 async function phOptions(sel){
   CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o)});
 }
@@ -513,7 +538,9 @@ async function refresh(){
   phOptions($('#soPh')); phOptions($('#cpPh'));
   await loadSoTop();
   $('#btnSo').onclick=addSo; $('#btnCp').onclick=addCp; $('#btnSoTop').onclick=loadSoTop;
-  $('#btnSettings').onclick=()=>{ const s=$('#apiSettings'); const show=s.style.display==='none'; s.style.display=show?'':'none'; $('#btnSettings').textContent=show?'✕ Скрыть настройки':'⚙️ Настройки'; if(show) s.scrollIntoView({behavior:'smooth',block:'start'}); };
+  $('#btnTgCheck').onclick=async()=>{ const r=await api('/api/tg/check',{method:'POST'}); $('#tgMsg').textContent = r.ok? `проверено обновлений: ${r.scanned}, новых привязок: ${(r.bound||[]).length}` : (r.error||'ошибка'); if(r.ok) loadTg(); };
+  $('#btnTgSend').onclick=async()=>{ $('#btnTgSend').disabled=true; const r=await api('/api/tg/broadcast',{method:'POST'}); $('#btnTgSend').disabled=false; $('#tgMsg').innerHTML = r.error? `<span class="err-line">${r.error}</span>` : `отправлено: ${r.sent} · ошибок: ${r.failed} · не привязано: ${r.unbound}`; if(!r.error) loadTg(); };
+  $('#btnSettings').onclick=()=>{ const s=$('#apiSettings'); const show=s.style.display==='none'; s.style.display=show?'':'none'; $('#btnSettings').textContent=show?'✕ Скрыть настройки':'⚙️ Настройки'; if(show){ loadTg(); s.scrollIntoView({behavior:'smooth',block:'start'}); } };
   setInterval(loadLog, 15000);
 })();
 </script>

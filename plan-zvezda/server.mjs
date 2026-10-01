@@ -3,6 +3,7 @@ import http from 'node:http';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ROOT } from './db.mjs';
+import { ensureTgSchema, tgToken, buildReports, bindNew, broadcast, scheduleDaily } from './broadcast.mjs';
 
 const db = openDb();
 ensureSchema(db);
@@ -231,6 +232,42 @@ route('DELETE', /^\/api\/demo$/, (req, res) => {
   const n = db.prepare("DELETE FROM fact_day WHERE source='demo'").run().changes;
   json(res, 200, { removed: n });
 });
+
+// ---------- Telegram-рассылка сотрудникам ----------
+ensureTgSchema(db);
+
+route('GET', /^\/api\/tg\/status(?:\?|$)/, (req, res) => {
+  const rows = db.prepare(`
+    SELECT e.id, e.fio, e.share, ph.name ph, t.code, t.chat_id, t.username
+    FROM employee e JOIN pharmacy ph ON ph.id=e.pharmacy_id
+    LEFT JOIN tg_bind t ON t.employee_id=e.id ORDER BY e.pharmacy_id, e.id`).all();
+  json(res, 200, {
+    token: !!tgToken(),
+    employees: rows.map(r => ({ ...r, bound: !!r.chat_id })),
+    last_broadcast: db.prepare("SELECT value FROM tg_state WHERE key='last_broadcast'").get()?.value || null,
+  });
+});
+
+route('POST', /^\/api\/tg\/check(?:\?|$)/, async (req, res) => {
+  const token = tgToken();
+  if (!token) return json(res, 400, { error: 'токен бота не задан' });
+  const r = await bindNew(db, token);
+  json(res, r.ok ? 200 : 400, r);
+});
+
+route('POST', /^\/api\/tg\/broadcast(?:\?|$)/, async (req, res) => {
+  const token = tgToken();
+  if (!token) return json(res, 400, { error: 'токен бота не задан' });
+  const r = await broadcast(db, token);
+  json(res, r.ok ? 200 : 500, r);
+});
+
+route('GET', /^\/api\/tg\/preview(?:\?|$)/, (req, res) => {
+  const r = buildReports(db);
+  json(res, 200, r);
+});
+
+scheduleDaily(db, tgToken, async () => { await bindNew(db, tgToken()); return broadcast(db, tgToken()); }, 5);
 
 // ---------- KPI: отказы, купоны, цели ----------
 // Отказ «нет в наличии»: {pharmacy_id, d, product, qty?, note?}
