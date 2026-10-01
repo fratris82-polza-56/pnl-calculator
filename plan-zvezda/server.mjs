@@ -550,6 +550,68 @@ route('GET', /^\/api\/kpi(?:\?|$)/, (req, res) => {
   json(res, 200, { rows: out });
 });
 
+// ---------- Личный кабинет (вход по коду привязки) ----------
+import { ensureMeSchema, loginByCode, authMe, logoutMe, createDelegation, meData } from './me.mjs';
+ensureMeSchema(db);
+
+route('POST', /^\/api\/me\/login(?:\?|$)/, async (req, res) => {
+  const b = await readBody(req);
+  const r = loginByCode(db, b.code);
+  if (!r) return json(res, 401, { error: 'код не найден — проверь буквы и цифры' });
+  json(res, 200, r);
+});
+
+const meAuth = async (req, res) => {
+  const a = authMe(db, req);
+  if (!a) { json(res, 401, { error: 'сессия истекла — войди по коду заново' }); return null; }
+  return a;
+};
+
+route('GET', /^\/api\/me(?:\?|$)/, async (req, res, m, url) => {
+  const a = await meAuth(req, res); if (!a) return;
+  const d = meData(db, a.employee_id, a.delegated, url.searchParams.get('as'));
+  if (!d) return json(res, 404, { error: 'не найден' });
+  json(res, 200, d);
+});
+
+route('POST', /^\/api\/me\/logout(?:\?|$)/, async (req, res) => {
+  logoutMe(db, req); json(res, 200, { ok: true });
+});
+
+// Отказ «нет в наличии» от сотрудника/заведующей (своей аптеки)
+route('POST', /^\/api\/me\/stockout(?:\?|$)/, async (req, res) => {
+  const a = await meAuth(req, res); if (!a) return;
+  const b = await readBody(req);
+  if (!b.product) return json(res, 400, { error: 'укажи товар' });
+  const phId = db.prepare('SELECT pharmacy_id FROM employee WHERE id=?').get(a.employee_id)?.pharmacy_id;
+  if (!phId) return json(res, 404, { error: 'не найден' });
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(b.d || '') ? b.d : new Date().toISOString().slice(0, 10);
+  db.prepare('INSERT INTO stockout(pharmacy_id,d,product,qty,note) VALUES (?,?,?,?,?)')
+    .run(phId, d, String(b.product), Number(b.qty || 1), b.note ? String(b.note) : null);
+  json(res, 201, { ok: true });
+});
+
+// Купоны: возвращает только заведующая своей аптеки
+route('POST', /^\/api\/me\/coupon(?:\?|$)/, async (req, res) => {
+  const a = await meAuth(req, res); if (!a) return;
+  const e = db.prepare('SELECT role, pharmacy_id FROM employee WHERE id=?').get(a.employee_id);
+  if (!e || (e.role !== 'заведующая' && !a.delegated)) return json(res, 403, { error: 'купоны вносит заведующая' });
+  const b = await readBody(req);
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(b.d || '') ? b.d : new Date().toISOString().slice(0, 10);
+  db.prepare('INSERT INTO coupon(pharmacy_id,d,qty,amount,campaign) VALUES (?,?,?,?,?)')
+    .run(e.pharmacy_id, d, Number(b.qty || 1), b.amount != null ? Number(b.amount) : null, String(b.campaign || 'листовка'));
+  json(res, 201, { ok: true });
+});
+
+// Разовый код для старшей смены (только заведующая своей аптеки)
+route('POST', /^\/api\/me\/delegate(?:\?|$)/, async (req, res) => {
+  const a = await meAuth(req, res); if (!a) return;
+  const e = db.prepare('SELECT role FROM employee WHERE id=?').get(a.employee_id);
+  if (!e || e.role !== 'заведующая') return json(res, 403, { error: 'только заведующая' });
+  const r = createDelegation(db, a.employee_id);
+  json(res, 201, r);
+});
+
 // Здоровье
 route('GET', /^\/api\/health$/, (req, res) => json(res, 200, { ok: true, asOf: new Date().toISOString() }));
 

@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мой план — План-Звезда</title>
+<style>
+:root{
+  --bg:#f4f6fa; --card:#fff; --ink:#17212b; --mut:#6b7a8d; --line:#e3e9f1;
+  --acc:#2f6fed; --ok:#1e9e5a; --warn:#e08a00; --bad:#d64545;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:520px;margin:0 auto;padding:14px 14px 40px}
+.h-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.h-top h1{font-size:17px;font-weight:700}
+.h-top .sub{font-size:12.5px;color:var(--mut)}
+.linklike{background:none;border:none;color:var(--acc);font-size:13px;cursor:pointer;padding:6px 4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(23,33,43,.04)}
+.card h2{font-size:13px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.big{font-size:26px;font-weight:750;letter-spacing:-.3px}
+.big small{font-size:14px;color:var(--mut);font-weight:500}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 140px}
+.kv{font-size:13.5px;color:var(--mut)}
+.kv b{color:var(--ink);font-weight:650}
+.bar{height:8px;border-radius:6px;background:#e9eef6;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;border-radius:6px;background:var(--acc);transition:width .5s}
+.bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.bad{background:var(--bad)}
+.pct{font-size:13px;font-weight:700;margin-top:6px}
+.pct.ok{color:var(--ok)} .pct.warn{color:var(--warn)} .pct.bad{color:var(--bad)}
+.tip{background:#f0f6ff;border:1px solid #d5e3fb;border-radius:12px;padding:11px 12px;font-size:14px;line-height:1.45;color:#1c3a68}
+.tip::before{content:'💡 ';}
+table.days{width:100%;border-collapse:collapse;font-size:13.5px}
+table.days td{padding:6px 4px;border-top:1px solid var(--line)}
+table.days td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.mut{color:var(--mut)}
+form{display:flex;flex-direction:column;gap:10px}
+input,select,textarea{font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%}
+input:focus,select:focus{outline:2px solid #bcd2f7;border-color:var(--acc)}
+button.btn{font:inherit;font-weight:650;padding:12px;border:none;border-radius:10px;background:var(--acc);color:#fff;cursor:pointer}
+button.btn:active{opacity:.85}
+button.btn.gray{background:#eef2f8;color:var(--ink)}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+.rolebar{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.rolebar button{flex:0 0 auto;font:inherit;font-size:13px;font-weight:600;padding:8px 13px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.rolebar button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.soi{font-size:13px;color:var(--mut);line-height:1.5}
+.soi code{background:#eef2f8;border-radius:6px;padding:2px 6px;font-size:12.5px;user-select:all}
+.li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+.li:first-of-type{border-top:none}
+.hidden{display:none}
+label{font-size:12.5px;color:var(--mut);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- Экран входа -->
+<div id="login" class="hidden">
+  <div class="card" style="margin-top:12vh;text-align:center">
+    <div style="font-size:34px">⭐</div>
+    <h2 style="margin:6px 0 2px;color:var(--ink);text-transform:none;font-size:18px">Мой план</h2>
+    <p class="kv" style="margin-bottom:14px">Введи личный код из 6 знаков.<br>Он же — код привязки Telegram.</p>
+    <form id="fLogin">
+      <input id="code" inputmode="text" autocapitalize="characters" autocomplete="off"
+             placeholder="A1B2C3" maxlength="9" style="text-transform:uppercase;text-align:center;font-size:22px;letter-spacing:6px;font-weight:700">
+      <div id="lerr" class="err"></div>
+      <button class="btn" type="submit">Войти</button>
+      <div class="kv" style="text-align:center">свой код — 6 знаков · код старшей — Z-XXXXXXXX</div>
+    </form>
+  </div>
+</div>
+
+<!-- Основной экран -->
+<div id="app" class="hidden">
+  <div class="h-top">
+    <div>
+      <h1 id="hello">—</h1>
+      <div class="sub" id="phName">—</div>
+    </div>
+    <button class="linklike" id="btnLogout">Выйти</button>
+  </div>
+
+  <div class="rolebar hidden" id="rolebar"></div>
+
+  <div class="tip" id="tip" style="margin-bottom:12px"></div>
+
+  <div class="card">
+    <h2 id="myTitle">Мой результат</h2>
+    <div class="row">
+      <div>
+        <div class="big" id="meFact">—</div>
+        <div class="kv" id="mePlan">план —</div>
+        <div class="pct" id="mePct">—</div>
+        <div class="bar"><i id="meBar" style="width:0%"></i></div>
+      </div>
+      <div>
+        <div class="kv" style="margin-bottom:6px" id="meLeft">—</div>
+        <div class="kv" id="meAvg">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Аптека и сеть</h2>
+    <div class="row">
+      <div>
+        <div class="kv">Аптека <b id="phPct">—</b></div>
+        <div class="bar"><i id="phBar" style="width:0%"></i></div>
+        <div class="kv" style="margin-top:5px" id="phFcst">—</div>
+      </div>
+      <div>
+        <div class="kv">Сеть <b id="netPct">—</b></div>
+        <div class="bar"><i id="netBar" style="width:0%"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span id="daysTitle">Мои дни</span>, <span class="mut" id="monName"></span></h2>
+    <div id="daysBox"><div class="kv">Пока нет данных</div></div>
+  </div>
+
+  <div class="card" id="cardSo">
+    <h2>Нет в наличии (мои заявки)</h2>
+    <form id="fSo">
+      <input id="soProduct" placeholder="Товар: например, Витамин D3 2000МЕ" required>
+      <div class="row" style="gap:8px">
+        <input id="soQty" type="number" min="1" step="1" value="1" style="flex:0 0 84px" title="количество">
+        <input id="soNote" placeholder="комментарий (необязательно)">
+      </div>
+      <div id="soErr" class="err"></div>
+      <button class="btn" type="submit">Сообщить об отсутствии</button>
+    </form>
+    <div id="soList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card hidden" id="cardCoupon">
+    <h2>Купоны (возврат по листовкам)</h2>
+    <form id="fCoupon">
+      <div class="row" style="gap:8px">
+        <input id="cpQty" type="number" min="1" step="1" value="1" style="flex:0 0 84px">
+        <input id="cpAmount" type="number" min="0" step="0.01" placeholder="сумма ₽ (необязательно)">
+      </div>
+      <input id="cpCampaign" placeholder="кампания (по умолчанию «листовка»)">
+      <div id="cpErr" class="err"></div>
+      <button class="btn" type="submit">Записать купоны</button>
+    </form>
+    <div id="cpList" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card hidden" id="cardDel">
+    <h2>Старшая в смене</h2>
+    <p class="soi" style="margin-bottom:10px">Разовый код даёт доступ к цифрам твоей аптеки на 24 часа — персональные цифры сотрудников он не раскрывает (только общие по аптеке). Дай его старшей, если уходишь в отпуск.</p>
+    <button class="btn gray" id="btnDel">Выдать код на 24 часа</button>
+    <div id="delOut" style="margin-top:10px"></div>
+  </div>
+
+  <p class="soi" style="margin-top:14px;text-align:center">
+    Данные обновляются автоматически из аптечного ПО.<br>Вопросы — заведующей или Артёму.
+  </p>
+</div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+let TOKEN=localStorage.getItem('me_token')||'';
+let AS=localStorage.getItem('me_as')||'';
+
+function bar(el,pct){el.style.width=Math.max(0,Math.min(100,pct))+'%';
+  el.className=pct>=100?'ok':pct>=90?'warn':'bad';}
+function pctEl(el,pct){if(pct==null){el.textContent='—';return;}
+  el.textContent=pct.toFixed(1).replace('.',',')+'%';
+  el.className='pct '+(pct>=100?'ok':pct>=90?'warn':'bad');}
+
+async function api(path,opt={}){
+  const r=await fetch(path,{...opt,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opt.headers||{})}});
+  if(r.status===401){localStorage.removeItem('me_token');localStorage.removeItem('me_as');showLogin();throw new Error('session');}
+  return r.json();
+}
+
+function showLogin(){ $('login').classList.remove('hidden'); $('app').classList.add('hidden'); }
+function showApp(){ $('login').classList.add('hidden'); $('app').classList.remove('hidden'); }
+
+$('fLogin').addEventListener('submit',async e=>{
+  e.preventDefault();
+  $('lerr').textContent='';
+  try{
+    const raw=$('code').value.trim().toUpperCase();
+    if(/^Z-[A-Z0-9]{8}$/.test(raw)){ // код старшей: используем как готовый токен
+      TOKEN=raw; localStorage.setItem('me_token',TOKEN); AS=''; localStorage.removeItem('me_as');
+      const chk=await fetch('/api/me',{headers:{'Authorization':'Bearer '+TOKEN}});
+      if(chk.status===401){ TOKEN='';localStorage.removeItem('me_token'); $('lerr').textContent='код недействителен'; return; }
+      showApp(); load(); return;
+    }
+    const r=await fetch('/api/me/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:raw})});
+    const d=await r.json();
+    if(!r.ok){ $('lerr').textContent=d.error||'ошибка'; return; }
+    TOKEN=d.token; localStorage.setItem('me_token',TOKEN); AS=''; localStorage.removeItem('me_as');
+    load();
+  }catch(_){ $('lerr').textContent='сеть недоступна'; }
+});
+$('btnLogout').addEventListener('click',async()=>{try{await api('/api/me/logout',{method:'POST'})}catch(_){}
+  TOKEN='';localStorage.removeItem('me_token');showLogin();});
+
+function rolebar(d){
+  const rb=$('rolebar'); rb.innerHTML='';
+  if(!d.roles||d.roles.length<2){rb.classList.add('hidden');return;}
+  rb.classList.remove('hidden');
+  d.roles.forEach(r=>{
+    const b=document.createElement('button');
+    b.textContent=r.ph;
+    if(String(r.id)===String(AS||d.me[0].employee_id)) b.classList.add('on');
+    b.onclick=()=>{AS=String(r.id);localStorage.setItem('me_as',AS);load();};
+    rb.appendChild(b);
+  });
+}
+
+function render(d){
+  showApp();
+  const me=d.me[0];
+  $('hello').textContent=d.view==='pharmacy' ? 'Аптека «'+d.pharmacy.name+'»' : me.fio;
+  $('phName').textContent=d.pharmacy.name+' · '+d.month;
+  rolebar(d);
+  $('tip').textContent=d.tip||me.tip;
+  $('monName').textContent=d.month.toLowerCase();
+  $('daysTitle').textContent=d.view==='pharmacy'?'Дни аптеки':'Мои дни';
+
+  // Личный блок (в виде аптеки — агрегат аптеки без личных планов)
+  if(d.view==='pharmacy'){
+    $('myTitle').textContent='Аптека за месяц';
+    $('meFact').textContent=fmt(d.pharmacy_stats.fact)+' ₽';
+    $('mePlan').textContent='план '+fmt(d.pharmacy_stats.plan)+' ₽';
+    pctEl($('mePct'),d.pharmacy_stats.pct);
+    bar($('meBar'),d.pharmacy_stats.pct);
+    $('meLeft').textContent='Сотрудников: '+d.me.length;
+    $('meAvg').textContent='';
+  }else{
+    $('myTitle').textContent=me.role==='вакансия'?'Статус':'Мой результат';
+    if(me.role==='вакансия'){
+      $('meFact').textContent='—';
+      $('mePlan').textContent='вакансия: план появится с выходом';
+      $('mePct').textContent=''; $('meBar').style.width='0%';
+      $('meLeft').textContent='';
+      $('meAvg').textContent='';
+    }else{
+      $('meFact').textContent=fmt(me.fact)+' ₽';
+      $('mePlan').textContent='план '+fmt(me.plan)+' ₽ · доля '+(me.share*100).toFixed(0)+'%';
+      pctEl($('mePct'),me.pct);
+      bar($('meBar'),me.pct||0);
+      $('meLeft').textContent=me.left>0?('Осталось: '+fmt(me.left)+' ₽ ≈ '+fmt(me.per_day)+' ₽/день'):'План месяца выполнен 🎉';
+      $('meAvg').textContent=me.avg_check?('Средний чек: '+fmt(me.avg_check)+' ₽'):'';
+    }
+  }
+
+  $('phPct').textContent=d.pharmacy_stats.pct!=null?d.pharmacy_stats.pct.toFixed(1).replace('.',',')+'%':'—';
+  bar($('phBar'),d.pharmacy_stats.pct||0);
+  $('phFcst').textContent='прогноз ~'+(d.pharmacy_stats.fcst_pct!=null?d.pharmacy_stats.fcst_pct.toFixed(1).replace('.',','):'—')+'%';
+  $('netPct').textContent=d.net.pct!=null?d.net.pct.toFixed(1).replace('.',',')+'%':'—';
+  bar($('netBar'),d.net.pct||0);
+
+  // Дни
+  const box=$('daysBox');
+  if(d.series.length){
+    const avg=Math.round(d.series.reduce((s,r)=>s+r.rev,0)/d.series.length);
+    const rows=d.series.slice().reverse().map(r=>
+      `<tr><td class="mut">${r.d.slice(8,10)}.${r.d.slice(5,7)}</td><td>${fmt(r.rev)} ₽</td></tr>`).join('');
+    box.innerHTML='<details><summary style="cursor:pointer;font-size:13px;color:var(--mut)">'+
+      'По дням: '+d.series.length+' дн · в среднем '+fmt(avg)+' ₽</summary>'+
+      '<table class="days" style="margin-top:8px">'+rows+'</table></details>';
+  }else{ box.innerHTML='<div class="kv">Пока нет данных</div>'; }
+
+  // Отказы: список
+  $('soList').innerHTML=d.stockouts.length
+    ? d.stockouts.map(s=>`<div class="li"><span>${s.d.slice(8,10)}.${s.d.slice(5,7)} · ${esc(s.product)}${s.qty>1?' ×'+s.qty:''}${s.note?' · <span class="mut">'+esc(s.note)+'</span>':''}</span></div>`).join('')
+    : '<div class="kv" style="margin-top:6px">Заявок нет</div>';
+
+  // Купоны: только заведующая
+  const isMgr=d.me.some(m=>m.role==='заведующая')||d.view==='pharmacy';
+  $('cardCoupon').classList.toggle('hidden',!isMgr);
+  $('cpList').innerHTML=d.coupons.length
+    ? d.coupons.map(c=>`<div class="li"><span>${c.d.slice(8,10)}.${c.d.slice(5,7)} · ${c.qty} шт${c.campaign?' · '+esc(c.campaign):''}</span><b>${c.amount?fmt(c.amount)+' ₽':''}</b></div>`).join('')
+    : '<div class="kv" style="margin-top:6px">Записей нет</div>';
+
+  $('cardDel').classList.toggle('hidden',!(d.me.some(m=>m.role==='заведующая')&&d.view!=='pharmacy'));
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+async function load(){
+  try{
+    const d=await api('/api/me'+(AS?('?as='+AS):''));
+    render(d);
+  }catch(e){ if(e.message!=='session') console.warn(e); }
+}
+
+// Отказ
+$('fSo').addEventListener('submit',async e=>{
+  e.preventDefault(); $('soErr').textContent='';
+  try{
+    const r=await api('/api/me/stockout',{method:'POST',body:JSON.stringify({product:$('soProduct').value.trim(),qty:Number($('soQty').value||1),note:$('soNote').value.trim()||null})});
+    if(r.ok){ $('soProduct').value='';$('soQty').value=1;$('soNote').value=''; load(); }
+  }catch(err){ $('soErr').textContent='не отправилось, попробуй ещё'; }
+});
+
+// Купоны
+$('fCoupon').addEventListener('submit',async e=>{
+  e.preventDefault(); $('cpErr').textContent='';
+  try{
+    const r=await api('/api/me/coupon',{method:'POST',body:JSON.stringify({qty:Number($('cpQty').value||1),amount:$('cpAmount').value?Number($('cpAmount').value):null,campaign:$('cpCampaign').value.trim()||null})});
+    if(r.ok){ $('cpQty').value=1;$('cpAmount').value='';$('cpCampaign').value=''; load(); }
+  }catch(err){ $('cpErr').textContent='не записалось, попробуй ещё'; }
+});
+
+// Делегирование
+$('btnDel').addEventListener('click',async()=>{
+  $('delOut').innerHTML='<span class="mut">…</span>';
+  try{
+    const r=await api('/api/me/delegate',{method:'POST'});
+    $('delOut').innerHTML=r&&r.token
+      ?`Код старшей: <code>${r.token}</code><br><span class="mut">действует 24 ч, вход на этом же экране</span>`
+      :'<span class="err">не вышло</span>';
+  }catch(_){ $('delOut').innerHTML='<span class="err">ошибка</span>'; }
+});
+
+$('code').addEventListener('input',()=>{ $('code').value=$('code').value.toUpperCase(); });
+if(TOKEN) load(); else showLogin();
+</script>
+</body>
+</html>
