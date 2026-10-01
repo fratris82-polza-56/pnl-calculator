@@ -135,7 +135,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 const toneCls = p => p >= 97 ? 'c-ok' : (p >= 85 ? 'c-warn' : 'c-bad');
 const toneCol = p => p >= 97 ? 'var(--green)' : (p >= 85 ? 'var(--orange)' : 'var(--red)');
 
-let catalog = [], sum = null, series = [];
+let catalog = [], sum = null, series = [], kpiRows = [];
 let phId = +(localStorage.getItem('sz_ph') || 1);
 let empId = localStorage.getItem('sz_emp') || '';
 
@@ -171,8 +171,12 @@ async function loadPh(){
   const mk = currentMonthKey();
   const mname = mk ? MONTHS[mk] : null;   // API принимает имя месяца
   const qs = `pharmacy_id=${phId}` + (mname ? `&month=${encodeURIComponent(mname)}` : '');
-  const [s, ser] = await Promise.all([ jget(`/api/summary?${qs}`), jget(`/api/s.series?${qs}`) ]);
-  sum = s; series = ser.series || [];
+  const [s, ser, k] = await Promise.all([
+    jget(`/api/summary?${qs}`),
+    jget(`/api/s.series?${qs}`),
+    jget('/api/kpi?pharmacy_id=' + phId).catch(() => ({rows: []}))
+  ]);
+  sum = s; series = ser.series || []; kpiRows = k.rows || [];
   render();
 }
 
@@ -212,6 +216,14 @@ function render(){
   const fcVal  = fact / db * DAYS_IN[rowKey(row)];
   const fcPct  = plan ? fcVal / plan * 100 : 0;
   const mPct   = planM ? margin / planM * 100 : 0;
+  // средний чек: факт месяца / число чеков; цель — из KPI выбранного месяца
+  const kr     = kpiRows.find(r => r.month === MONTHS[rowKey(row)]) || {};
+  const avgCheck = emp || !row.fact_checks ? null : fact / row.fact_checks;
+  const avgTarget = kr.target_avg_check || null;
+  // наценка = маржа / себестоимость (выручка − маржа); при нуле факта — 0
+  const mkPct  = fact > 0 && fact > margin ? margin / (fact - margin) * 100 : 0;
+  // маржа в % от выручки
+  const mgPct  = fact > 0 ? margin / fact * 100 : 0;
 
   document.getElementById('asOf').textContent =
     `${emp ? 'Лично: ' + emp.fio + ' · ' : ''}${MONTHS[rowKey(row)]}`;
@@ -229,8 +241,10 @@ function render(){
     <div class="rows">
       <div><div class="t">Прогноз месяца</div>
         <div class="v">${fmtML(fcVal)} <span>· ${Math.round(fcPct)}% плана</span></div></div>
-      <div><div class="t">Чеков</div>
-        <div class="v">${emp ? '—' : (row.fact_checks || 0).toLocaleString('ru-RU')}</div></div>
+      <div><div class="t">Средний чек</div>
+        <div class="v">${avgCheck == null ? '—' : fmtRub(avgCheck)}${avgCheck == null || !avgTarget ? '' : ` <span>· цель ${fmtRub(avgTarget)}</span>`}</div></div>
+      <div><div class="t">Наценка</div>
+        <div class="v">${Math.round(mkPct)}% <span>· маржа ${Math.round(mgPct)}%</span></div></div>
     </div>
     <div class="chip ${toneCls(fcPct)}">${db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' :
       'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения')}</div>`;
@@ -319,9 +333,9 @@ function renderTeam(emps, me){
 // ===== контролы =====
 function initControls(){
   const selPh = document.getElementById('selPh');
-  selPh.innerHTML = '<option value="">Аптека…</option>' + catalog.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  selPh.innerHTML = catalog.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+  if (!catalog.some(p => p.id === phId)) phId = catalog.length ? catalog[0].id : 1;
   selPh.value = String(phId);
-  if (selPh.value !== String(phId)) selPh.selectedIndex = 0;
   selPh.onchange = () => {
     phId = +selPh.value; empId = '';
     document.getElementById('selEmp').innerHTML = '<option value="">Вся аптека</option>';
