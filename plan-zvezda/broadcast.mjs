@@ -52,6 +52,36 @@ const fmt = n => Math.round(n).toLocaleString('ru-RU');
 const fmtM = n => n >= 1e6 ? (n / 1e6).toFixed(2).replace('.', ',') + ' млн ₽' : fmt(n) + ' ₽';
 const pct1 = x => x == null ? '—' : x.toFixed(1).replace('.', ',') + '%';
 
+// Рекомендация дня: главная подсказка сотруднику из его же цифр.
+function advice(db, e, fact, plan, elapsed, avgCheck, phPct) {
+  const empPct = plan ? fact / plan * 100 : 0;
+  const gap = empPct - phPct;
+  const month = activeMonth(db);
+  const mkey = MKEY[month];
+  const t = db.prepare('SELECT checks_per_day, avg_check FROM kpi_target WHERE month=?').get(month);
+  const days = Math.max(elapsed, 1);
+  const half = `d > date('${mkey}-15')`;
+  const w = db.prepare(`
+    SELECT SUM(CASE WHEN ${half} THEN revenue ELSE 0 END) r2, SUM(CASE WHEN ${half} THEN checks ELSE 0 END) c2,
+           SUM(revenue) r1, SUM(checks) c1
+    FROM fact_day WHERE employee_id=? AND substr(d,1,7)=?`).get(e.id, mkey);
+  const avgPrev = w?.c1 > w?.c2 ? (w.r1 - w.r2) / (w.c1 - w.c2) : null;
+  const trend = avgPrev ? (avgCheck - avgPrev) / avgPrev : 0;
+
+  // 1) отставание от аптеки — самое важное
+  if (gap < -3) return `Ты ${pct1(empPct)} при аптеке ${pct1(phPct)} — отстаёшь от коллег. Сегодня фокус: каждый покупатель — с допродажей (витамины, уход, детские).`;
+  // 2) ср.чек ниже цели
+  if (t?.avg_check && avgCheck < t.avg_check * 0.97) {
+    const need = Math.round(t.avg_check - avgCheck);
+    return `Средний чек ${Math.round(avgCheck)} ₽ при цели ${Math.round(t.avg_check)} ₽. Добавь ${need} ₽ к чеку: это +1 позиция (сопутствующее, акция полки).`;
+  }
+  // 3) чек растёт — закрепить
+  if (trend > 0.02) return `Средний чек растёт: ${Math.round(avgPrev)} → ${Math.round(avgCheck)} ₽. Отличная динамика — держи темп, веди к цели ${Math.round(t?.avg_check || 0)} ₽.`;
+  // 4) отставание по % от плана при равной аптеке — объём
+  if (empPct < 90) return `До плана ${pct1(empPct)}. Сегодня задача — количество: +2 контакта в час, приветствие каждого покупателя акцией дня.`;
+  return `Ты в графике (${pct1(empPct)}). Поддержи план: предложи промо-товар или СТМ каждому второму покупателю.`;
+}
+
 export function buildReports(db) {
   const month = activeMonth(db);
   const totalDays = DAYS_IN[month];
@@ -94,6 +124,9 @@ export function buildReports(db) {
     const daysLeft = Math.max(totalDays - elapsed, 1);
     const fcstPct = plan ? (fact / elapsed * totalDays) / plan * 100 : null;
     const phInfo = ph[e.pharmacy_id] || { pct: 0, fcstPct: 0 };
+    const chkRow = db.prepare('SELECT SUM(revenue) rev, SUM(checks) chk FROM fact_day WHERE employee_id=? AND substr(d,1,7)=?').get(e.id, mkey);
+    const avgCheck = chkRow?.chk ? chkRow.rev / chkRow.chk : 0;
+    const tip = advice(db, e, fact, plan, elapsed, avgCheck, phInfo.pct);
     const lines = [
       `📊 ${month} · ${names[e.pharmacy_id] || '—'}`,
       '',
@@ -102,7 +135,9 @@ export function buildReports(db) {
     if (left > 0) lines.push(`Осталось: ${fmt(left)} ₽ ≈ ${fmt(left / daysLeft)} ₽/день`);
     lines.push('',
       `Аптека: ${pct1(phInfo.pct)} · прогноз ~${pct1(phInfo.fcstPct)}`,
-      `Сеть: ${pct1(netPct)} из ${fmtM(netPlan)} · прогноз ~${pct1(netFcstPct)}`);
+      `Сеть: ${pct1(netPct)} из ${fmtM(netPlan)} · прогноз ~${pct1(netFcstPct)}`,
+      '',
+      `💡 ${tip}`);
     return { employee_id: e.id, fio: e.fio, month, text: lines.join('\n'), pct: fact / (plan || 1) * 100 };
   });
   return { month, reports, net: { plan: netPlan, fact: netFact, pct: netPct, fcstPct: netFcstPct }, meta: { elapsed, totalDays } };
