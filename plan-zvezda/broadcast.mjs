@@ -54,6 +54,7 @@ const pct1 = x => x == null ? '—' : x.toFixed(1).replace('.', ',') + '%';
 
 // Рекомендация дня: главная подсказка сотруднику из его же цифр.
 function advice(db, e, fact, plan, elapsed, avgCheck, phPct) {
+  if (!plan) return 'Роль без персонального плана. Ориентир: план и топ-товары аптеки, с первого дня — допродажа каждому покупателю.';
   const empPct = plan ? fact / plan * 100 : 0;
   const gap = empPct - phPct;
   const month = activeMonth(db);
@@ -109,7 +110,7 @@ export function buildReports(db) {
 
   const emps = db.prepare(`
     SELECT e.id, e.fio, e.share, e.pharmacy_id
-    FROM employee e WHERE e.share > 0`).all();
+    FROM employee e`).all();
   const factByEmp = Object.fromEntries(db.prepare(`
     SELECT employee_id id, SUM(revenue) rev FROM fact_day
     WHERE substr(d,1,7)=? GROUP BY employee_id`)
@@ -117,12 +118,13 @@ export function buildReports(db) {
     .map(r => [r.id, r.rev || 0]));
 
   const reports = emps.map(e => {
+    const hasRole = e.share > 0;
     const plan = Math.round((plans[e.pharmacy_id] || 0) * e.share);
     const fact = Math.round(factByEmp[e.id] || 0);
-    const p = pct1(plan ? fact / plan * 100 : null);
-    const left = Math.max(plan - fact, 0);
+    const p = pct1(hasRole && plan ? fact / plan * 100 : null);
+    const left = hasRole ? Math.max(plan - fact, 0) : 0;
     const daysLeft = Math.max(totalDays - elapsed, 1);
-    const fcstPct = plan ? (fact / elapsed * totalDays) / plan * 100 : null;
+    const fcstPct = hasRole && plan ? (fact / elapsed * totalDays) / plan * 100 : null;
     const phInfo = ph[e.pharmacy_id] || { pct: 0, fcstPct: 0 };
     const chkRow = db.prepare('SELECT SUM(revenue) rev, SUM(checks) chk FROM fact_day WHERE employee_id=? AND substr(d,1,7)=?').get(e.id, mkey);
     const avgCheck = chkRow?.chk ? chkRow.rev / chkRow.chk : 0;
@@ -130,7 +132,7 @@ export function buildReports(db) {
     const lines = [
       `📊 ${month} · ${names[e.pharmacy_id] || '—'}`,
       '',
-      `Ты: ${fmt(fact)} из ${fmt(plan)} ₽ — ${p}`,
+      hasRole ? `Ты: ${fmt(fact)} из ${fmt(plan)} ₽ — ${p}` : `Статус: вакансия — персональный отчёт появится с выходом сотрудника`,
     ];
     if (left > 0) lines.push(`Осталось: ${fmt(left)} ₽ ≈ ${fmt(left / daysLeft)} ₽/день`);
     lines.push('',
@@ -171,15 +173,23 @@ export async function broadcast(db, token) {
   const { reports } = buildReports(db);
   const bindings = db.prepare('SELECT employee_id, chat_id, username FROM tg_bind WHERE chat_id IS NOT NULL').all();
   const byId = Object.fromEntries(reports.map(r => [r.employee_id, r]));
-  const results = [];
+  // Несколько ролей одного человека (заведующая 3 аптек) => один chat_id: дайджест, одно сообщение
+  const byChat = new Map();
   for (const b of bindings) {
     const rep = byId[b.employee_id];
     if (!rep) continue;
-    const res = await tgApi(token, 'sendMessage', { chat_id: b.chat_id, text: rep.text, disable_web_page_preview: true });
-    results.push({ fio: rep.fio, ok: !!res.ok, error: res.ok ? null : res.description });
+    if (!byChat.has(b.chat_id)) byChat.set(b.chat_id, { fio: rep.fio, parts: [] });
+    byChat.get(b.chat_id).parts.push(rep);
+  }
+  const results = [];
+  for (const [chatId, { fio, parts }] of byChat) {
+    const text = parts.length === 1 ? parts[0].text
+      : parts.map(p => p.text).join(`\n\n${'—'.repeat(14)}\n\n`);
+    const res = await tgApi(token, 'sendMessage', { chat_id: chatId, text, disable_web_page_preview: true });
+    results.push({ fio: fio + (parts.length > 1 ? ` (+${parts.length - 1} апт.)` : ''), ok: !!res.ok, error: res.ok ? null : res.description });
   }
   state.set(db, 'last_broadcast', new Date().toISOString());
-  return { ok: true, sent: results.filter(r => r.ok).length, failed: results.filter(r => !r.ok).length, results, unbound: reports.length - bindings.length };
+  return { ok: true, sent: results.filter(r => r.ok).length, failed: results.filter(r => !r.ok).length, results, unbound: reports.length - byChat.size };
 }
 
 // Ежедневный триггер 08:00 МСК (UTC+3 -> час 5 UTC), проверять каждые 60с.
