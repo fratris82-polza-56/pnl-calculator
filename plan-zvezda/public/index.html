@@ -236,7 +236,15 @@ const fmt = v => Math.round(v).toLocaleString('ru-RU')+' ₽';
 const cls = pct => pct>=100?'b-ok':pct>=90?'b-warn':'b-bad';
 let CAT=null, chM=null, chD=null;
 
-async function api(path, opt){ const r = await fetch(path, opt); return r.json(); }
+// Единый доступ: Bearer из me_token; при 401/403 → на вход
+const _TOK = () => localStorage.getItem('me_token') || '';
+function _toLogin(){ localStorage.removeItem('me_token'); location.href='/me.html'; }
+async function api(path, opt={}){
+  const h = Object.assign({'Authorization':'Bearer '+_TOK()}, opt.headers||{});
+  const r = await fetch(path, Object.assign({}, opt, {headers:h}));
+  if(r.status===401 || r.status===403){ _toLogin(); throw new Error('auth'); }
+  return r.json();
+}
 
 function kpi(t,v,s,badge,bcls){
   return `<div class="card kpi"><div class="t">${t}</div><div class="v num">${v}</div><div class="s">${s}</div>${badge?`<span class="b ${bcls}">${badge}</span>`:''}</div>`;

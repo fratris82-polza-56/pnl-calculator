@@ -1,10 +1,11 @@
 // Личный кабинет: сессии по коду сотрудника + личные данные (план/факт/рекомендация).
+// Роли сессий: 'staff' — сотрудник аптеки (tg-код из tg_bind), 'manager' — руководитель (mgr_bind).
 import { randomBytes, createHash } from 'node:crypto';
 
 const DAYS_IN = { 'Сентябрь': 30, 'Октябрь': 31, 'Ноябрь': 30, 'Декабрь': 31 };
 const MM = { '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь' };
 const MKEY = { 'Сентябрь': '2026-09', 'Октябрь': '2026-10', 'Ноябрь': '2026-11', 'Декабрь': '2026-12' };
-const TTL_MS = 1000 * 60 * 60 * 24 * 30; // месяц
+export const TTL_MS = 1000 * 60 * 60 * 24 * 30; // месяц
 
 // ---------- сессии ----------
 export function ensureMeSchema(db) {
@@ -15,6 +16,50 @@ export function ensureMeSchema(db) {
   db.exec(`CREATE TABLE IF NOT EXISTS me_delegation(
     token_hash TEXT PRIMARY KEY, employee_id INTEGER NOT NULL REFERENCES employee(id),
     created_by INTEGER, created_at TEXT NOT NULL, expires_at TEXT NOT NULL)`);
+  // Персональные коды руководителей ПОЛЬЗА: доступ к общему дашборду (роль manager)
+  db.exec(`CREATE TABLE IF NOT EXISTS mgr_bind(
+    id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, code TEXT UNIQUE NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1, note TEXT,
+    created_at TEXT NOT NULL, last_login TEXT)`);
+  // Сессии руководителей (отдельная таблица: employee_id в me_session — NOT NULL)
+  db.exec(`CREATE TABLE IF NOT EXISTS mgr_session(
+    token_hash TEXT PRIMARY KEY, mgr_id INTEGER NOT NULL REFERENCES mgr_bind(id),
+    created_at TEXT NOT NULL, expires_at TEXT NOT NULL)`);
+}
+
+// Персональный код руководителя (10 симв., префикс M- отличает при вводе)
+export function createManager(db, name, note = null) {
+  const abc = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // без похожих 0/O/1/I/L
+  const code = 'M-' + Array.from({ length: 10 }, () => abc[Math.floor(Math.random() * abc.length)]).join('');
+  db.prepare('INSERT INTO mgr_bind(name,code,note,created_at) VALUES (?,?,?,?)')
+    .run(name, code, note, new Date().toISOString());
+  return { name, code };
+}
+
+export function listManagers(db, showCodes = false) {
+  return db.prepare('SELECT id, name, active, note, created_at, last_login' + (showCodes ? ', code' : '') + ' FROM mgr_bind ORDER BY id').all();
+}
+
+export function setManagerActive(db, id, active) {
+  db.prepare('UPDATE mgr_bind SET active=? WHERE id=?').run(active ? 1 : 0, id);
+}
+
+// Мягкий лимит попыток входа по коду руководителя (anti-bruteforce)
+const mgrFails = { n: 0, until: 0 };
+export function mgrLoginLocked() { return Date.now() < mgrFails.until; }
+export function mgrFail(db) { if (++mgrFails.n >= 10) { mgrFails.until = Date.now() + 5 * 60 * 1000; mgrFails.n = 0; } }
+
+export function loginManagerByCode(db, code) {
+  const cand = String(code || '').trim().toUpperCase();
+  const m = db.prepare('SELECT id, name FROM mgr_bind WHERE upper(code)=? AND active=1').get(cand);
+  if (!m) { mgrFail(db); return null; }
+  mgrFails.n = 0;
+  db.prepare('UPDATE mgr_bind SET last_login=? WHERE id=?').run(new Date().toISOString(), m.id);
+  const token = randomBytes(24).toString('base64url');
+  const now = new Date(), exp = new Date(Date.now() + TTL_MS);
+  db.prepare('INSERT INTO mgr_session(token_hash,mgr_id,created_at,expires_at) VALUES (?,?,?,?)')
+    .run(sha(token), m.id, now.toISOString(), exp.toISOString());
+  return { token, expires_at: exp.toISOString(), role: 'manager', name: m.name };
 }
 
 const sha = s => createHash('sha256').update(String(s)).digest('hex');
@@ -28,7 +73,7 @@ export function loginByCode(db, code) {
   const now = new Date(), exp = new Date(Date.now() + TTL_MS);
   db.prepare('INSERT INTO me_session(token_hash,employee_id,created_at,expires_at) VALUES (?,?,?,?)')
     .run(sha(token), row.id, now.toISOString(), exp.toISOString());
-  return { token, expires_at: exp.toISOString(), employee_id: row.id };
+  return { token, expires_at: exp.toISOString(), employee_id: row.id, role: 'staff' };
 }
 
 // Аутентификация: Bearer-токен или разовый код заведующей
@@ -38,12 +83,20 @@ export function authMe(db, req) {
   const cand = m ? m[1] : String(h).trim();
   if (!cand) return null;
   const hsh = sha(cand);
+  // Сессия руководителя?
+  const ms = db.prepare(`SELECT mgr_id, expires_at FROM mgr_session WHERE token_hash=?`).get(hsh);
+  if (ms && ms.expires_at > new Date().toISOString()) {
+    const mg = db.prepare('SELECT name, active FROM mgr_bind WHERE id=?').get(ms.mgr_id);
+    if (mg && mg.active) return { employee_id: null, role: 'manager', name: mg.name };
+  }
   const s = db.prepare(`SELECT employee_id, expires_at FROM me_session WHERE token_hash=?`)
     .get(hsh);
-  if (s && s.expires_at > new Date().toISOString()) return { employee_id: s.employee_id, delegated: false };
+  if (s && s.expires_at > new Date().toISOString()) {
+    return { employee_id: s.employee_id, role: 'staff' };
+  }
   const d = db.prepare(`SELECT employee_id, expires_at FROM me_delegation WHERE token_hash=?`)
     .get(hsh);
-  if (d && d.expires_at > new Date().toISOString()) return { employee_id: d.employee_id, delegated: true };
+  if (d && d.expires_at > new Date().toISOString()) return { employee_id: d.employee_id, role: 'staff', delegated: true };
   return null;
 }
 
@@ -51,7 +104,10 @@ export function logoutMe(db, req) {
   const h = req.headers['authorization'] || '';
   const m = h.match(/^Bearer\s+(.+)$/i);
   const cand = m ? m[1] : String(h).trim();
-  if (cand) db.prepare('DELETE FROM me_session WHERE token_hash=?').run(sha(cand));
+  if (cand) {
+    db.prepare('DELETE FROM me_session WHERE token_hash=?').run(sha(cand));
+    db.prepare('DELETE FROM mgr_session WHERE token_hash=?').run(sha(cand));
+  }
 }
 
 // Разовый код (24 ч) для просмотра данных аптеки; выдаёт только сотрудник этой аптеки

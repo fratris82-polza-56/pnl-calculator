@@ -24,10 +24,65 @@ const MIME = {
 };
 
 // ---------- утилиты ----------
-function json(res, code, obj) {
+function json(res, code, obj, extraHeaders = {}) {
   const body = JSON.stringify(obj);
-  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', ...extraHeaders });
   res.end(body);
+}
+
+// ---------- доступ: роли staff/manager/public для данных ----------
+const SESS_COOKIE = 'pz_sess';
+const COOKIE_MAXAGE = Math.floor(TTL_MS / 1000); // 30 дней
+function parseCookies(req) {
+  const raw = req.headers['cookie'] || '';
+  const out = {};
+  for (const part of raw.split(';')) {
+    const i = part.indexOf('=');
+    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+  }
+  return out;
+}
+// Аутентификация из Bearer-заголовка ИЛИ cookie-сеанса (браузерная навигация
+// не может слать Authorization, поэтому для статики обязателен cookie).
+function resolveAuth(req) {
+  let h = req.headers['authorization'] || '';
+  if (!/^Bearer\s+/i.test(h)) {
+    const c = parseCookies(req)[SESS_COOKIE];
+    if (c) h = 'Bearer ' + c;
+  }
+  if (!h) return null;
+  return authMe(db, { headers: { authorization: h } });
+}
+const authDb = req => resolveAuth(req);
+// Set-Cookie для успешного входа (httpOnly, SameSite=Lax). Без Secure: прод пока
+// на http; при переходе на HTTPS добавить Secure (reverse-proxy владельца).
+function sessCookie(token) {
+  return `${SESS_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAXAGE}`;
+}
+function clearSessCookie() {
+  return `${SESS_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+}
+const readBearer = req => {
+  const h = req.headers['authorization'] || '';
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1].trim() : '';
+};
+// Проверка доступа; false → ответ уже отправлен
+function deny(res, code, error) { json(res, code, { error }); return false; }
+function access(req, res, role) {
+  const a = authDb(req);
+  if (!a) return deny(res, 401, 'требуется вход: код сотрудника или руководителя');
+  if (role === 'manager' && a.role !== 'manager') return deny(res, 403, 'нужен доступ руководителя');
+  if (role === 'staff' && a.role === 'manager') return deny(res, 403, 'это экран сотрудника');
+  return a;
+}
+
+// Любой валидный токен (staff или manager) — для обёртки маршрутов; ролевые
+// ограничения маршруты проверяют сами через access()
+function accessAny(req, res) {
+  const a = authDb(req);
+  if (!a) return deny(res, 401, 'требуется вход: код сотрудника или руководителя');
+  return a;
 }
 
 // ---- интеграционный ключ доступа (tg_state.key='intg_key' или env INTEGRATION_KEY) ----
@@ -560,36 +615,47 @@ route('GET', /^\/api\/kpi(?:\?|$)/, (req, res) => {
 });
 
 // ---------- Личный кабинет (вход по коду привязки) ----------
-import { ensureMeSchema, loginByCode, authMe, logoutMe, createDelegation, meData } from './me.mjs';
+import { ensureMeSchema, loginByCode, authMe, logoutMe, createDelegation, meData,
+         loginManagerByCode, mgrLoginLocked, TTL_MS } from './me.mjs';
 ensureMeSchema(db);
 
 route('POST', /^\/api\/me\/login(?:\?|$)/, async (req, res) => {
   const b = await readBody(req);
+  const code = String(b.code || '').trim().toUpperCase();
+  // Код руководителя (M-...): сессия manager, данные общего дашборда
+  if (/^M-[A-Z0-9]{4,12}$/.test(code)) {
+    if (mgrLoginLocked()) return json(res, 429, { error: 'слишком много попыток — подожди 5 минут' });
+    const mr = loginManagerByCode(db, code);
+    if (!mr) return json(res, 401, { error: 'код не найден — проверь буквы и цифры' });
+    return json(res, 200, mr, { 'Set-Cookie': sessCookie(mr.token) });
+  }
   const r = loginByCode(db, b.code);
   if (!r) return json(res, 401, { error: 'код не найден — проверь буквы и цифры' });
-  json(res, 200, r);
+  json(res, 200, r, { 'Set-Cookie': sessCookie(r.token) });
 });
 
 const meAuth = async (req, res) => {
-  const a = authMe(db, req);
+  const a = resolveAuth(req);
   if (!a) { json(res, 401, { error: 'сессия истекла — войди по коду заново' }); return null; }
   return a;
 };
 
 route('GET', /^\/api\/me(?:\?|$)/, async (req, res, m, url) => {
   const a = await meAuth(req, res); if (!a) return;
+  if (a.role === 'manager') return json(res, 403, { error: 'это экран сотрудника' });
   const d = meData(db, a.employee_id, a.delegated, url.searchParams.get('as'));
   if (!d) return json(res, 404, { error: 'не найден' });
   json(res, 200, d);
 });
 
 route('POST', /^\/api\/me\/logout(?:\?|$)/, async (req, res) => {
-  logoutMe(db, req); json(res, 200, { ok: true });
+  logoutMe(db, req); json(res, 200, { ok: true }, { 'Set-Cookie': clearSessCookie() });
 });
 
 // Отказ «нет в наличии» от сотрудника/заведующей (своей аптеки)
 route('POST', /^\/api\/me\/stockout(?:\?|$)/, async (req, res) => {
   const a = await meAuth(req, res); if (!a) return;
+  if (a.role === 'manager') return json(res, 403, { error: 'это экран сотрудника' });
   const b = await readBody(req);
   if (!b.product) return json(res, 400, { error: 'укажи товар' });
   const phId = db.prepare('SELECT pharmacy_id FROM employee WHERE id=?').get(a.employee_id)?.pharmacy_id;
@@ -603,6 +669,7 @@ route('POST', /^\/api\/me\/stockout(?:\?|$)/, async (req, res) => {
 // Купоны: возвращает только заведующая своей аптеки
 route('POST', /^\/api\/me\/coupon(?:\?|$)/, async (req, res) => {
   const a = await meAuth(req, res); if (!a) return;
+  if (a.role === 'manager') return json(res, 403, { error: 'это экран сотрудника' });
   const e = db.prepare('SELECT role, pharmacy_id FROM employee WHERE id=?').get(a.employee_id);
   if (!e || (e.role !== 'заведующая' && !a.delegated)) return json(res, 403, { error: 'купоны вносит заведующая' });
   const b = await readBody(req);
@@ -615,6 +682,7 @@ route('POST', /^\/api\/me\/coupon(?:\?|$)/, async (req, res) => {
 // Разовый код для старшей смены (только заведующая своей аптеки)
 route('POST', /^\/api\/me\/delegate(?:\?|$)/, async (req, res) => {
   const a = await meAuth(req, res); if (!a) return;
+  if (a.role === 'manager') return json(res, 403, { error: 'это экран сотрудника' });
   const e = db.prepare('SELECT role FROM employee WHERE id=?').get(a.employee_id);
   if (!e || e.role !== 'заведующая') return json(res, 403, { error: 'только заведующая' });
   const r = createDelegation(db, a.employee_id);
@@ -624,11 +692,72 @@ route('POST', /^\/api\/me\/delegate(?:\?|$)/, async (req, res) => {
 // Здоровье
 route('GET', /^\/api\/health$/, (req, res) => json(res, 200, { ok: true, asOf: new Date().toISOString() }));
 
+// ---------- Личный кабинет (вход по коду привязки) ----------
+import { listManagers, createManager, setManagerActive } from './me.mjs';
+route('GET', /^\/api\/managers(?:\?|$)/, (req, res) => {
+  const a = access(req, res, 'manager'); if (!a) return;
+  json(res, 200, { managers: listManagers(db, true) }); // коды видит только manager
+});
+route('POST', /^\/api\/managers(?:\?|$)/, async (req, res) => {
+  const a = access(req, res, 'manager'); if (!a) return;
+  const b = await readBody(req);
+  if (!b.name || !String(b.name).trim()) return json(res, 400, { error: 'укажи имя' });
+  const r = createManager(db, String(b.name).trim(), b.note ? String(b.note) : null);
+  json(res, 201, r);
+});
+route('PATCH', /^\/api\/managers\/(\d+)$/, async (req, res, m) => {
+  const a = access(req, res, 'manager'); if (!a) return;
+  const b = await readBody(req);
+  setManagerActive(db, Number(m[1]), !!b.active);
+  json(res, 200, { ok: true });
+});
+
+// ---------- пускалки доступа (запуск после всех route()) ----------
+// Exempt-пути: здоровье, вход, интеграция (самопроверка X-Intg-Key внутри маршрута)
+const EXEMPT_PATHS = [
+  '/api/health',
+  '/api/me/login',
+  '/api/integration/sales',
+  '/api/integration/remap',
+];
+// Публичная статика: экран входа + вендорная библиотека
+const STATIC_PUBLIC = new Set(['/me.html', '/chart.min.js']);
+function effRe(r) { return r.pattern instanceof RegExp ? r.pattern : new RegExp(`^${r.pattern}$`); }
+function applyAccessControl() {
+  for (let i = 0; i < routes.length; i++) {
+    const r = routes[i];
+    const re = effRe(r);
+    // Маршрут exempt, если его regex матчит любой из exempt-путей
+    if (EXEMPT_PATHS.some(p => re.test(p))) continue;
+    const orig = r.handler;
+    // /api/me* → любой валидный токен (роль проверяет сам маршрут);
+    // всё прочее (сетевые данные + админка) → только manager.
+    // Все /api/me*-маршруты объявлены RegExp'ом ^\/api\/me..., login уже exempt.
+    const isMe = re.source.includes('api\\/me');
+    routes[i].handler = async (req, res, m, url) => {
+      const a = isMe ? accessAny(req, res) : access(req, res, 'manager');
+      if (!a) return;
+      return orig(req, res, m, url);
+    };
+  }
+}
+
 // ---------- статика ----------
 const PUBLIC = join(ROOT, 'public');
-function serveStatic(res, urlPath) {
+function serveStatic(res, urlPath, req) {
   let p = normalize(decodeURIComponent(urlPath)).replace(/^(\.\.[/\\])+/, '');
   if (p === '/' || p === '') p = '/index.html';
+  if (!STATIC_PUBLIC.has(p)) {
+    // Общий дашборд — только руководителям (manager)
+    const a = authDb(req);
+    if (!a || a.role !== 'manager') {
+      // Браузерный запрос страницы → на вход; не браузер → 401/403 JSON
+      if ((req.headers['accept'] || '').includes('text/html')) {
+        res.writeHead(302, { Location: '/me.html' }); res.end(); return;
+      }
+      return json(res, a ? 403 : 401, { error: a ? 'нужен доступ руководителя' : 'требуется вход' });
+    }
+  }
   const file = join(PUBLIC, p);
   if (!file.startsWith(PUBLIC) || !existsSync(file) || !statSync(file).isFile()) {
     res.writeHead(404); res.end('not found'); return;
@@ -637,6 +766,9 @@ function serveStatic(res, urlPath) {
   res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-cache' });
   res.end(readFileSync(file));
 }
+
+// Включаем проверку доступа на всех route() — вызов после их объявления
+applyAccessControl();
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
@@ -648,7 +780,7 @@ const server = http.createServer(async (req, res) => {
       await r.handler(req, res, m, url);
       return;
     }
-    if (req.method === 'GET') return serveStatic(res, url.pathname);
+    if (req.method === 'GET') return serveStatic(res, url.pathname, req);
     json(res, 404, { error: 'no route' });
   } catch (e) {
     console.error(e);

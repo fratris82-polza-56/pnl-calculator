@@ -200,6 +200,7 @@ $('fLogin').addEventListener('submit',async e=>{
     const d=await r.json();
     if(!r.ok){ $('lerr').textContent=d.error||'ошибка'; return; }
     TOKEN=d.token; localStorage.setItem('me_token',TOKEN); AS=''; localStorage.removeItem('me_as');
+    if(d.role==='manager'){ location.href='/'; return; } // руководитель → общий дашборд
     load();
   }catch(_){ $('lerr').textContent='сеть недоступна'; }
 });
@@ -326,7 +327,17 @@ $('btnDel').addEventListener('click',async()=>{
 });
 
 $('code').addEventListener('input',()=>{ $('code').value=$('code').value.toUpperCase(); });
-if(TOKEN) load(); else showLogin();
+// Единая точка входа: staff → ЛК, manager → общий дашборд, без токена → форма
+async function boot(){
+  if(!TOKEN){ showLogin(); return; }
+  try{
+    const r=await fetch('/api/me',{headers:{'Authorization':'Bearer '+TOKEN}});
+    if(r.status===403){ location.href='/'; return; } // manager-токен: ЛК не для него
+    if(r.status===401){ TOKEN='';localStorage.removeItem('me_token'); showLogin(); return; }
+    load();
+  }catch(_){ showLogin(); }
+}
+boot();
 </script>
 </body>
 </html>
