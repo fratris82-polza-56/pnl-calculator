@@ -54,13 +54,14 @@ function resolveAuth(req) {
   return authMe(db, { headers: { authorization: h } });
 }
 const authDb = req => resolveAuth(req);
-// Set-Cookie для успешного входа (httpOnly, SameSite=Lax). Без Secure: прод пока
-// на http; при переходе на HTTPS добавить Secure (reverse-proxy владельца).
-function sessCookie(token) {
-  return `${SESS_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAXAGE}`;
+// Set-Cookie для успешного входа (httpOnly, SameSite=Lax). Secure — когда запрос
+// пришёл по HTTPS (в т.ч. через reverse-proxy с x-forwarded-proto).
+const isHttps = req => String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https';
+function sessCookie(token, req) {
+  return `${SESS_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${COOKIE_MAXAGE}${isHttps(req) ? '; Secure' : ''}`;
 }
-function clearSessCookie() {
-  return `${SESS_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`;
+function clearSessCookie(req) {
+  return `${SESS_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${isHttps(req) ? '; Secure' : ''}`;
 }
 const readBearer = req => {
   const h = req.headers['authorization'] || '';
@@ -627,11 +628,11 @@ route('POST', /^\/api\/me\/login(?:\?|$)/, async (req, res) => {
     if (mgrLoginLocked()) return json(res, 429, { error: 'слишком много попыток — подожди 5 минут' });
     const mr = loginManagerByCode(db, code);
     if (!mr) return json(res, 401, { error: 'код не найден — проверь буквы и цифры' });
-    return json(res, 200, mr, { 'Set-Cookie': sessCookie(mr.token) });
+    return json(res, 200, mr, { 'Set-Cookie': sessCookie(mr.token, req) });
   }
   const r = loginByCode(db, b.code);
   if (!r) return json(res, 401, { error: 'код не найден — проверь буквы и цифры' });
-  json(res, 200, r, { 'Set-Cookie': sessCookie(r.token) });
+  json(res, 200, r, { 'Set-Cookie': sessCookie(r.token, req) });
 });
 
 const meAuth = async (req, res) => {
@@ -649,7 +650,7 @@ route('GET', /^\/api\/me(?:\?|$)/, async (req, res, m, url) => {
 });
 
 route('POST', /^\/api\/me\/logout(?:\?|$)/, async (req, res) => {
-  logoutMe(db, req); json(res, 200, { ok: true }, { 'Set-Cookie': clearSessCookie() });
+  logoutMe(db, req); json(res, 200, { ok: true }, { 'Set-Cookie': clearSessCookie(req) });
 });
 
 // Отказ «нет в наличии» от сотрудника/заведующей (своей аптеки)
