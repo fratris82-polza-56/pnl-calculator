@@ -359,7 +359,8 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     -- Все сотрудники аптеки, даже без факта (иначе дашборд «теряет» новых)
     -- month (имя месяца) фильтрует факт по сотруднику; без month — за всё время
     SELECT e.pharmacy_id, e.id employee_id, e.fio, e.share,
-           COALESCE(SUM(f.revenue),0) revenue, COALESCE(SUM(f.margin),0) margin
+           COALESCE(SUM(f.revenue),0) revenue, COALESCE(SUM(f.margin),0) margin,
+           COALESCE(SUM(f.checks),0) checks
     FROM employee e LEFT JOIN fact_day f
       ON f.employee_id=e.id AND (? IS NULL OR f.d LIKE ?)
     WHERE (? IS NULL OR e.pharmacy_id=?)
@@ -393,7 +394,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     rows: out,
     employees: empFact.map(e => ({
       pharmacy_id: e.pharmacy_id, employee_id: e.employee_id, fio: e.fio, share: e.share,
-      revenue: Math.round(e.revenue), margin: Math.round(e.margin),
+      revenue: Math.round(e.revenue), margin: Math.round(e.margin), checks: e.checks,
     })),
     asOf: new Date().toISOString().slice(0, 10),
   });

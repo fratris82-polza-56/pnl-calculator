@@ -60,6 +60,8 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .team .emp.me + .emp{border-top:none}
 .team .fio{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .team .role{font-size:10.5px;color:var(--mut);font-weight:500}
+.team .kpi{font-size:10.5px;color:#3d4a5c;font-weight:600;margin-top:1px}
+.team .kpi b{color:var(--ink)}
 .team .pv{font-size:14px;font-weight:750;text-align:right}
 .team .emp .mbar{grid-column:1/3;margin:0}
 .team .hint{font-size:11px;color:var(--mut);margin-top:8px}
@@ -216,10 +218,13 @@ function render(){
   const fcVal  = fact / db * DAYS_IN[rowKey(row)];
   const fcPct  = plan ? fcVal / plan * 100 : 0;
   const mPct   = planM ? margin / planM * 100 : 0;
-  // средний чек: факт месяца / число чеков; цель — из KPI выбранного месяца
+  // средний чек: факт месяца / число чеков (личные чекы — у сотрудника);
+  // план/цель — из KPI выбранного месяца
   const kr     = kpiRows.find(r => r.month === MONTHS[rowKey(row)]) || {};
-  const avgCheck = emp || !row.fact_checks ? null : fact / row.fact_checks;
+  const checks = emp ? (emp.checks || 0) : row.fact_checks;
+  const avgCheck = checks ? fact / checks : null;
   const avgTarget = kr.target_avg_check || null;
+  const planChecks = avgTarget ? Math.round(plan / avgTarget) : null;
   // наценка = маржа / себестоимость (выручка − маржа); при нуле факта — 0
   const mkPct  = fact > 0 && fact > margin ? margin / (fact - margin) * 100 : 0;
   // маржа в % от выручки
@@ -242,7 +247,7 @@ function render(){
       <div><div class="t">Прогноз месяца</div>
         <div class="v">${fmtML(fcVal)} <span>· ${Math.round(fcPct)}% плана</span></div></div>
       <div><div class="t">Средний чек</div>
-        <div class="v">${avgCheck == null ? '—' : fmtRub(avgCheck)}${avgCheck == null || !avgTarget ? '' : ` <span>· цель ${fmtRub(avgTarget)}</span>`}</div></div>
+        <div class="v">${avgCheck == null ? '—' : fmtRub(avgCheck)}${avgCheck == null || !avgTarget ? '' : ` <span>· цель ${fmtRub(avgTarget)}</span>`}${!checks ? '' : ` <span>· чеков ${checks}${planChecks ? '/' + planChecks : ''}</span>`}</div></div>
       <div><div class="t">Наценка</div>
         <div class="v">${Math.round(mkPct)}% <span>· маржа ${Math.round(mgPct)}%</span></div></div>
     </div>
@@ -316,14 +321,21 @@ function renderChart(row, emp){
 
 function renderTeam(emps, me){
   const box = document.getElementById('team');
-  document.getElementById('teamNote').textContent = emps.length + ' чел.';
+  document.getElementById('teamNote').textContent = emps.length + ' чел. · факт/план';
   if (!emps.length){ box.innerHTML = '<div class="hint">Нет данных по сотрудникам.</div>'; return; }
+  const krT = kpiRows.find(r => r.month === MONTHS[rowKey(monthRow())]) || {};
+  const at = krT.target_avg_check || null; // цель среднего чека месяца
   box.innerHTML = emps.map(e => {
     const pp = monthRow().plan_revenue * (e.share || 0);
     const pct = pp ? e.revenue / pp * 100 : 0;
     const col = toneCol(pct);
+    const pch = at ? Math.round(pp / at) : null;        // личный план чеков = план ₽ / цель ср. чека
+    const chk = e.checks || 0;
+    const ac = chk ? e.revenue / chk : null;            // факт среднего чека
+    const kpiLine = !at && !chk ? '' :
+      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽</div>`;
     return `<div class="emp${me && e.employee_id === me.employee_id ? ' me' : ''}">
-      <div><div class="fio">${esc(e.fio)}</div><div class="role">${fmtRub(e.revenue)} · ${MONTHS[rowKey(monthRow())].toLowerCase()}</div></div>
+      <div><div class="fio">${esc(e.fio)}</div><div class="role">${fmtRub(e.revenue)} · ${MONTHS[rowKey(monthRow())].toLowerCase()}</div>${kpiLine}</div>
       <div class="pv" style="color:${col}">${Math.round(pct)}%</div>
       <div class="mbar"><div class="fill" style="width:${Math.min(pct,100)}%;background:${col}"></div></div>
     </div>`;
