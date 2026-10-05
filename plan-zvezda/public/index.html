@@ -69,6 +69,19 @@ th.stick,td.stick{position:sticky;left:0;background:var(--card);z-index:1;box-sh
 .pos{color:#0a7d3c;font-weight:700}.neg{color:#c0272d;font-weight:700}
 .mut{color:var(--mut)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+
+/* --- навигация модулей --- */
+.mnav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;display:none}
+.mnav.visible{display:flex}
+.mbtn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--tx);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .15s,border-color .15s}
+.mbtn:hover{background:#f0f4fa;border-color:var(--blue)}
+.mbtn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.mbtn .mic{font-size:15px}
+.mgrp{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;width:100%;margin:4px 0 2px;display:block}
+
+/* --- iframe-контейнер модуля --- */
+.mframe{border:none;width:100%;height:calc(100vh - 120px);display:none;border-radius:12px;overflow:hidden}
+.mframe.visible{display:block}
 .bar{height:6px;border-radius:4px;background:#edf1f7;overflow:hidden;min-width:70px}
 .bar i{display:block;height:100%;border-radius:4px}
 /* второстепенные колонки скрыты на телефоне */
@@ -132,6 +145,11 @@ button.btn:active{background:#eef3fa}
       <select id="fMonth" aria-label="Месяц"><option value="">Все месяцы</option></select>
     </div>
   </div>
+
+  <div class="mnav" id="mnav">
+    <button class="mbtn active" onclick="mNav('dashboard')" id="mbtn-dashboard">📊 <span>Дашборд</span></button>
+  </div>
+  <iframe class="mframe" id="mframe" title="Модуль"></iframe>
 
   <div class="grid kpis" id="kpis"></div>
 
@@ -489,6 +507,60 @@ async function refresh(){
   await loadKpi();
 }
 
+// ---------- навигация модулей ----------
+let _mActive = 'dashboard';
+
+async function _loadModNav(){
+  try {
+    const r = await fetch('/api/modules', { headers: { 'Authorization': 'Bearer ' + _TOK() } });
+    if (!r.ok) return;
+    const mods = await r.json();
+    if (!mods || !mods.length) return;
+    const nav = document.getElementById('mnav');
+    const grps = {};
+    mods.forEach(function(m){ var g = m.group || ''; if (!grps[g]) grps[g] = []; grps[g].push(m); });
+    var html = '<button class="mbtn active" onclick="mNav(\'dashboard\')" id="mbtn-dashboard">📊 <span>Дашборд</span></button>';
+    Object.keys(grps).sort().forEach(function(g){
+      if (g) html += '<span class="mgrp">' + _escHtml(g) + '</span>';
+      grps[g].forEach(function(m){
+        html += '<button class="mbtn" id="mbtn-' + m.id + '" onclick="mNav(\'' + m.id + '\')">' + (m.icon||'') + ' <span>' + _escHtml(m.title) + '</span></button>';
+      });
+    });
+    nav.innerHTML = html;
+    nav.classList.add('visible');
+  } catch (_) {}
+}
+
+function mNav(id){
+  if (id === 'dashboard') {
+    document.getElementById('mframe').classList.remove('visible');
+    document.querySelectorAll('.mbtn').forEach(function(b){ b.classList.remove('active'); });
+    var db = document.getElementById('mbtn-dashboard');
+    if (db) db.classList.add('active');
+    document.getElementById('kpis').style.display = '';
+    var charts = document.querySelector('.grid.charts');
+    if (charts) charts.style.display = '';
+    document.querySelectorAll('.h2row').forEach(function(el){ el.style.display = ''; });
+    var tw = document.querySelector('.tbl-wrap');
+    if (tw) tw.style.display = '';
+    _mActive = 'dashboard'; return;
+  }
+  document.getElementById('kpis').style.display = 'none';
+  document.querySelectorAll('.grid.charts').forEach(function(el){ el.style.display = 'none'; });
+  document.querySelectorAll('.h2row').forEach(function(el){ el.style.display = 'none'; });
+  var tblw = document.querySelector('.tbl-wrap');
+  if (tblw) tblw.style.display = 'none';
+  var fr = document.getElementById('mframe');
+  fr.src = '/m/' + id + '/';
+  fr.classList.add('visible');
+  document.querySelectorAll('.mbtn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('mbtn-' + id);
+  if (btn) btn.classList.add('active');
+  _mActive = id;
+}
+
+function _escHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]); }); }
+
 (async function init(){
   CAT = await api('/api/catalog');
   CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('#fPh').appendChild(o)});
@@ -507,6 +579,7 @@ async function refresh(){
   $('#btnTgSend').onclick=async()=>{ $('#btnTgSend').disabled=true; const r=await api('/api/tg/broadcast',{method:'POST'}); $('#btnTgSend').disabled=false; $('#tgMsg').innerHTML = r.error? `<span class="err-line">${r.error}</span>` : `отправлено: ${r.sent} · ошибок: ${r.failed} · не привязано: ${r.unbound}`; if(!r.error) loadTg(); };
   $('#btnSettings').onclick=()=>{ const s=$('#apiSettings'); const show=s.style.display==='none'; s.style.display=show?'':'none'; $('#btnSettings').textContent=show?'✕ Скрыть настройки':'⚙️ Настройки'; if(show){ loadTg(); s.scrollIntoView({behavior:'smooth',block:'start'}); } };
   setInterval(loadLog, 15000);
+  _loadModNav();
 })();
 </script>
 </body>

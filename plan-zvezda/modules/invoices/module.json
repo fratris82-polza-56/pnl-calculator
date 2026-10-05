@@ -1,0 +1,13 @@
+{
+  "id": "invoices",
+  "title": "Счета",
+  "icon": "🧾",
+  "version": "1.0.0",
+  "roles": ["manager"],
+  "nav": {
+    "group": "Финансы",
+    "order": 10
+  },
+  "entry": "public/index.html",
+  "enabled": true
+}

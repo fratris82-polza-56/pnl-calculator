@@ -1,10 +1,11 @@
 // Сервер план-дашборда «Звезда»: статика + REST API (в т.ч. приём факта из аптечного ПО).
 import http from 'node:http';
 import crypto from 'node:crypto';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ROOT } from './db.mjs';
 import { ensureTgSchema, tgToken, buildReports, bindNew, broadcast, scheduleDaily } from './broadcast.mjs';
+import { loadModules, serveModuleStatic } from './modules.mjs';
 
 const db = openDb();
 ensureSchema(db);
@@ -51,6 +52,13 @@ function resolveAuth(req) {
     if (c) h = 'Bearer ' + c;
   }
   if (!h) return null;
+  // Сначала: manager-код (mgr_bind) — работает как Bearer-токен
+  const token = h.replace(/^Bearer\s+/i, '').trim();
+  if (/^M-[A-Z0-9]{8,12}$/.test(token)) {
+    const mgr = db.prepare(`SELECT * FROM mgr_bind WHERE code=? AND active=1`).get(token);
+    if (mgr) return { role: 'manager', mgr_id: mgr.id, delegated: false };
+  }
+  // Сеанс сотрудника
   return authMe(db, { headers: { authorization: h } });
 }
 const authDb = req => resolveAuth(req);
@@ -713,6 +721,29 @@ route('PATCH', /^\/api\/managers\/(\d+)$/, async (req, res, m) => {
   json(res, 200, { ok: true });
 });
 
+// ---------- реестр модулей (загрузка после всех route(), до applyAccessControl) ----------
+// GET /api/modules → [{id,title,icon,group,order}] отфильтровано по роли вызывающего
+
+route('GET', '/api/modules', (req, res) => {
+  const a = resolveAuth(req); if (!a) { json(res, 401, { error: 'требуется вход' }); return; }
+  const modDir = join(ROOT, 'modules');
+  const out = [];
+  let names = [];
+  try { if (existsSync(modDir)) names = readdirSync(modDir).filter(n => !n.startsWith('_')); } catch (_) {}
+  for (const name of names) {
+    let mf;
+    try { mf = JSON.parse(readFileSync(join(modDir, name, 'module.json'), 'utf8')); } catch (_) { continue; }
+    if (mf.enabled === false) continue;
+    if (!mf.roles || !mf.roles.includes(a.role)) continue;
+    out.push({
+      id: mf.id, title: mf.title, icon: mf.icon || '',
+      group: mf.nav?.group || '', order: mf.nav?.order || 99,
+    });
+  }
+  out.sort((a, b) => (a.group > b.group ? 1 : a.group < b.group ? -1 : a.order - b.order));
+  json(res, 200, out);
+});
+
 // ---------- пускалки доступа (запуск после всех route()) ----------
 // Exempt-пути: здоровье, вход, интеграция (самопроверка X-Intg-Key внутри маршрута)
 const EXEMPT_PATHS = [
@@ -720,6 +751,7 @@ const EXEMPT_PATHS = [
   '/api/me/login',
   '/api/integration/sales',
   '/api/integration/remap',
+  '/api/modules',
 ];
 // Публичная статика: экран входа + вендорная библиотека
 const STATIC_PUBLIC = new Set(['/me.html', '/chart.min.js']);
@@ -768,6 +800,9 @@ function serveStatic(res, urlPath, req) {
   res.end(readFileSync(file));
 }
 
+// Загружаем модули до applyAccessControl — гейт накроет и модульные роуты
+await loadModules({ db, route, json, readBody, ROOT, routes, accessAny });
+
 // Включаем проверку доступа на всех route() — вызов после их объявления
 applyAccessControl();
 
@@ -780,6 +815,11 @@ const server = http.createServer(async (req, res) => {
       if (!m) continue;
       await r.handler(req, res, m, url);
       return;
+    }
+    // Статика модулей /m/<id>/...
+    if (req.method === 'GET' && url.pathname.startsWith('/m/')) {
+      const srv = serveModuleStatic(res, url.pathname, req, authDb, ROOT);
+      if (srv) return;
     }
     if (req.method === 'GET') return serveStatic(res, url.pathname, req);
     json(res, 404, { error: 'no route' });

@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Счета — План-Звезда</title>
+<style>
+:root{
+  --bg:#eef2f7; --card:#fff; --ink:#133367; --mut:#7d8894; --line:#e0e7ef;
+  --acc:#4169aa; --ok:#53a979; --warn:#e08a00; --bad:#d64545; --bri:#6dc47b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+.wrap{max-width:1100px;margin:0 auto;padding:14px 14px 40px}
+
+/* --- topbar --- */
+.tbar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.tbar h1{font-size:18px;font-weight:750;letter-spacing:-.3px}
+.sub{font-size:13px;color:var(--mut)}
+.linklike{background:none;border:none;color:var(--acc);font-size:13px;cursor:pointer;padding:6px 4px}
+
+/* --- cards --- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(23,33,43,.04)}
+.card h2{font-size:12px;font-weight:700;color:var(--mut);
+  text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+
+/* --- summary row --- */
+.srow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.srow>*{flex:1 1 160px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:12px}
+.sb{font-size:12px;color:var(--mut);margin-bottom:4px}
+.sv{font-size:22px;font-weight:750;letter-spacing:-.3px}
+.sv.ok{color:var(--ok)} .sv.warn{color:var(--warn)} .sv.bad{color:var(--bad)}
+
+/* --- filters --- */
+.frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.frow select,.frow input{font:inherit;padding:9px 11px;border:1px solid var(--line);
+  border-radius:10px;background:#fff}
+.frow select{min-width:130px}
+.frow input{min-width:110px}
+.frow button{font:inherit;font-weight:650;padding:9px 15px;border:none;border-radius:10px;
+  background:var(--acc);color:#fff;cursor:pointer}
+.frow button.gray{background:#eef2f8;color:var(--ink)}
+
+/* --- table --- */
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{padding:7px 9px;border-bottom:2px solid var(--line);
+  text-align:left;font-size:11.5px;font-weight:700;color:var(--mut);
+  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.tbl td{padding:9px 9px;border-top:1px solid var(--line);
+  vertical-align:middle}
+.tbl tr:hover td{background:#f8fafd}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.tbl .act{white-space:nowrap}
+
+/* --- badge --- */
+.bdg{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;
+  border-radius:20px}
+.bdg.wait  {background:#fff3e0;color:#e08a00}
+.bdg.ok    {background:#e2f3e5;color:#2c5e3f}
+.bdg.reject{background:#fde8e8;color:#c62828}
+.bdg.any   {background:#eef2f8;color:var(--ink)}
+
+/* --- form --- */
+.fr{background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:14px;margin-bottom:12px}
+.fr h3{font-size:13px;font-weight:700;margin-bottom:10px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.fgrid.f3{grid-template-columns:1fr 1fr 1fr}
+.fgrid.f2{grid-template-columns:1fr 1fr}
+.fgrid.f1{grid-template-columns:1fr}
+.fgrid input,.fgrid select,.fgrid textarea{font:inherit;padding:10px 11px;
+  border:1px solid var(--line);border-radius:10px;background:#fff;width:100%}
+.fgrid textarea{resize:vertical;min-height:72px}
+.fgrid .btn-row{display:flex;gap:8px;grid-column:1/-1}
+.fgrid button{font:inherit;font-weight:650;padding:11px;border:none;border-radius:10px;
+  background:var(--acc);color:#fff;cursor:pointer;flex:0 0 auto}
+.fgrid button.gray{background:#eef2f8;color:var(--ink)}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+.lbl{font-size:11.5px;color:var(--mut);font-weight:700;margin-bottom:4px;
+  display:block;text-transform:uppercase;letter-spacing:.4px}
+
+.hidden{display:none}
+
+/* --- responsive --- */
+@media(max-width:640px){
+  .fgrid.f3,.fgrid.f2{grid-template-columns:1fr}
+  .tbl th:nth-child(5),.tbl td:nth-child(5){display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="tbar">
+  <h1>🧾 Счета</h1>
+  <span class="sub" id="period">—</span>
+  <button class="linklike" onclick="app.load()" style="margin-left:auto">🔄</button>
+</div>
+
+<!-- Итого -->
+<div class="srow">
+  <div>
+    <div class="sb">Всего</div>
+    <div class="sv" id="sTotal">—</div>
+  </div>
+  <div>
+    <div class="sb">Ожидает</div>
+    <div class="sv warn" id="sWait">—</div>
+  </div>
+  <div>
+    <div class="sb">Оплачено</div>
+    <div class="sv ok" id="sOk">—</div>
+  </div>
+  <div>
+    <div class="sb">Отклонено</div>
+    <div class="sv bad" id="sReject">—</div>
+  </div>
+</div>
+
+<!-- Фильтры -->
+<div class="card">
+  <h2>Фильтры</h2>
+  <div class="frow">
+    <select id="fPh"><option value="">Все аптеки</option></select>
+    <select id="fStatus">
+      <option value="">Все статусы</option>
+      <option value="ожидает">Ожидает</option>
+      <option value="оплачен">Оплачен</option>
+      <option value="отклонён">Отклонён</option>
+    </select>
+    <input id="fMonth" type="month" style="width:150px">
+    <button onclick="app.load()">Применить</button>
+    <button class="gray" onclick="app.clear()">Сброс</button>
+    <button onclick="app.toggleForm()">+ Счёт</button>
+  </div>
+</div>
+
+<!-- Таблица -->
+<div class="card">
+  <h2>Список (<span id="cnt">0</span>)</h2>
+  <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>#</th><th>Дата</th><th>Поставщик</th><th>Номер</th>
+          <th>Аптека</th><th class="num">Сумма</th><th>Статус</th><th class="act">Действия</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Форма добавления / редактирования -->
+<div class="fr hidden" id="frm">
+  <h3 id="frmTitle">Новый счёт</h3>
+  <div class="fgrid f3">
+    <div>
+      <label class="lbl">Поставщик *</label>
+      <input id="fVendor" placeholder="ООО «Ромашка»">
+    </div>
+    <div>
+      <label class="lbl">Номер счёта</label>
+      <input id="fNumber" placeholder="12/10-01">
+    </div>
+    <div>
+      <label class="lbl">Аптека</label>
+      <select id="fPharmacy"><option value="">—</option></select>
+    </div>
+    <div>
+      <label class="lbl">Дата *</label>
+      <input id="fDate" type="date" required>
+    </div>
+    <div>
+      <label class="lbl">Сумма ₽ *</label>
+      <input id="fAmount" type="number" min="0" step="0.01" placeholder="0.00">
+    </div>
+    <div>
+      <label class="lbl">Статус</label>
+      <select id="fStatusSel">
+        <option value="ожидает">Ожидает</option>
+        <option value="оплачен">Оплачен</option>
+        <option value="отклонён">Отклонён</option>
+      </select>
+    </div>
+    <div style="grid-column:1/-1">
+      <label class="lbl">Примечание</label>
+      <textarea id="fNote" placeholder="комментарий (необязательно)"></textarea>
+    </div>
+    <div class="btn-row">
+      <button id="frmSubmit" onclick="app.submit()">Сохранить</button>
+      <button class="gray" onclick="app.toggleForm()">Отмена</button>
+    </div>
+  </div>
+  <div class="err" id="frmErr"></div>
+</div>
+
+</div>
+
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let TOKEN=localStorage.getItem('me_token')||'';
+let MOD='invoices';
+
+const app={
+  data:[],
+  editId:null,
+
+  async api(path,opt={}){
+    const r=await fetch(`/api/m/${MOD}${path}`,{
+      ...opt,
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opt.headers||{})}
+    });
+    if(r.status===401){localStorage.removeItem('me_token');location.href='/me.html';throw 401;}
+    return r.json();
+  },
+
+  async load(){
+    const u=new URL(location);
+    const p=new URLSearchParams();
+    const ph=$('fPh').value;    if(ph) p.set('pharmacy_id',ph);
+    const st=$('fStatus').value;if(st) p.set('status',st);
+    const mo=$('fMonth').value;if(mo) p.set('month',mo);
+    const q='?'+p.toString();
+    try{
+      const d=await this.api('/'+q);
+      this.data=d.rows||[];
+      this.render(d);
+    }catch(e){ if(e!==401) console.warn(e); }
+  },
+
+  render(d){
+    // итоги
+    const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+    $('sTotal').textContent=fmt(d.total)+' ₽';
+    const byStatus=s=>d.rows.filter(r=>r.status===s);
+    $('sWait').textContent=fmt((byStatus('ожидает')||[]).reduce((s,r)=>s+r.amount,0))+' ₽';
+    $('sOk').textContent=fmt((byStatus('оплачен')||[]).reduce((s,r)=>s+r.amount,0))+' ₽';
+    $('sReject').textContent=fmt((byStatus('отклонён')||[]).reduce((s,r)=>s+r.amount,0))+' ₽';
+
+    // аптеки в фильтре и форме
+    const phOpts=d.pharmacies.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    $('fPh').innerHTML=`<option value="">Все аптеки</option>`+phOpts;
+    $('fPharmacy').innerHTML=`<option value="">—</option>`+phOpts;
+
+    // строки
+    $('cnt').textContent=this.data.length;
+    if(!this.data.length){
+      $('tbody').innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--mut);padding:24px">
+        Нет счетов. Нажми «+ Счёт» чтобы создать первый.</td></tr>`;
+      return;
+    }
+    $('tbody').innerHTML=this.data.map(r=>{
+      const stBadge=s=>({ ожидает:`<span class="bdg wait">ожидает</span>`,
+        оплачен:`<span class="bdg ok">оплачен</span>`,
+        'отклонён':`<span class="bdg reject">отклонён</span>` })[s]||`<span class="bdg any">${esc(s)}</span>`;
+      return`<tr>
+        <td style="color:var(--mut)">${r.id}</td>
+        <td>${r.d.slice(8,10)}.${r.d.slice(5,7)}.${r.d.slice(0,4)}</td>
+        <td>${esc(r.vendor)}</td>
+        <td style="color:var(--mut)">${esc(r.number||'—')}</td>
+        <td>${esc(r.ph_name||'—')}</td>
+        <td class="num">${fmt(r.amount)} ₽</td>
+        <td>${stBadge(r.status)}</td>
+        <td class="act">
+          <button class="linklike" onclick="app.edit(${r.id})">✏️</button>
+          <button class="linklike" onclick="app.del(${r.id})" style="color:var(--bad)">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+  },
+
+  clear(){
+    $('fPh').value='';$('fStatus').value='';$('fMonth').value='';this.load();
+  },
+
+  toggleForm(id){
+    this.editId=id||null;
+    $('frm').classList.toggle('hidden');
+    $('frmTitle').textContent=id?'Редактировать счёт':'Новый счёт';
+    $('frmErr').textContent='';
+    if(id){
+      const r=this.data.find(x=>x.id===id);
+      if(r){
+        $('fVendor').value=r.vendor; $('fNumber').value=r.number||'';
+        $('fPharmacy').value=r.pharmacy_id||'';
+        $('fDate').value=r.d.slice(0,10); $('fAmount').value=r.amount;
+        $('fStatusSel').value=r.status; $('fNote').value=r.note||'';
+      }
+    }else{
+      ['fVendor','fNumber','fNote'].forEach(id=>$(id).value='');
+      $('fPharmacy').value=''; $('fDate').value='';
+      $('fAmount').value=''; $('fStatusSel').value='ожидает';
+    }
+  },
+
+  edit(id){ this.toggleForm(id); },
+
+  async submit(){
+    $('frmErr').textContent='';
+    const body={
+      vendor:$('fVendor').value.trim(),
+      number:$('fNumber').value.trim(),
+      pharmacy_id:$('fPharmacy').value?+$('fPharmacy').value:null,
+      d:$('fDate').value,
+      amount:+$('fAmount').value,
+      status:$('fStatusSel').value,
+      note:$('fNote').value.trim(),
+    };
+    if(!body.vendor||!body.d||!body.amount){
+      $('frmErr').textContent='Поставщик, дата и сумма — обязательные';return;
+    }
+    try{
+      if(this.editId){
+        await this.api('/'+this.editId,{method:'PATCH',body:JSON.stringify(body)});
+      }else{
+        await this.api('/',{method:'POST',body:JSON.stringify(body)});
+      }
+      this.toggleForm(); this.load();
+    }catch(e){ $('frmErr').textContent='ошибка сохранения'; }
+  },
+
+  async del(id){
+    if(!confirm('Удалить счёт #'+id+'?')) return;
+    try{ await this.api('/'+id,{method:'DELETE'}); this.load(); }
+    catch(e){ alert('не удалось'); }
+  },
+};
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+// bootstrap
+(async()=>{
+  if(!TOKEN){ location.href='/me.html';return; }
+  await app.load();
+  $('fPh').addEventListener('change',()=>app.load());
+  $('fStatus').addEventListener('change',()=>app.load());
+})();
+</script>
+</body>
+</html>

@@ -82,12 +82,17 @@ export function authMe(db, req) {
   const m = h.match(/^Bearer\s+(.+)$/i);
   const cand = m ? m[1] : String(h).trim();
   if (!cand) return null;
-  const hsh = sha(cand);
   // Сессия руководителя?
+  const hsh = sha(cand);
   const ms = db.prepare(`SELECT mgr_id, expires_at FROM mgr_session WHERE token_hash=?`).get(hsh);
   if (ms && ms.expires_at > new Date().toISOString()) {
     const mg = db.prepare('SELECT name, active FROM mgr_bind WHERE id=?').get(ms.mgr_id);
     if (mg && mg.active) return { employee_id: null, role: 'manager', name: mg.name };
+  }
+  // Прямой код руководителя M-... (вход без предварительного логина)
+  if (/^M-[A-Z0-9]{4,12}$/.test(cand)) {
+    const mg = db.prepare(`SELECT id, name, active FROM mgr_bind WHERE code=? AND active=1`).get(cand);
+    if (mg) return { employee_id: null, role: 'manager', name: mg.name };
   }
   const s = db.prepare(`SELECT employee_id, expires_at FROM me_session WHERE token_hash=?`)
     .get(hsh);

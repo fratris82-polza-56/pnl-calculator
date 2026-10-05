@@ -52,6 +52,15 @@ button.btn.gray{background:#eef2f8;color:var(--ink)}
 .li:first-of-type{border-top:none}
 .hidden{display:none}
 label{font-size:12.5px;color:var(--mut);font-weight:600}
+
+/* --- навигация модулей (staff) --- */
+.mod-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.mod-nav-link{display:flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);text-decoration:none;font-size:13.5px;font-weight:600;flex:1 1 160px;box-shadow:0 1px 2px rgba(23,33,43,.04)}
+.mod-nav-link:hover{background:#f0f4fa;border-color:var(--acc)}
+.mod-nav-link .mi{font-size:18px}
+.mod-nav-link .mt{color:var(--acc);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.mod-nav-link .mn{font-size:13px}
+.mod-nav .sec-label{width:100%;font-size:10.5px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin:4px 0 2px}
 </style>
 </head>
 <body>
@@ -84,6 +93,7 @@ label{font-size:12.5px;color:var(--mut);font-weight:600}
   </div>
 
   <div class="rolebar hidden" id="rolebar"></div>
+  <div class="mod-nav hidden" id="modNav"></div>
 
   <div class="tip" id="tip" style="margin-bottom:12px"></div>
 
@@ -226,6 +236,7 @@ function render(d){
   $('hello').textContent=d.view==='pharmacy' ? 'Аптека «'+d.pharmacy.name+'»' : me.fio;
   $('phName').textContent=d.pharmacy.name+' · '+d.month;
   rolebar(d);
+  _loadModNav();
   $('tip').textContent=d.tip||me.tip;
   $('monName').textContent=d.month.toLowerCase();
   $('daysTitle').textContent=d.view==='pharmacy'?'Дни аптеки':'Мои дни';
@@ -337,6 +348,33 @@ async function boot(){
     load();
   }catch(_){ showLogin(); }
 }
+
+// ---------- навигация модулей (staff) ----------
+async function _loadModNav(){
+  try {
+    const r = await fetch('/api/modules', { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+    if (!r.ok) return;
+    const mods = await r.json();
+    if (!mods || !mods.length) return;
+    const nav = $('modNav');
+    const grps = {};
+    mods.forEach(function(m){ var g = m.group || ''; if (!grps[g]) grps[g] = []; grps[g].push(m); });
+    var html = '';
+    Object.keys(grps).sort().forEach(function(g){
+      if (g) html += '<span class="sec-label">' + _escHtml(g) + '</span>';
+      grps[g].forEach(function(m){
+        html += '<a class="mod-nav-link" href="/m/' + m.id + '/">' +
+          '<span class="mi">' + (m.icon||'📦') + '</span>' +
+          '<span><span class="mt">' + _escHtml(m.title) + '</span></span></a>';
+      });
+    });
+    nav.innerHTML = html;
+    nav.classList.remove('hidden');
+  } catch (_) {}
+}
+
+function _escHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]); }); }
+
 boot();
 </script>
 </body>
