@@ -137,7 +137,7 @@ button.btn:active{background:#eef3fa}
       <div class="logo" style="background:var(--bright)">З</div>
       <div>
         <h1>План «Звезда» · аптеки сентябрь–декабрь 2026</h1>
-        <div class="sub" id="asOf">план/факт · прогноз выполнения · <a href="/me.html" style="color:inherit">личный кабинет</a></div>
+        <div class="sub" id="asOf">план/факт · прогноз выполнения · <a href="/me.html" style="color:inherit">личный кабинет</a> · <a href="/short.html" style="color:inherit">краткая версия</a></div>
       </div>
     </div>
     <div class="filters">
@@ -567,7 +567,7 @@ function _escHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return({
   MONTHS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;$('#fMonth').appendChild(o)});
   $('#fMonth').value = 'Сентябрь';
   const sum = await api('/api/summary');
-  $('#asOf').textContent = `план/факт по ${sum.asOf} · прогноз выполнения · 5 аптек`;
+  $('#asOf').innerHTML = `план/факт по ${sum.asOf} · прогноз выполнения · 5 аптек · <a href="/me.html" style="color:inherit">личный кабинет</a> · <a href="/short.html" style="color:inherit">краткая версия</a>`;
   $('#fPh').onchange=refresh; $('#fMonth').onchange=refresh;
   await refresh();
   await loadLog();
