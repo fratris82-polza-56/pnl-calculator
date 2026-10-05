@@ -110,6 +110,7 @@ label{font-size:12.5px;color:var(--mut);font-weight:600}
         <div class="kv" style="margin-bottom:6px" id="meLeft">—</div>
         <div class="kv" id="meAvg">—</div>
         <div class="kv" style="margin-top:6px" id="meStm">—</div>
+        <div class="kv" style="margin-top:4px" id="meMarketing">—</div>
       </div>
     </div>
   </div>
@@ -254,6 +255,9 @@ function render(d){
     $('meStm').textContent=(d.pharmacy_stats.stm||d.pharmacy_stats.ustm)
       ?('СТМ '+fmt(d.pharmacy_stats.stm)+' ₽ · УСТМ '+fmt(d.pharmacy_stats.ustm)+' ₽ ('+(d.pharmacy_stats.stm_share||0).toFixed(1).replace('.',',')+'% ТО)')
       :'';
+    $('meMarketing').textContent=d.pharmacy_stats.marketing
+      ?('Маркетинг '+fmt(d.pharmacy_stats.marketing)+' ₽ ('+(d.pharmacy_stats.marketing_share||0).toFixed(1).replace('.',',')+'% ТО)')
+      :'';
   }else{
     $('myTitle').textContent=me.role==='вакансия'?'Статус':'Мой результат';
     if(me.role==='вакансия'){
@@ -263,6 +267,7 @@ function render(d){
       $('meLeft').textContent='';
       $('meAvg').textContent='';
       $('meStm').textContent='';
+      $('meMarketing').textContent='';
     }else{
       $('meFact').textContent=fmt(me.fact)+' ₽';
       $('mePlan').textContent='план '+fmt(me.plan)+' ₽ · доля '+(me.share*100).toFixed(0)+'%';
@@ -272,6 +277,9 @@ function render(d){
       $('meAvg').textContent=me.avg_check?('Средний чек: '+fmt(me.avg_check)+' ₽'):'';
       $('meStm').textContent=(me.stm||me.ustm)
         ?('СТМ '+fmt(me.stm)+' ₽ · УСТМ '+fmt(me.ustm)+' ₽ ('+(me.stm_share||0).toFixed(1).replace('.',',')+'% ТО)')
+        :'';
+      $('meMarketing').textContent=me.marketing
+        ?('Маркетинг '+fmt(me.marketing)+' ₽ ('+(me.marketing_share||0).toFixed(1).replace('.',',')+'% ТО)')
         :'';
     }
   }

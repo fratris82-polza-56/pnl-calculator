@@ -40,6 +40,7 @@ export function ensureSchema(db) {
     checks INTEGER,
     stm REAL NOT NULL DEFAULT 0,
     ustm REAL NOT NULL DEFAULT 0,
+    marketing REAL NOT NULL DEFAULT 0,
     source TEXT NOT NULL DEFAULT 'manual' CHECK(source IN ('manual','api','demo')),
     UNIQUE(pharmacy_id, employee_id, d, source));
   CREATE INDEX IF NOT EXISTS i_fact_d ON fact_day(d);
@@ -47,7 +48,7 @@ export function ensureSchema(db) {
     id INTEGER PRIMARY KEY,
     pharmacy_id INTEGER NOT NULL, doc_id TEXT, d TEXT NOT NULL,
     employee_name TEXT, amount REAL NOT NULL, margin REAL,
-    stm REAL, ustm REAL,
+    stm REAL, ustm REAL, marketing REAL,
     imported_at TEXT NOT NULL DEFAULT (datetime('now')),
     state TEXT NOT NULL DEFAULT 'new' CHECK(state IN ('new','mapped','error')));
   -- Отказы: «нет в наличии» —lost чеки, база для еженедельной дозакупки
@@ -86,8 +87,10 @@ function migrateSchema(db) {
   };
   add('fact_day', 'stm', 'REAL NOT NULL DEFAULT 0');
   add('fact_day', 'ustm', 'REAL NOT NULL DEFAULT 0');
+  add('fact_day', 'marketing', 'REAL NOT NULL DEFAULT 0');
   add('sale_raw', 'stm', 'REAL');
   add('sale_raw', 'ustm', 'REAL');
+  add('sale_raw', 'marketing', 'REAL');
 }
 
 export function seed(db) {
@@ -178,8 +181,8 @@ export function seedDemo(db) {
            (SELECT group_concat(id) FROM employee e WHERE e.pharmacy_id = p.pharmacy_id) emps,
            (SELECT group_concat(share) FROM employee e WHERE e.pharmacy_id = p.pharmacy_id) shares
     FROM plan p WHERE p.month='Сентябрь'`).all();
-  const ins = db.prepare(`INSERT OR REPLACE INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,stm,ustm,source)
-                          VALUES (?,?,?,?,?,?,?,?, 'demo')`);
+  const ins = db.prepare(`INSERT OR REPLACE INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,stm,ustm,marketing,source)
+                          VALUES (?,?,?,?,?,?,?,?,?, 'demo')`);
   let seeded = 0;
   const now = new Date();
   const lastDay = new Date(2026, 8, 0) // не используется
@@ -198,7 +201,8 @@ export function seedDemo(db) {
         const s = (shares[i] || 0) / shares.reduce((a, b) => a + b, 0);
         ins.run(r.ph, eid, d, Math.round(revDay * s), Math.round(vdDay * s),
                 Math.max(1, Math.round((revDay * s) / 900)),
-                Math.round(revDay * s * 0.062), Math.round(revDay * s * 0.021));
+                Math.round(revDay * s * 0.062), Math.round(revDay * s * 0.021),
+                Math.round(revDay * s * 0.045));
         seeded++;
       });
     }
