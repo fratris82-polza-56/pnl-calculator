@@ -240,6 +240,9 @@ function render(){
   const mkPct  = fact > 0 && fact > margin ? margin / (fact - margin) * 100 : 0;
   // маржа в % от выручки
   const mgPct  = fact > 0 ? margin / fact * 100 : 0;
+  // СТМ (СТМ+УСТМ — одна метрика): личный факт сотрудника либо по аптеке за месяц
+  const stmVal = emp ? ((emp.stm||0)+(emp.ustm||0)) : ((row.fact_stm||0)+(row.fact_ustm||0));
+  const stmPct = fact > 0 ? stmVal / fact * 100 : 0;
 
   document.getElementById('asOf').textContent =
     `${emp ? 'Лично: ' + emp.fio + ' · ' : ''}${MONTHS[rowKey(row)]}`;
@@ -261,6 +264,8 @@ function render(){
         <div class="v">${avgCheck == null ? '—' : fmtRub(avgCheck)}${avgCheck == null || !avgTarget ? '' : ` <span>· цель ${fmtRub(avgTarget)}</span>`}${!checks ? '' : ` <span>· чеков ${checks}${planChecks ? '/' + planChecks : ''}</span>`}</div></div>
       <div><div class="t">Наценка</div>
         <div class="v">${Math.round(mkPct)}% <span>· маржа ${Math.round(mgPct)}%</span></div></div>
+      <div><div class="t">СТМ</div>
+        <div class="v">${stmVal ? fmtRub(stmVal) : '—'}${stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : ''}</div></div>
     </div>
     <div class="chip ${toneCls(fcPct)}">${db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' :
       'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения')}</div>`;
@@ -344,8 +349,9 @@ function renderTeam(emps, me){
     const pch = at ? Math.round(pp / at) : null;        // личный план чеков = план ₽ / цель ср. чека
     const chk = e.checks || 0;
     const ac = chk ? e.revenue / chk : null;            // факт среднего чека
-    const kpiLine = !at && !chk ? '' :
-      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽</div>`;
+    const st = (e.stm||0)+(e.ustm||0);                   // СТМ+УСТМ — одна метрика
+    const kpiLine = !at && !chk && !st ? '' :
+      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽${st ? ` · СТМ <b>${fmtRub(st)}</b>` : ''}</div>`;
     return `<div class="emp${me && e.employee_id === me.employee_id ? ' me' : ''}">
       <div><div class="fio">${esc(e.fio)}</div><div class="role">${fmtRub(e.revenue)} · ${MONTHS[rowKey(monthRow())].toLowerCase()}</div>${kpiLine}</div>
       <div class="pv" style="color:${col}">${Math.round(pct)}%</div>

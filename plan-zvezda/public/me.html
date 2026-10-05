@@ -253,7 +253,7 @@ function render(d){
     $('meLeft').textContent='Сотрудников: '+d.me.length;
     $('meAvg').textContent='';
     $('meStm').textContent=(d.pharmacy_stats.stm||d.pharmacy_stats.ustm)
-      ?('СТМ '+fmt(d.pharmacy_stats.stm)+' ₽ · УСТМ '+fmt(d.pharmacy_stats.ustm)+' ₽ ('+(d.pharmacy_stats.stm_share||0).toFixed(1).replace('.',',')+'% ТО)')
+      ?('СТМ '+fmt((d.pharmacy_stats.stm||0)+(d.pharmacy_stats.ustm||0))+' ₽ ('+(((d.pharmacy_stats.stm||0)+(d.pharmacy_stats.ustm||0))/Math.max(d.pharmacy_stats.fact||1,1)*100).toFixed(1).replace('.',',')+'% ТО)')
       :'';
     $('meMarketing').textContent=d.pharmacy_stats.marketing
       ?('Маркетинг '+fmt(d.pharmacy_stats.marketing)+' ₽ ('+(d.pharmacy_stats.marketing_share||0).toFixed(1).replace('.',',')+'% ТО)')
@@ -276,7 +276,7 @@ function render(d){
       $('meLeft').textContent=me.left>0?('Осталось: '+fmt(me.left)+' ₽ ≈ '+fmt(me.per_day)+' ₽/день'):'План месяца выполнен 🎉';
       $('meAvg').textContent=me.avg_check?('Средний чек: '+fmt(me.avg_check)+' ₽'):'';
       $('meStm').textContent=(me.stm||me.ustm)
-        ?('СТМ '+fmt(me.stm)+' ₽ · УСТМ '+fmt(me.ustm)+' ₽ ('+(me.stm_share||0).toFixed(1).replace('.',',')+'% ТО)')
+        ?('СТМ '+fmt((me.stm||0)+(me.ustm||0))+' ₽ ('+(((me.stm||0)+(me.ustm||0))/Math.max(me.fact||1,1)*100).toFixed(1).replace('.',',')+'% ТО)')
         :'';
       $('meMarketing').textContent=me.marketing
         ?('Маркетинг '+fmt(me.marketing)+' ₽ ('+(me.marketing_share||0).toFixed(1).replace('.',',')+'% ТО)')
