@@ -280,16 +280,29 @@ function kpi(t,v,s,badge,bcls){
   return `<div class="card kpi"><div class="t">${t}</div><div class="v num">${v}</div><div class="s">${s}</div>${badge?`<span class="b ${bcls}">${badge}</span>`:''}</div>`;
 }
 
+// Ячейка метрики СТМ/Маркетинг: «факт / план · % · прогноз X%»
+function metricCell(fact, plan, pct, fcst, fpct){
+  if(!plan) return fact? fmt(fact) : '—';
+  const c = pct==null? '' : (pct>=100?'pos':pct>=90?'':'neg');
+  const f = fpct==null? '' : `<div class="mut" style="font-size:10px">прогноз ${fpct.toFixed(0)}%</div>`;
+  return `<div>${fmt(fact)} <span class="mut">/ ${fmt(plan)}</span></div>`+
+    `<div class="${c}" style="font-size:11px">${pct!=null?pct.toFixed(1)+'%':'—'}${fcst!=null?` · ~${fmt(fcst)}`:''}</div>${f}`;
+}
+
 function renderKpis(sum, phId, month){
   const rows = sum.rows;
-  const t = {plan:0,fact:0,fvd:0,pvd:0,frc:0,frcVd:0,stm:0,ustm:0,mkt:0};
-  rows.forEach(r=>{t.plan+=r.plan_revenue;t.fact+=r.fact_revenue;t.fvd+=r.fact_margin;t.pvd+=r.plan_margin;t.frc+=r.forecast_revenue;t.frcVd+=r.forecast_margin;t.stm+=(r.fact_stm||0);t.ustm+=(r.fact_ustm||0);t.mkt+=(r.fact_marketing||0)});
+  const t = {plan:0,fact:0,fvd:0,pvd:0,frc:0,frcVd:0,stm:0,ustm:0,mkt:0,pstm:0,pmkt:0,fstm:0,fmkt:0};
+  rows.forEach(r=>{t.plan+=r.plan_revenue;t.fact+=r.fact_revenue;t.fvd+=r.fact_margin;t.pvd+=r.plan_margin;t.frc+=r.forecast_revenue;t.frcVd+=r.forecast_margin;t.stm+=(r.fact_stm||0);t.ustm+=(r.fact_ustm||0);t.mkt+=(r.fact_marketing||0);t.pstm+=(r.plan_stm||0);t.pmkt+=(r.plan_marketing||0);t.fstm+=(r.forecast_stm||0);t.fmkt+=(r.forecast_marketing||0)});
   const pct = t.plan? t.fact/t.plan*100 : 0;
   const fpct = t.plan? t.frc/t.plan*100 : 0;
   const vdPct = t.pvd? t.fvd/t.pvd*100 : 0;
   const stmSum = t.stm + t.ustm;
   const stmShare = t.fact? stmSum/t.fact*100 : 0;
   const mktShare = t.fact? t.mkt/t.fact*100 : 0;
+  const stmPct = t.pstm? stmSum/t.pstm*100 : null;
+  const mktPct = t.pmkt? t.mkt/t.pmkt*100 : null;
+  const stmFPct = t.pstm? t.fstm/t.pstm*100 : null;
+  const mktFPct = t.pmkt? t.fmkt/t.pmkt*100 : null;
   const scope = phId? CAT.pharmacy.find(p=>p.id==phId).name : '5 аптек';
   const mlab = month || 'сен–дек';
   $('#kpis').innerHTML =
@@ -299,8 +312,14 @@ function renderKpis(sum, phId, month){
     kpi('Прогноз ТО', fmtM(t.frc), 'по темпу факта') +
     kpi('Прогноз выполнения', fpct.toFixed(1)+'%', 'к плану ТО', fpct.toFixed(0)+'%', cls(fpct)) +
     kpi('План ВД', fmtM(t.pvd), `факт ${fmtM(t.fvd)}`) +
-    kpi('СТМ', fmtM(stmSum), `доля ${stmShare.toFixed(1)}% ТО`) +
-    kpi('Маркетинг', fmtM(t.mkt), `доля ${mktShare.toFixed(1)}% ТО`);
+    kpi('СТМ', fmtM(stmSum), t.pstm
+      ? `план ${fmtM(t.pstm)} · ${stmPct.toFixed(1)}% плана · прогноз ${fmtM(t.fstm)} (${stmFPct.toFixed(0)}%)`
+      : `доля ${stmShare.toFixed(1)}% ТО`,
+      t.pstm? stmPct.toFixed(0)+'%' : null, t.pstm? cls(stmPct) : null) +
+    kpi('Маркетинг', fmtM(t.mkt), t.pmkt
+      ? `план ${fmtM(t.pmkt)} · ${mktPct.toFixed(1)}% плана · прогноз ${fmtM(t.fmkt)} (${mktFPct.toFixed(0)}%)`
+      : `доля ${mktShare.toFixed(1)}% ТО`,
+      t.pmkt? mktPct.toFixed(0)+'%' : null, t.pmkt? cls(mktPct) : null);
 }
 
   function renderTable(sum){
@@ -315,19 +334,20 @@ function renderKpis(sum, phId, month){
   });
   const rest = sum.rows.filter(r=>!CAT.pharmacy.find(p=>p.id===r.pharmacy_id));
   if(rest.length) groups.push({ph:{id:0,name:'Прочее',color:'#999'}, rows:rest});
-  let h = '<thead><tr><th class="l stick">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th class="m-hide">План ВД</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ</th><th class="m-hide">Маркетинг</th><th class="m-hide">Чеков</th><th class="m-hide">Дней</th></tr></thead><tbody>';
+  let h = '<thead><tr><th class="l stick">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th class="m-hide">План ВД</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th><th class="m-hide">Чеков</th><th class="m-hide">Дней</th></tr></thead><tbody>';
   groups.forEach(g=>{
     const open = phId ? true : !collapsed[g.ph.id];
-    const agg = g.rows.reduce((a,r)=>{a.plan+=r.plan_revenue;a.fact+=r.fact_revenue;a.frc+=r.forecast_revenue;a.pm+=r.plan_margin;a.fm+=r.fact_margin;a.stm+=(r.fact_stm||0);a.ustm+=(r.fact_ustm||0);a.mkt+=(r.fact_marketing||0);return a;},{plan:0,fact:0,frc:0,pm:0,fm:0,stm:0,ustm:0,mkt:0});
+    const agg = g.rows.reduce((a,r)=>{a.plan+=r.plan_revenue;a.fact+=r.fact_revenue;a.frc+=r.forecast_revenue;a.pm+=r.plan_margin;a.fm+=r.fact_margin;a.stm+=(r.fact_stm||0);a.ustm+=(r.fact_ustm||0);a.mkt+=(r.fact_marketing||0);a.pstm+=(r.plan_stm||0);a.pmktP+=(r.plan_marketing||0);a.fstm+=(r.forecast_stm||0);a.fmkt+=(r.forecast_marketing||0);return a;},{plan:0,fact:0,frc:0,pm:0,fm:0,stm:0,ustm:0,mkt:0,pstm:0,pmktP:0,fstm:0,fmkt:0});
     const apc = agg.plan? agg.fact/agg.plan*100 : 0;
     const rowsHtml = g.rows.map(r=>{
       const pc = r.fact_revenue/r.plan_revenue*100;
+      const stmFact=(r.fact_stm||0)+(r.fact_ustm||0);
       return `<tr class="sub"><td class="l stick"></td><td class="l">${r.month}</td><td class="num m-hide">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td>`+
         `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,pc)}%;background:${pc>=100?'var(--green)':pc>=90?'var(--gold)':'var(--red)'}"></i></div>${pc.toFixed(1)}%</div></td>`+
         `<td class="num m-hide">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct>=100?'pos':'neg'}">${r.forecast_pct}%</td>`+
         `<td class="num m-hide">${fmt(r.plan_margin)}</td><td class="num m-hide">${fmt(r.fact_margin)}</td>`+
-        `<td class="num m-hide">${(r.fact_stm||r.fact_ustm)?fmt((r.fact_stm||0)+(r.fact_ustm||0)):'—'}</td>`+
-        `<td class="num m-hide">${r.fact_marketing?fmt(r.fact_marketing):'—'}</td>`+
+        `<td class="num m-hide">${metricCell(stmFact,r.plan_stm,r.pct_stm,r.forecast_stm,r.forecast_pct_stm)}</td>`+
+        `<td class="num m-hide">${metricCell(r.fact_marketing,r.plan_marketing,r.pct_marketing,r.forecast_marketing,r.forecast_pct_marketing)}</td>`+
         `<td class="num m-hide">${r.fact_checks||'—'}</td><td class="num mut m-hide">${r.fact_days}/${r.total_days}</td></tr>`;
     }).join('');
     h += `<tr class="ph-row" data-ph="${g.ph.id}" style="cursor:pointer" title="Нажмите, чтобы ${open?'свернуть':'развернуть'}">`+
@@ -336,8 +356,8 @@ function renderKpis(sum, phId, month){
       `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,apc)}%;background:${apc>=100?'var(--green)':apc>=90?'var(--gold)':'var(--red)'}"></i></div>${apc.toFixed(1)}%</div></td>`+
       `<td class="num m-hide">${fmt(agg.frc)}</td><td class="num"></td>`+
       `<td class="num m-hide">${fmt(agg.pm)}</td><td class="num m-hide">${fmt(agg.fm)}</td>`+
-      `<td class="num m-hide">${(agg.stm+agg.ustm)?fmt(agg.stm+agg.ustm):'—'}</td>`+
-      `<td class="num m-hide">${agg.mkt?fmt(agg.mkt):'—'}</td>`+
+      `<td class="num m-hide">${metricCell(agg.stm+agg.ustm,agg.pstm,agg.pstm?(agg.stm+agg.ustm)/agg.pstm*100:null,agg.fstm,agg.pstm?agg.fstm/agg.pstm*100:null)}</td>`+
+      `<td class="num m-hide">${metricCell(agg.mkt,agg.pmktP,agg.pmktP?agg.mkt/agg.pmktP*100:null,agg.fmkt,agg.pmktP?agg.fmkt/agg.pmktP*100:null)}</td>`+
       `<td class="num m-hide"></td><td class="num mut m-hide"></td></tr>`;
     if(open) h += rowsHtml;
   });
@@ -357,7 +377,7 @@ function renderKpis(sum, phId, month){
 
 function renderEmp(sum, phId){
   const emps = phId? sum.employees.filter(e=>e.pharmacy_id==phId) : sum.employees;
-  let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th class="m-hide">Доля</th><th class="m-hide">Личный план (мес)</th><th>Факт ТО</th><th>% вып.</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ</th><th class="m-hide">Маркетинг</th></tr></thead><tbody>';
+  let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th class="m-hide">Доля</th><th class="m-hide">Личный план (мес)</th><th>Факт ТО</th><th>% вып.</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th></tr></thead><tbody>';
   if(!emps.length){ $('#tblEmp').innerHTML = '<tbody><tr><td class="l mut">нет данных по факту — пришлите продажи через API</td></tr></tbody>'; return; }
   emps.forEach(e=>{
     const ph = CAT.pharmacy.find(p=>p.id===e.pharmacy_id);
@@ -367,11 +387,16 @@ function renderEmp(sum, phId){
     const effShare = (ov && ov.share!=null)? ov.share : (e.share||0);
     const personal = (ov && ov.revenue!=null)? ov.revenue : (planRow? planRow.revenue*effShare : null);
     const pc = personal? e.revenue/personal*100 : null;
+    // Личные планы метрик = личный план ТО × целевая доля (metric_targets из /api/summary)
+    const mt = sum.metric_targets? sum.metric_targets[MONTHS[midx]] : null;
+    const pStm = (personal!=null && mt && mt.stm_share!=null)? personal*mt.stm_share : null;
+    const pMkt = (personal!=null && mt && mt.marketing_share!=null)? personal*mt.marketing_share : null;
+    const eStm = (e.stm||0)+(e.ustm||0);
     h += `<tr${ov? ' title="план из Excel-загрузки"':''}><td class="l stick">${e.fio}${ov? ' <span style="font-size:9px" title="план из Excel">✎</span>':''}</td><td class="l"><span class="dot" style="background:${ph.color}"></span>${ph.name}</td><td class="num m-hide">${(effShare*100).toFixed(0)}%</td>`+
       `<td class="num m-hide">${personal?fmt(personal):'—'}</td><td class="num">${fmt(e.revenue)}</td>`+
       `<td class="num ${pc!=null?(pc>=100?'pos':'neg'):''}">${pc!=null?pc.toFixed(1)+'%':'—'}</td><td class="num m-hide">${fmt(e.margin)}</td>`+
-      `<td class="num m-hide">${(e.stm||e.ustm)?fmt((e.stm||0)+(e.ustm||0)):'—'}</td>`+
-      `<td class="num m-hide">${e.marketing?fmt(e.marketing):'—'}</td></tr>`;
+      `<td class="num m-hide">${metricCell(eStm,pStm,pStm?eStm/pStm*100:null,null,null)}</td>`+
+      `<td class="num m-hide">${metricCell(e.marketing,pMkt,pMkt?e.marketing/pMkt*100:null,null,null)}</td></tr>`;
   });
   $('#tblEmp').innerHTML = h+'</tbody>';
 }

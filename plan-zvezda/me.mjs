@@ -174,6 +174,9 @@ export function meData(db, employeeId, delegated = false, asId = null) {
 
   const planRow = db.prepare('SELECT revenue, margin FROM plan WHERE pharmacy_id=? AND month=?').get(ph.id, month);
   const phPlan = planRow?.revenue || 0;
+  // Целевые доли СТМ/Маркетинга: план ₽ = план ТО × доля
+  const tgt = (() => { try { return db.prepare('SELECT stm_share, marketing_share FROM metric_target WHERE month=?').get(month) || {}; } catch { return {}; } })();
+  const fcstScale = elapsed > 0 ? totalDays / elapsed : 0; // линейный прогноз как у ТО
   // Excel-override личных планов (employee_plan): revenue важнее, share подменяет долю.
   const epMap = {};
   try {
@@ -188,6 +191,9 @@ export function meData(db, employeeId, delegated = false, asId = null) {
   const phMarketing = phFactRow?.marketing || 0;
   const phPct = phPlan ? phFact / phPlan * 100 : 0;
   const phFcstPct = phPlan ? (phFact / elapsed * totalDays) / phPlan * 100 : 0;
+  const phStmSum = phStm + phUstm; // СТМ+УСТМ — одна метрика
+  const phStmPlan = tgt.stm_share != null ? phPlan * tgt.stm_share : null;
+  const phMktPlan = tgt.marketing_share != null ? phPlan * tgt.marketing_share : null;
 
   // Сеть
   const net = db.prepare(`
@@ -220,9 +226,16 @@ export function meData(db, employeeId, delegated = false, asId = null) {
           per_day: plan ? Math.round(Math.max(plan - fact, 0) / Math.max(totalDays - elapsed, 1)) : null,
           avg_check: avgCheck != null ? Math.round(avgCheck) : null,
           stm: Math.round(stm), ustm: Math.round(ustm),
+          stm_sum: Math.round(stm + ustm),
           stm_share: fact ? pct1(stm / fact * 100) : null,
+          stm_plan: tgt.stm_share != null ? Math.round(plan * tgt.stm_share) : null,
+          stm_pct: (tgt.stm_share != null && plan) ? pct1((stm + ustm) / (plan * tgt.stm_share) * 100) : null,
+          stm_fcst: tgt.stm_share != null ? Math.round((stm + ustm) * fcstScale) : null,
           marketing: Math.round(marketing),
           marketing_share: fact ? pct1(marketing / fact * 100) : null,
+          marketing_plan: tgt.marketing_share != null ? Math.round(plan * tgt.marketing_share) : null,
+          marketing_pct: (tgt.marketing_share != null && plan) ? pct1(marketing / (plan * tgt.marketing_share) * 100) : null,
+          marketing_fcst: tgt.marketing_share != null ? Math.round(marketing * fcstScale) : null,
           tip: myAdvice(db, e, plan, fact, phPct, avgCheck, month),
         };
     me.push(pub);
@@ -251,7 +264,7 @@ export function meData(db, employeeId, delegated = false, asId = null) {
     pharmacy: { id: ph.id, name: ph.name, addr: ph.addr, color: ph.color },
     net: { pct: pct1(netPct) }, // сеть — только процент, без абсолютов
     roles,
-    pharmacy_stats: { plan: phPlan, fact: phFact, pct: pct1(phPct), fcst_pct: pct1(phFcstPct), stm: Math.round(phStm), ustm: Math.round(phUstm), stm_share: phFact ? pct1(phStm / phFact * 100) : null, marketing: Math.round(phMarketing), marketing_share: phFact ? pct1(phMarketing / phFact * 100) : null },
+    pharmacy_stats: { plan: phPlan, fact: phFact, pct: pct1(phPct), fcst_pct: pct1(phFcstPct), stm: Math.round(phStm), ustm: Math.round(phUstm), stm_sum: Math.round(phStmSum), stm_share: phFact ? pct1(phStmSum / phFact * 100) : null, stm_plan: phStmPlan != null ? Math.round(phStmPlan) : null, stm_pct: phStmPlan ? pct1(phStmSum / phStmPlan * 100) : null, stm_fcst: Math.round(phStmSum * fcstScale), marketing: Math.round(phMarketing), marketing_share: phFact ? pct1(phMarketing / phFact * 100) : null, marketing_plan: phMktPlan != null ? Math.round(phMktPlan) : null, marketing_pct: phMktPlan ? pct1(phMarketing / phMktPlan * 100) : null, marketing_fcst: Math.round(phMarketing * fcstScale) },
     me, series, stockouts, coupons,
     tip: delegated ? 'Сводка аптеки: план, факт и прогноз. Персональные цифры сотрудников видны только им самим.' : me[0].tip,
   };

@@ -75,6 +75,10 @@ export function ensureSchema(db) {
   CREATE TABLE IF NOT EXISTS kpi_target(
     month TEXT PRIMARY KEY CHECK(month IN ('Сентябрь','Октябрь','Ноябрь','Декабрь')),
     checks_per_day REAL, avg_check REAL, multi_share REAL, coupons_per_week REAL);
+  -- Целевые доли СТМ и Маркетинга в обороте (план ₽ = план ТО × доля)
+  CREATE TABLE IF NOT EXISTS metric_target(
+    month TEXT PRIMARY KEY CHECK(month IN ('Сентябрь','Октябрь','Ноябрь','Декабрь')),
+    stm_share REAL, marketing_share REAL);
   `);
   migrateSchema(db);
 }
@@ -160,6 +164,16 @@ export function ensureKpiTargets(db) {
   const insKpi = db.prepare('INSERT OR IGNORE INTO kpi_target(month,checks_per_day,avg_check,multi_share,coupons_per_week) VALUES (?,?,?,?,?)');
   let n = 0;
   for (const [m, k] of Object.entries(KPI)) n += insKpi.run(m, k.checks_per_day, k.avg_check, k.multi_share, k.coupons_per_week).changes;
+  return n;
+}
+
+// Целевые доли СТМ/Маркетинга в обороте: план ₽ = план ТО × доля.
+// Идемпотентно: строка месяца досаживается один раз, дальше правится вручную (или будущим API).
+export function ensureMetricTargets(db) {
+  const T = { 'Сентябрь': [0.14, 0.30], 'Октябрь': [0.14, 0.30], 'Ноябрь': [0.14, 0.30], 'Декабрь': [0.14, 0.30] };
+  const ins = db.prepare('INSERT OR IGNORE INTO metric_target(month,stm_share,marketing_share) VALUES (?,?,?)');
+  let n = 0;
+  for (const [m, [s, k]] of Object.entries(T)) n += ins.run(m, s, k).changes;
   return n;
 }
 

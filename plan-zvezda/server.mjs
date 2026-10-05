@@ -3,13 +3,14 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
-import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ensureEmpPlan, ROOT } from './db.mjs';
+import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ensureMetricTargets, ensureEmpPlan, ROOT } from './db.mjs';
 import { ensureTgSchema, tgToken, buildReports, bindNew, broadcast, scheduleDaily } from './broadcast.mjs';
 import { loadModules, serveModuleStatic } from './modules.mjs';
 
 const db = openDb();
 ensureSchema(db);
 ensureKpiTargets(db);
+ensureMetricTargets(db);
 ensureEmpPlan(db);
 if (seed(db)) {
   const n = seedDemo(db);
@@ -460,6 +461,11 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
   const MONTH_KEYS = {'Сентябрь':'2026-09','Октябрь':'2026-10','Ноябрь':'2026-11','Декабрь':'2026-12'};
   const mKey = month ? (MONTH_KEYS[month] || null) : null;   // для фильтра дат факта
   const mLike = mKey ? mKey + '%' : null;                     // LIKE '2026-10%'
+  // Целевые доли СТМ/Маркетинга: план ₽ = план ТО × доля (metric_target)
+  const tgtMap = {};
+  try {
+    for (const t of db.prepare('SELECT month, stm_share, marketing_share FROM metric_target').all()) tgtMap[t.month] = t;
+  } catch { /* таблица ещё не создана — планы null */ }
   const empFact = db.prepare(`
     -- Все сотрудники аптеки, даже без факта (иначе дашборд «теряет» новых)
     -- month (имя месяца) фильтрует факт по сотруднику; без month — за всё время
@@ -483,11 +489,25 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     const dayBase = Math.max(elapsed, 1);
     const forecastRev = (f.revenue / dayBase) * totalDays;
     const forecastVd = (f.margin / dayBase) * totalDays;
+    const factStm = f.stm + f.ustm; // СТМ+УСТМ — одна метрика
+    const forecastStm = (factStm / dayBase) * totalDays;
+    const forecastMkt = (f.marketing / dayBase) * totalDays;
+    const tg = tgtMap[p.month];
+    const planStm = tg?.stm_share != null ? p.revenue * tg.stm_share : null;
+    const planMkt = tg?.marketing_share != null ? p.revenue * tg.marketing_share : null;
     return {
       pharmacy_id: p.pharmacy_id, pharmacy: p.name, month: p.month,
       plan_revenue: p.revenue, plan_margin: p.margin,
       fact_revenue: Math.round(f.revenue), fact_margin: Math.round(f.margin),
       fact_stm: Math.round(f.stm), fact_ustm: Math.round(f.ustm), fact_marketing: Math.round(f.marketing),
+      plan_stm: planStm != null ? Math.round(planStm) : null,
+      plan_marketing: planMkt != null ? Math.round(planMkt) : null,
+      pct_stm: planStm ? +(factStm / planStm * 100).toFixed(1) : null,
+      pct_marketing: planMkt ? +(f.marketing / planMkt * 100).toFixed(1) : null,
+      forecast_stm: Math.round(forecastStm),
+      forecast_marketing: Math.round(forecastMkt),
+      forecast_pct_stm: planStm ? +(forecastStm / planStm * 100).toFixed(1) : null,
+      forecast_pct_marketing: planMkt ? +(forecastMkt / planMkt * 100).toFixed(1) : null,
       fact_checks: f.checks, fact_days: f.days.size, total_days: totalDays,
       pct_revenue: p.revenue ? +(f.revenue / p.revenue * 100).toFixed(1) : null,
       pct_margin: p.margin ? +(f.margin / p.margin * 100).toFixed(1) : null,
@@ -499,6 +519,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
 
   json(res, 200, {
     rows: out,
+    metric_targets: tgtMap,
     employees: empFact.map(e => ({
       pharmacy_id: e.pharmacy_id, employee_id: e.employee_id, fio: e.fio, share: e.share,
       revenue: Math.round(e.revenue), margin: Math.round(e.margin), checks: e.checks,

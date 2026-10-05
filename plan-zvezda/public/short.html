@@ -243,6 +243,11 @@ function render(){
   // СТМ (СТМ+УСТМ — одна метрика): личный факт сотрудника либо по аптеке за месяц
   const stmVal = emp ? ((emp.stm||0)+(emp.ustm||0)) : ((row.fact_stm||0)+(row.fact_ustm||0));
   const stmPct = fact > 0 ? stmVal / fact * 100 : 0;
+  // План/факт/%/прогноз СТМ: план ₽ из /api/summary (план ТО × доля), личный — доля × план аптеки
+  const _shrK = emp ? (emp.share || 0) : 1;
+  const stmPlan = row.plan_stm != null ? row.plan_stm * _shrK : null;
+  const stmPctPlan = stmPlan ? stmVal / stmPlan * 100 : null;
+  const stmFc = row.forecast_stm != null ? row.forecast_stm * _shrK : null;
 
   document.getElementById('asOf').textContent =
     `${emp ? 'Лично: ' + emp.fio + ' · ' : ''}${MONTHS[rowKey(row)]}`;
@@ -265,7 +270,7 @@ function render(){
       <div><div class="t">Наценка</div>
         <div class="v">${Math.round(mkPct)}% <span>· маржа ${Math.round(mgPct)}%</span></div></div>
       <div><div class="t">СТМ</div>
-        <div class="v">${stmVal ? fmtRub(stmVal) : '—'}${stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : ''}</div></div>
+        <div class="v">${stmVal ? fmtRub(stmVal) : '—'}${stmPlan != null && stmVal ? ` <span>· план ${fmtRub(stmPlan)} · ${stmPctPlan.toFixed(1).replace('.',',')}%</span>` : stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : ''}${stmFc != null && stmVal ? ` <span>· прогноз ${fmtRub(stmFc)}</span>` : ''}</div></div>
     </div>
     <div class="chip ${toneCls(fcPct)}">${db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' :
       'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения')}</div>`;

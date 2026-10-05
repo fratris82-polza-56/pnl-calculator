@@ -188,6 +188,20 @@ function pctEl(el,pct){if(pct==null){el.textContent='—';return;}
   el.textContent=pct.toFixed(1).replace('.',',')+'%';
   el.className='pct '+(pct>=100?'ok':pct>=90?'warn':'bad');}
 
+// Строка метрики (СТМ/Маркетинг): факт / план · % выполнения · прогноз
+function mLine(label,fact,plan,pct,fcst,share){
+  const p=v=>v.toFixed(1).replace('.',',');
+  let s=label+' '+fmt(fact)+' ₽';
+  if(plan!=null){
+    s+=' / план '+fmt(plan)+' ₽';
+    if(pct!=null) s+=' ('+p(pct)+'%)';
+    if(fcst!=null) s+=' · прогноз ~'+fmt(fcst)+' ₽';
+  }else if(share!=null){
+    s+=' ('+p(share)+'% ТО)';
+  }
+  return s;
+}
+
 async function api(path,opt={}){
   const r=await fetch(path,{...opt,headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN,...(opt.headers||{})}});
   if(r.status===401){localStorage.removeItem('me_token');localStorage.removeItem('me_as');showLogin();throw new Error('session');}
@@ -252,11 +266,11 @@ function render(d){
     bar($('meBar'),d.pharmacy_stats.pct);
     $('meLeft').textContent='Сотрудников: '+d.me.length;
     $('meAvg').textContent='';
-    $('meStm').textContent=(d.pharmacy_stats.stm||d.pharmacy_stats.ustm)
-      ?('СТМ '+fmt((d.pharmacy_stats.stm||0)+(d.pharmacy_stats.ustm||0))+' ₽ ('+(((d.pharmacy_stats.stm||0)+(d.pharmacy_stats.ustm||0))/Math.max(d.pharmacy_stats.fact||1,1)*100).toFixed(1).replace('.',',')+'% ТО)')
+    $('meStm').textContent=(d.pharmacy_stats.stm_sum!=null)
+      ?mLine('СТМ', d.pharmacy_stats.stm_sum, d.pharmacy_stats.stm_plan, d.pharmacy_stats.stm_pct, d.pharmacy_stats.stm_fcst, d.pharmacy_stats.stm_share)
       :'';
     $('meMarketing').textContent=d.pharmacy_stats.marketing
-      ?('Маркетинг '+fmt(d.pharmacy_stats.marketing)+' ₽ ('+(d.pharmacy_stats.marketing_share||0).toFixed(1).replace('.',',')+'% ТО)')
+      ?mLine('Маркетинг', d.pharmacy_stats.marketing, d.pharmacy_stats.marketing_plan, d.pharmacy_stats.marketing_pct, d.pharmacy_stats.marketing_fcst, d.pharmacy_stats.marketing_share)
       :'';
   }else{
     $('myTitle').textContent=me.role==='вакансия'?'Статус':'Мой результат';
@@ -275,11 +289,11 @@ function render(d){
       bar($('meBar'),me.pct||0);
       $('meLeft').textContent=me.left>0?('Осталось: '+fmt(me.left)+' ₽ ≈ '+fmt(me.per_day)+' ₽/день'):'План месяца выполнен 🎉';
       $('meAvg').textContent=me.avg_check?('Средний чек: '+fmt(me.avg_check)+' ₽'):'';
-      $('meStm').textContent=(me.stm||me.ustm)
-        ?('СТМ '+fmt((me.stm||0)+(me.ustm||0))+' ₽ ('+(((me.stm||0)+(me.ustm||0))/Math.max(me.fact||1,1)*100).toFixed(1).replace('.',',')+'% ТО)')
+      $('meStm').textContent=(me.stm_sum!=null)
+        ?mLine('СТМ', me.stm_sum, me.stm_plan, me.stm_pct, me.stm_fcst, me.stm_share)
         :'';
       $('meMarketing').textContent=me.marketing
-        ?('Маркетинг '+fmt(me.marketing)+' ₽ ('+(me.marketing_share||0).toFixed(1).replace('.',',')+'% ТО)')
+        ?mLine('Маркетинг', me.marketing, me.marketing_plan, me.marketing_pct, me.marketing_fcst, me.marketing_share)
         :'';
     }
   }
