@@ -392,7 +392,6 @@ def build():
 
     yoy_items, yoy_rows = [], []
     tot = dict.fromkeys(('r25', 'r26', 'p25', 'p26', 'c25', 'c26', 'o25', 'o26'), 0)
-    tot_ex = dict.fromkeys(tot, 0)   # без Маяковской (в 2025 работала иначе)
     for name in DEPT_ORDER:
         d = dcmp.get(name)
         if not d:
@@ -404,13 +403,11 @@ def build():
         yoy_items.append((SHORT.get(name, name), d['r25'], d['r26']))
         for k in tot:
             tot[k] += d[k]
-            if name != 'Маяковская':
-                tot_ex[k] += d[k]
         wks = [wk for wk in cmp_weeks
                if name in (w26[wk].get('depts') or {}) and name in (prev_full[wk].get('depts') or {})]
         rng = f"{min(wks)}–{max(wks)}" if wks else '—'
         yoy_rows.append(
-            f"<tr><td>{esc(name)}{'†' if name == 'Маяковская' else ''}</td><td>{rng}</td>"
+            f"<tr><td>{esc(name)}</td><td>{rng}</td>"
             f"<td class=num>{rub(d['r25'])}</td><td class=num>{rub(d['r26'])}</td>"
             f"<td class=num>{_pct_html(_d_pct(d['r26'], d['r25']))}</td>"
             f"<td class=num>{rub(d['p25'])}</td><td class=num>{rub(d['p26'])}</td>"
@@ -440,7 +437,6 @@ def build():
             f"<td class=num>{pp_badge(gm26, gm25) if gm25 is not None and gm26 is not None else '—'}</td></tr>")
 
     yoy_rows.append(total_row('ИТОГО (5 аптек)', tot))
-    yoy_rows.append(total_row('ИТОГО без Маяковской', tot_ex, 'tot'))
     ch4 = grouped_yoy_chart(yoy_items)
 
     # ---- months ----
@@ -627,7 +623,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 {''.join(yoy_rows)}
 </table>
 </div>
-<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34 (в выгрузках 2026 появилась позже). ⚠ †Маяковская в 2025 работала в ином формате — её сравнение некорректно, смотрите строку «ИТОГО без Маяковской». «Аптека» (Ленин) в выгрузках 2025 отсутствует и в сравнение не входит.</div>
+<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34 (в выгрузках 2026 появилась позже). «Аптека» (Ленин) в выгрузках 2025 отсутствует и в сравнение не входит.</div>
 </div>
 
 <div class="card">
