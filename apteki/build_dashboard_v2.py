@@ -360,25 +360,6 @@ def build():
     SHORT = {'Проспект Мира': 'Пр. Мира', 'Аптека': 'Ленин'}
     w26 = {w['week']: w for w in weeks}
     cmp_weeks = sorted(set(prev_full) & set(w26))
-    dcmp = {}
-    for wk in cmp_weeks:
-        a26, a25 = w26[wk], prev_full[wk]
-        for name in set(a26.get('depts') or {}) & set(a25.get('depts') or {}):
-            v26 = (a26.get('depts') or {})[name]
-            v25 = (a25.get('depts') or {})[name]
-            i26 = (a26.get('izdepts') or {}).get(name) or {}
-            i25 = (a25.get('izdepts') or {}).get(name) or {}
-            d = dcmp.setdefault(name, dict.fromkeys(
-                ('w', 'r25', 'r26', 'p25', 'p26', 'c25', 'c26', 'o25', 'o26'), 0))
-            d['w'] += 1
-            d['r26'] += (v26.get('выручка') or 0) + (i26.get('выручка') or 0)
-            d['r25'] += (v25.get('выручка') or 0) + (i25.get('выручка') or 0)
-            d['p26'] += (v26.get('прибыль') or 0) + (i26.get('прибыль') or 0)
-            d['p25'] += (v25.get('прибыль') or 0) + (i25.get('прибыль') or 0)
-            d['c26'] += (v26.get('чеков') or 0) + (i26.get('чеков') or 0)
-            d['c25'] += (v25.get('чеков') or 0) + (i25.get('чеков') or 0)
-            d['o26'] += (v26.get('опт') or 0) + (i26.get('опт') or 0)
-            d['o25'] += (v25.get('опт') or 0) + (i25.get('опт') or 0)
 
     def _d_pct(a, b):
         return ((a / b - 1) * 100) if b else None
@@ -390,54 +371,85 @@ def build():
             return '<span class="mut">—</span>'
         return f'<span class="{"pos" if v >= 0 else "neg"}">{v:+.1f}%</span>'.replace('.', ',')
 
-    yoy_items, yoy_rows = [], []
-    tot = dict.fromkeys(('r25', 'r26', 'p25', 'p26', 'c25', 'c26', 'o25', 'o26'), 0)
-    for name in DEPT_ORDER:
-        d = dcmp.get(name)
-        if not d:
-            continue
-        m25 = d['p25'] / d['o25'] * 100 if d['o25'] else None
-        m26 = d['p26'] / d['o26'] * 100 if d['o26'] else None
-        s25 = d['r25'] / d['c25'] if d['c25'] else None
-        s26 = d['r26'] / d['c26'] if d['c26'] else None
-        yoy_items.append((SHORT.get(name, name), d['r25'], d['r26']))
-        for k in tot:
-            tot[k] += d[k]
-        wks = [wk for wk in cmp_weeks
-               if name in (w26[wk].get('depts') or {}) and name in (prev_full[wk].get('depts') or {})]
-        rng = f"{min(wks)}–{max(wks)}" if wks else '—'
-        yoy_rows.append(
-            f"<tr><td>{esc(name)}</td><td>{rng}</td>"
-            f"<td class=num>{rub(d['r25'])}</td><td class=num>{rub(d['r26'])}</td>"
-            f"<td class=num>{_pct_html(_d_pct(d['r26'], d['r25']))}</td>"
-            f"<td class=num>{rub(d['p25'])}</td><td class=num>{rub(d['p26'])}</td>"
-            f"<td class=num>{_pct_html(_d_pct(d['p26'], d['p25']))}</td>"
-            f"<td class=num>{rub(d['c25'])}</td><td class=num>{rub(d['c26'])}</td>"
-            f"<td class=num>{_pct_html(_d_pct(d['c26'], d['c25']))}</td>"
-            f"<td class=num>{_pct_html(_d_pct(s26, s25))}</td>"
-            f"<td class=num>{f'{m25:.2f}'.replace('.', ',') + '%' if m25 is not None else '—'}</td>"
-            f"<td class=num>{f'{m26:.2f}'.replace('.', ',') + '%' if m26 is not None else '—'}</td>"
-            f"<td class=num>{pp_badge(m26, m25) if m25 is not None and m26 is not None else DASH}</td></tr>")
-    def total_row(label, g, cls='tot'):
-        gm25 = g['p25'] / g['o25'] * 100 if g['o25'] else None
-        gm26 = g['p26'] / g['o26'] * 100 if g['o26'] else None
-        gs25 = g['r25'] / g['c25'] if g['c25'] else None
-        gs26 = g['r26'] / g['c26'] if g['c26'] else None
-        return (
-            f"<tr class={cls}><td>{label}</td><td>—</td>"
-            f"<td class=num>{rub(g['r25'])}</td><td class=num>{rub(g['r26'])}</td>"
-            f"<td class=num>{_pct_html(_d_pct(g['r26'], g['r25']))}</td>"
-            f"<td class=num>{rub(g['p25'])}</td><td class=num>{rub(g['p26'])}</td>"
-            f"<td class=num>{_pct_html(_d_pct(g['p26'], g['p25']))}</td>"
-            f"<td class=num>{rub(g['c25'])}</td><td class=num>{rub(g['c26'])}</td>"
-            f"<td class=num>{_pct_html(_d_pct(g['c26'], g['c25']))}</td>"
-            f"<td class=num>{_pct_html(_d_pct(gs26, gs25))}</td>"
-            f"<td class=num>{f'{gm25:.2f}'.replace('.', ',') + '%' if gm25 is not None else '—'}</td>"
-            f"<td class=num>{f'{gm26:.2f}'.replace('.', ',') + '%' if gm26 is not None else '—'}</td>"
-            f"<td class=num>{pp_badge(gm26, gm25) if gm25 is not None and gm26 is not None else '—'}</td></tr>")
+    def _num(v):
+        return f'{v:.2f}'.replace('.', ',') + '%' if v is not None else '—'
 
-    yoy_rows.append(total_row('ИТОГО (5 аптек)', tot))
-    ch4 = grouped_yoy_chart(yoy_items)
+    def compute(mode):
+        """mode: 'rose' — только отделы, 'iz' — только ИЗ, 'all' — розница+ИЗ."""
+        acc = {}
+        for wk in cmp_weeks:
+            a26, a25 = w26[wk], prev_full[wk]
+            names = set((a26.get('depts') or {})) & set((a25.get('depts') or {}))
+            for name in names:
+                src = {'rose': lambda a: (a.get('depts') or {}).get(name) or {},
+                       'iz': lambda a: (a.get('izdepts') or {}).get(name) or {},
+                       'all': lambda a: {k: ((a.get('depts') or {}).get(name) or {}).get(k, 0)
+                                          + ((a.get('izdepts') or {}).get(name) or {}).get(k, 0)
+                                          for k in ('выручка', 'прибыль', 'чеков', 'опт')}}[mode]
+                v26, v25 = src(a26), src(a25)
+                if mode == 'iz' and not v26 and not v25:
+                    continue
+                d = acc.setdefault(name, dict.fromkeys(
+                    ('w', 'r25', 'r26', 'p25', 'p26', 'c25', 'c26', 'o25', 'o26'), 0))
+                d['w'] += 1
+                d['r26'] += v26.get('выручка') or 0
+                d['r25'] += v25.get('выручка') or 0
+                d['p26'] += v26.get('прибыль') or 0
+                d['p25'] += v25.get('прибыль') or 0
+                d['c26'] += v26.get('чеков') or 0
+                d['c25'] += v25.get('чеков') or 0
+                d['o26'] += v26.get('опт') or 0
+                d['o25'] += v25.get('опт') or 0
+        return acc
+
+    def table_html(acc):
+        items, rows = [], []
+        tot = dict.fromkeys(('r25', 'r26', 'p25', 'p26', 'c25', 'c26', 'o25', 'o26'), 0)
+        for name in DEPT_ORDER:
+            d = acc.get(name)
+            if not d:
+                continue
+            m25 = d['p25'] / d['o25'] * 100 if d['o25'] else None
+            m26 = d['p26'] / d['o26'] * 100 if d['o26'] else None
+            s25 = d['r25'] / d['c25'] if d['c25'] else None
+            s26 = d['r26'] / d['c26'] if d['c26'] else None
+            items.append((SHORT.get(name, name), d['r25'], d['r26']))
+            for k in tot:
+                tot[k] += d[k]
+            wks = [wk for wk in cmp_weeks
+                   if name in (w26[wk].get('depts') or {}) and name in (prev_full[wk].get('depts') or {})]
+            rng = f"{min(wks)}–{max(wks)}" if wks else '—'
+            rows.append(
+                f"<tr><td>{esc(name)}</td><td>{rng}</td>"
+                f"<td class=num>{rub(d['r25'])}</td><td class=num>{rub(d['r26'])}</td>"
+                f"<td class=num>{_pct_html(_d_pct(d['r26'], d['r25']))}</td>"
+                f"<td class=num>{rub(d['p25'])}</td><td class=num>{rub(d['p26'])}</td>"
+                f"<td class=num>{_pct_html(_d_pct(d['p26'], d['p25']))}</td>"
+                f"<td class=num>{rub(d['c25'])}</td><td class=num>{rub(d['c26'])}</td>"
+                f"<td class=num>{_pct_html(_d_pct(d['c26'], d['c25']))}</td>"
+                f"<td class=num>{_pct_html(_d_pct(s26, s25))}</td>"
+                f"<td class=num>{_num(m25)}</td><td class=num>{_num(m26)}</td>"
+                f"<td class=num>{pp_badge(m26, m25) if m25 is not None and m26 is not None else DASH}</td></tr>")
+        gm25 = tot['p25'] / tot['o25'] * 100 if tot['o25'] else None
+        gm26 = tot['p26'] / tot['o26'] * 100 if tot['o26'] else None
+        gs25 = tot['r25'] / tot['c25'] if tot['c25'] else None
+        gs26 = tot['r26'] / tot['c26'] if tot['c26'] else None
+        rows.append(
+            f"<tr class=tot><td>ИТОГО</td><td>—</td>"
+            f"<td class=num>{rub(tot['r25'])}</td><td class=num>{rub(tot['r26'])}</td>"
+            f"<td class=num>{_pct_html(_d_pct(tot['r26'], tot['r25']))}</td>"
+            f"<td class=num>{rub(tot['p25'])}</td><td class=num>{rub(tot['p26'])}</td>"
+            f"<td class=num>{_pct_html(_d_pct(tot['p26'], tot['p25']))}</td>"
+            f"<td class=num>{rub(tot['c25'])}</td><td class=num>{rub(tot['c26'])}</td>"
+            f"<td class=num>{_pct_html(_d_pct(tot['c26'], tot['c25']))}</td>"
+            f"<td class=num>{_pct_html(_d_pct(gs26, gs25))}</td>"
+            f"<td class=num>{_num(gm25)}</td><td class=num>{_num(gm26)}</td>"
+            f"<td class=num>{pp_badge(gm26, gm25) if gm25 is not None and gm26 is not None else '—'}</td></tr>")
+        return grouped_yoy_chart(items), ''.join(rows)
+
+    ch_rose, rows_rose = table_html(compute('rose'))
+    ch_iz, rows_iz = table_html(compute('iz'))
+    ch_all, rows_all = table_html(compute('all'))
 
     # ---- months ----
     months = {}
@@ -614,16 +626,40 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 </div>
 
 <div class="card">
-<h2>Сравнение по аптекам: 2025 vs 2026 · розница + ИЗ</h2>
+<h2>Сравнение по аптекам 2025 vs 2026 · РОЗНИЦА</h2>
 {legend([('выручка 2025', C['gold']), ('выручка 2026', C['blue'])])}
-{ch4}
+{ch_rose}
 <div class="scroll" style="max-height:none;margin-top:10px">
 <table>
 <tr><th class=l>Аптека</th><th>Недели</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
-{''.join(yoy_rows)}
+{rows_rose}
 </table>
 </div>
-<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34 (в выгрузках 2026 появилась позже). «Аптека» (Ленин) в выгрузках 2025 отсутствует и в сравнение не входит.</div>
+</div>
+
+<div class="card">
+<h2>Сравнение по аптекам 2025 vs 2026 · ИЗ</h2>
+{legend([('выручка 2025', C['gold']), ('выручка 2026', C['blue'])])}
+{ch_iz}
+<div class="scroll" style="max-height:none;margin-top:10px">
+<table>
+<tr><th class=l>Аптека</th><th>Недели</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
+{rows_iz}
+</table>
+</div>
+</div>
+
+<div class="card">
+<h2>Сравнение по аптекам 2025 vs 2026 · РОЗНИЦА + ИЗ</h2>
+{legend([('выручка 2025', C['gold']), ('выручка 2026', C['blue'])])}
+{ch_all}
+<div class="scroll" style="max-height:none;margin-top:10px">
+<table>
+<tr><th class=l>Аптека</th><th>Недели</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
+{rows_all}
+</table>
+</div>
+<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34. «Аптека» (Ленин) в выгрузках 2025 отсутствует и в сравнение не входит.</div>
 </div>
 
 <div class="card">
