@@ -392,6 +392,7 @@ def build():
 
     yoy_items, yoy_rows = [], []
     tot = dict.fromkeys(('r25', 'r26', 'p25', 'p26', 'c25', 'c26', 'o25', 'o26'), 0)
+    tot_ex = dict.fromkeys(tot, 0)   # без Маяковской (в 2025 работала иначе)
     for name in DEPT_ORDER:
         d = dcmp.get(name)
         if not d:
@@ -403,11 +404,13 @@ def build():
         yoy_items.append((SHORT.get(name, name), d['r25'], d['r26']))
         for k in tot:
             tot[k] += d[k]
+            if name != 'Маяковская':
+                tot_ex[k] += d[k]
         wks = [wk for wk in cmp_weeks
                if name in (w26[wk].get('depts') or {}) and name in (prev_full[wk].get('depts') or {})]
         rng = f"{min(wks)}–{max(wks)}" if wks else '—'
         yoy_rows.append(
-            f"<tr><td>{esc(name)}</td><td>{rng}</td>"
+            f"<tr><td>{esc(name)}{'†' if name == 'Маяковская' else ''}</td><td>{rng}</td>"
             f"<td class=num>{rub(d['r25'])}</td><td class=num>{rub(d['r26'])}</td>"
             f"<td class=num>{_pct_html(_d_pct(d['r26'], d['r25']))}</td>"
             f"<td class=num>{rub(d['p25'])}</td><td class=num>{rub(d['p26'])}</td>"
@@ -418,22 +421,26 @@ def build():
             f"<td class=num>{f'{m25:.2f}'.replace('.', ',') + '%' if m25 is not None else '—'}</td>"
             f"<td class=num>{f'{m26:.2f}'.replace('.', ',') + '%' if m26 is not None else '—'}</td>"
             f"<td class=num>{pp_badge(m26, m25) if m25 is not None and m26 is not None else DASH}</td></tr>")
-    tm25 = tot['p25'] / tot['o25'] * 100 if tot['o25'] else None
-    tm26 = tot['p26'] / tot['o26'] * 100 if tot['o26'] else None
-    ts25 = tot['r25'] / tot['c25'] if tot['c25'] else None
-    ts26 = tot['r26'] / tot['c26'] if tot['c26'] else None
-    yoy_rows.append(
-        f"<tr class=tot><td>ИТОГО (5 аптек)</td><td>—</td>"
-        f"<td class=num>{rub(tot['r25'])}</td><td class=num>{rub(tot['r26'])}</td>"
-        f"<td class=num>{_pct_html(_d_pct(tot['r26'], tot['r25']))}</td>"
-        f"<td class=num>{rub(tot['p25'])}</td><td class=num>{rub(tot['p26'])}</td>"
-        f"<td class=num>{_pct_html(_d_pct(tot['p26'], tot['p25']))}</td>"
-        f"<td class=num>{rub(tot['c25'])}</td><td class=num>{rub(tot['c26'])}</td>"
-        f"<td class=num>{_pct_html(_d_pct(tot['c26'], tot['c25']))}</td>"
-        f"<td class=num>{_pct_html(_d_pct(ts26, ts25))}</td>"
-        f"<td class=num>{f'{tm25:.2f}'.replace('.', ',') + '%' if tm25 is not None else '—'}</td>"
-        f"<td class=num>{f'{tm26:.2f}'.replace('.', ',') + '%' if tm26 is not None else '—'}</td>"
-        f"<td class=num>{pp_badge(tm26, tm25) if tm25 is not None and tm26 is not None else '—'}</td></tr>")
+    def total_row(label, g, cls='tot'):
+        gm25 = g['p25'] / g['o25'] * 100 if g['o25'] else None
+        gm26 = g['p26'] / g['o26'] * 100 if g['o26'] else None
+        gs25 = g['r25'] / g['c25'] if g['c25'] else None
+        gs26 = g['r26'] / g['c26'] if g['c26'] else None
+        return (
+            f"<tr class={cls}><td>{label}</td><td>—</td>"
+            f"<td class=num>{rub(g['r25'])}</td><td class=num>{rub(g['r26'])}</td>"
+            f"<td class=num>{_pct_html(_d_pct(g['r26'], g['r25']))}</td>"
+            f"<td class=num>{rub(g['p25'])}</td><td class=num>{rub(g['p26'])}</td>"
+            f"<td class=num>{_pct_html(_d_pct(g['p26'], g['p25']))}</td>"
+            f"<td class=num>{rub(g['c25'])}</td><td class=num>{rub(g['c26'])}</td>"
+            f"<td class=num>{_pct_html(_d_pct(g['c26'], g['c25']))}</td>"
+            f"<td class=num>{_pct_html(_d_pct(gs26, gs25))}</td>"
+            f"<td class=num>{f'{gm25:.2f}'.replace('.', ',') + '%' if gm25 is not None else '—'}</td>"
+            f"<td class=num>{f'{gm26:.2f}'.replace('.', ',') + '%' if gm26 is not None else '—'}</td>"
+            f"<td class=num>{pp_badge(gm26, gm25) if gm25 is not None and gm26 is not None else '—'}</td></tr>")
+
+    yoy_rows.append(total_row('ИТОГО (5 аптек)', tot))
+    yoy_rows.append(total_row('ИТОГО без Маяковской', tot_ex, 'tot'))
     ch4 = grouped_yoy_chart(yoy_items)
 
     # ---- months ----
@@ -620,7 +627,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 {''.join(yoy_rows)}
 </table>
 </div>
-<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34 (в выгрузках 2026 появилась позже). «Аптека» (Ленин) в выгрузках 2025 отсутствует и в сравнение не входит.</div>
+<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34 (в выгрузках 2026 появилась позже). ⚠ †Маяковская в 2025 работала в ином формате — её сравнение некорректно, смотрите строку «ИТОГО без Маяковской». «Аптека» (Ленин) в выгрузках 2025 отсутствует и в сравнение не входит.</div>
 </div>
 
 <div class="card">
