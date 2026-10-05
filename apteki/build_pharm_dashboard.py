@@ -3,7 +3,7 @@
 """Дашборд 5 аптек: план/факт, селектор аптеки, KPI, графики.
 Самодостаточный HTML (Chart.js инлайнится из plan_polza_2026.html).
 План: зашит в plan_polza_2026.html (xlsx «План_Звезда_для_аптек»), сен–дек 2026.
-Факт: weeks_all.json + week37/38/39.json (парсер parse_week.py, выгрузки FastReport).
+Факт: weeks_all.json + week37/38/39/40.json (парсер parse_week.py, выгрузки FastReport).
 Запуск: python3 build_pharm_dashboard.py -> pharmacy_dashboard.html
 """
 import json
@@ -26,7 +26,7 @@ MONTHS = D['months']        # Сентябрь..Декабрь
 # --- Факт: недельные выгрузки ---
 weeks = [w for w in json.load(open(HERE / 'weeks_all.json', encoding='utf-8'))
          if w['to'].endswith('.2026') and w.get('all') and w['all'].get('выручка') is not None]
-for name in ('week37.json', 'week38.json', 'week39.json'):
+for name in ('week37.json', 'week38.json', 'week39.json', 'week40.json'):
     w = json.load(open(HERE / name, encoding='utf-8'))
     weeks.append({
         'from': w['from'], 'to': w['to'], 'year': 2026, 'week': w['week'],

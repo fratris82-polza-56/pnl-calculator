@@ -1,0 +1,329 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<?fr-application created="FastReport"?>
+<?fr-application homesite="http://www.fast-report.com"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet" xmlns:html="http://www.w3.org/TR/REC-html40">
+<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+<Title></Title>
+<Author></Author>
+<Created>05.10.2026 0:00:00T09:19:13.6362593Z</Created>
+<Version></Version>
+</DocumentProperties>
+<ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+<ProtectStructure>False</ProtectStructure>
+<ProtectWindows>False</ProtectWindows>
+</ExcelWorkbook>
+<Styles>
+<Style ss:ID="s0">
+<Font ss:FontName="Tahoma" ss:Size="12" ss:Color="#000000" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Center" ss:Vertical="Top" ss:WrapText="1" />
+<Borders>
+</Borders>
+</Style>
+<Style ss:ID="s1">
+<Font ss:FontName="Arial" ss:Size="10" ss:Color="#000000" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s2">
+<Font ss:FontName="Tahoma" ss:Size="7" ss:Color="#FFFFFF" ss:Bold="1" />
+<Interior ss:Color="#A9A9A9" ss:Pattern="Solid"/>
+<Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s3">
+<Font ss:FontName="Tahoma" ss:Size="7" ss:Color="#000000" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s4">
+<Font ss:FontName="Tahoma" ss:Size="7" ss:Color="#FFFFFF" ss:Bold="1" />
+<Interior ss:Color="#9400D3" ss:Pattern="Solid"/>
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s5">
+<Font ss:FontName="Tahoma" ss:Size="6" ss:Color="#9400D3" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s6">
+<Font ss:FontName="Tahoma" ss:Size="6" ss:Color="#9400D3" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s7">
+<Font ss:FontName="Tahoma" ss:Size="6" ss:Color="#9400D3" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+</Borders>
+</Style>
+<Style ss:ID="s8">
+<Font ss:FontName="Tahoma" ss:Size="6" ss:Color="#9400D3" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s9">
+<Font ss:FontName="Arial" ss:Size="10" ss:Color="#000000" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s10">
+<Font ss:FontName="Arial" ss:Size="10" ss:Color="#000000" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s11">
+<Font ss:FontName="Arial" ss:Size="10" ss:Color="#000000" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s12">
+<Font ss:FontName="Tahoma" ss:Size="9" ss:Color="#000000" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1" />
+<Borders>
+</Borders>
+</Style>
+<Style ss:ID="s13">
+<Font ss:FontName="Tahoma" ss:Size="8" ss:Color="#FFFFFF" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Top" ss:WrapText="1" />
+<Borders>
+</Borders>
+</Style>
+<Style ss:ID="s14">
+<Font ss:FontName="Tahoma" ss:Size="6" ss:Color="#9400D3" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s15">
+<Font ss:FontName="Tahoma" ss:Size="6" ss:Color="#9400D3" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+<Style ss:ID="s16">
+<Font ss:FontName="Tahoma" ss:Size="6" ss:Color="#9400D3" ss:Bold="1" />
+
+<Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
+<Borders>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+</Borders>
+</Style>
+</Styles>
+<Worksheet ss:Name="Page1">
+<Table ss:ExpandedColumnCount="21" ss:ExpandedRowCount="13" x:FullColumns="1" x:FullRows="1">
+<Column ss:AutoFitWidth="0" ss:Width="42.59"/>
+<Column ss:AutoFitWidth="0" ss:Width="37.08"/>
+<Column ss:AutoFitWidth="0" ss:Width="37.08"/>
+<Column ss:AutoFitWidth="0" ss:Width="37.61"/>
+<Column ss:AutoFitWidth="0" ss:Width="46.05"/>
+<Column ss:AutoFitWidth="0" ss:Width="33.26"/>
+<Column ss:AutoFitWidth="0" ss:Width="41.21"/>
+<Column ss:AutoFitWidth="0" ss:Width="41.48"/>
+<Column ss:AutoFitWidth="0" ss:Width="17.26"/>
+<Column ss:AutoFitWidth="0" ss:Width="38.02"/>
+<Column ss:AutoFitWidth="0" ss:Width="51.94"/>
+<Column ss:AutoFitWidth="0" ss:Width="36.88"/>
+<Column ss:AutoFitWidth="0" ss:Width="42.41"/>
+<Column ss:AutoFitWidth="0" ss:Width="42.01"/>
+<Column ss:AutoFitWidth="0" ss:Width="45.58"/>
+<Column ss:AutoFitWidth="0" ss:Width="40.89"/>
+<Column ss:AutoFitWidth="0" ss:Width="8.71"/>
+<Column ss:AutoFitWidth="0" ss:Width="32.18"/>
+<Column ss:AutoFitWidth="0" ss:Width="35.23"/>
+<Column ss:AutoFitWidth="0" ss:Width="53.46"/>
+<Row ss:Height="0.55">
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="17.01">
+<Cell ss:Index="1" ss:MergeAcross="19" ss:StyleID="s0">
+<Data ss:Type="String">Оборачиваемость [общая + ИЗаказ]</Data></Cell><Cell ss:Index="21"/></Row>
+<Row ss:Height="2.29">
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="17.01">
+<Cell ss:Index="1" ss:MergeAcross="19" ss:StyleID="s0">
+<Data ss:Type="String">с 28.09.2026 по 04.10.2026</Data></Cell><Cell ss:Index="21"/></Row>
+<Row ss:Height="5.96">
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="11.58">
+<Cell ss:Index="1" ss:StyleID="s2">
+<Data ss:Type="String">Отдел</Data></Cell><Cell ss:Index="2" ss:StyleID="s2">
+<Data ss:Type="String">Выручка</Data></Cell><Cell ss:Index="3" ss:StyleID="s2">
+<Data ss:Type="String">Опт</Data></Cell><Cell ss:Index="4" ss:StyleID="s2">
+<Data ss:Type="String">Прибыль</Data></Cell><Cell ss:Index="5" ss:StyleID="s2">
+<Data ss:Type="String">Наценка %</Data></Cell><Cell ss:Index="6" ss:StyleID="s2">
+<Data ss:Type="String">Скидка</Data></Cell><Cell ss:Index="7" ss:StyleID="s2">
+<Data ss:Type="String">Скидка %</Data></Cell><Cell ss:Index="8" ss:StyleID="s2">
+<Data ss:Type="String">Кол чеков</Data></Cell><Cell ss:Index="9" ss:StyleID="s2">
+<Data ss:Type="String">Арт</Data></Cell><Cell ss:Index="10" ss:StyleID="s2">
+<Data ss:Type="String">Кол дней</Data></Cell><Cell ss:Index="11" ss:StyleID="s2">
+<Data ss:Type="String">Чеков в день</Data></Cell><Cell ss:Index="12" ss:StyleID="s2">
+<Data ss:Type="String">Сред чек</Data></Cell><Cell ss:Index="13" ss:StyleID="s2">
+<Data ss:Type="String">Арт в чеке</Data></Cell><Cell ss:Index="14" ss:StyleID="s2">
+<Data ss:Type="String">Опт(прих)</Data></Cell><Cell ss:Index="15" ss:StyleID="s2">
+<Data ss:Type="String">Розн(прих)</Data></Cell><Cell ss:Index="16" ss:StyleID="s2">
+<Data ss:Type="String">Опт(ост)</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s2">
+<Data ss:Type="String">Розн(ост)</Data></Cell><Cell ss:Index="19" ss:StyleID="s2">
+<Data ss:Type="String">Арт(ост)</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="11.58">
+<Cell ss:Index="1" ss:StyleID="s3">
+<Data ss:Type="String">Аптека</Data></Cell><Cell ss:Index="2" ss:StyleID="s3">
+<Data ss:Type="String">383654,86</Data></Cell><Cell ss:Index="3" ss:StyleID="s3">
+<Data ss:Type="String">359689,64</Data></Cell><Cell ss:Index="4" ss:StyleID="s3">
+<Data ss:Type="String">23965,22</Data></Cell><Cell ss:Index="5" ss:StyleID="s3">
+<Data ss:Type="String">6,66</Data></Cell><Cell ss:Index="6" ss:StyleID="s3">
+<Data ss:Type="String">24959,14</Data></Cell><Cell ss:Index="7" ss:StyleID="s3">
+<Data ss:Type="String">6,51</Data></Cell><Cell ss:Index="8" ss:StyleID="s3">
+<Data ss:Type="String">391</Data></Cell><Cell ss:Index="9" ss:StyleID="s3">
+<Data ss:Type="String">570</Data></Cell><Cell ss:Index="10" ss:StyleID="s3">
+<Data ss:Type="String">5</Data></Cell><Cell ss:Index="11" ss:StyleID="s3">
+<Data ss:Type="String">78,20</Data></Cell><Cell ss:Index="12" ss:StyleID="s3">
+<Data ss:Type="String">981,21</Data></Cell><Cell ss:Index="13" ss:StyleID="s3">
+<Data ss:Type="String">2,29</Data></Cell><Cell ss:Index="14" ss:StyleID="s3">
+<Data ss:Type="String">332829,33</Data></Cell><Cell ss:Index="15" ss:StyleID="s3">
+<Data ss:Type="String">383447,00</Data></Cell><Cell ss:Index="16" ss:StyleID="s3">
+<Data ss:Type="String">2577308,76</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s3">
+<Data ss:Type="String">3056043,89</Data></Cell><Cell ss:Index="19" ss:StyleID="s3">
+<Data ss:Type="String">2435</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="11.58">
+<Cell ss:Index="1" ss:StyleID="s3">
+<Data ss:Type="String">Аптека (ИЗ)</Data></Cell><Cell ss:Index="2" ss:StyleID="s3">
+<Data ss:Type="String">29446,00</Data></Cell><Cell ss:Index="3" ss:StyleID="s3">
+<Data ss:Type="String">28393,54</Data></Cell><Cell ss:Index="4" ss:StyleID="s3">
+<Data ss:Type="String">1052,46</Data></Cell><Cell ss:Index="5" ss:StyleID="s3">
+<Data ss:Type="String">3,71</Data></Cell><Cell ss:Index="6" ss:StyleID="s3">
+<Data ss:Type="String">0,00</Data></Cell><Cell ss:Index="7" ss:StyleID="s3">
+<Data ss:Type="String">0,00</Data></Cell><Cell ss:Index="8" ss:StyleID="s3">
+<Data ss:Type="String">10</Data></Cell><Cell ss:Index="9" ss:StyleID="s3">
+<Data ss:Type="String">25</Data></Cell><Cell ss:Index="10" ss:StyleID="s3">
+<Data ss:Type="String">4</Data></Cell><Cell ss:Index="11" ss:StyleID="s3">
+<Data ss:Type="String">2,50</Data></Cell><Cell ss:Index="12" ss:StyleID="s3">
+<Data ss:Type="String">2944,60</Data></Cell><Cell ss:Index="13" ss:StyleID="s3">
+<Data ss:Type="String">2,50</Data></Cell><Cell ss:Index="14" ss:StyleID="s3">
+<Data ss:Type="String">31727,58</Data></Cell><Cell ss:Index="15" ss:StyleID="s3">
+<Data ss:Type="String">33449,00</Data></Cell><Cell ss:Index="16" ss:StyleID="s3">
+<Data ss:Type="String">15941,91</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s3">
+<Data ss:Type="String">17342,00</Data></Cell><Cell ss:Index="19" ss:StyleID="s3">
+<Data ss:Type="String">13</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="11.58">
+<Cell ss:Index="1" ss:MergeAcross="18" ss:StyleID="s4">
+<Data ss:Type="String">ИТОГО СУММА ПО ВСЕМ</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="10.25">
+<Cell ss:Index="1" ss:StyleID="s14">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="2" ss:StyleID="s6">
+<Data ss:Type="String">413100,86</Data></Cell><Cell ss:Index="3" ss:StyleID="s6">
+<Data ss:Type="String">388083,18</Data></Cell><Cell ss:Index="4" ss:StyleID="s6">
+<Data ss:Type="String">25017,68</Data></Cell><Cell ss:Index="5" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="6" ss:StyleID="s6">
+<Data ss:Type="String">24959,14</Data></Cell><Cell ss:Index="7" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="8" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="9" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="10" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="11" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="12" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="13" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="14" ss:StyleID="s6">
+<Data ss:Type="String">364556,91</Data></Cell><Cell ss:Index="15" ss:StyleID="s6">
+<Data ss:Type="String">416896,00</Data></Cell><Cell ss:Index="16" ss:StyleID="s6">
+<Data ss:Type="String">2593250,67</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s6">
+<Data ss:Type="String">3073385,89</Data></Cell><Cell ss:Index="19" ss:StyleID="s16">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="8.51">
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+<Row ss:Height="14.18">
+<Cell ss:Index="1" ss:MergeAcross="16" ss:StyleID="s12">
+<Data ss:Type="String">Всего записей 2 шт. на 1 страницах</Data></Cell><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
+</Table>
+<WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+<PageSetup>
+<Layout x:Orientation="Landscape"/>
+<PageMargins x:Bottom="0.39" x:Left="0.39" x:Right="0.39" x:Top="0.39"/>
+</PageSetup>
+<Print>
+<ValidPrinterInfo/>
+<PaperSizeIndex>9</PaperSizeIndex>
+</Print>
+</WorksheetOptions>
+<PageBreaks xmlns="urn:schemas-microsoft-com:office:excel">
+<RowBreaks>
+<RowBreak>
+<Row>12</Row>
+</RowBreak>
+</RowBreaks>
+</PageBreaks>
+</Worksheet>
+</Workbook>
