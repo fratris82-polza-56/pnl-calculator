@@ -174,8 +174,17 @@ export function meData(db, employeeId, delegated = false, asId = null) {
 
   const planRow = db.prepare('SELECT revenue, margin FROM plan WHERE pharmacy_id=? AND month=?').get(ph.id, month);
   const phPlan = planRow?.revenue || 0;
-  const phFactRow = db.prepare('SELECT SUM(revenue) rev, SUM(COALESCE(checks,0)) chk FROM fact_day WHERE pharmacy_id=? AND substr(d,1,7)=?').get(ph.id, mkey);
+  // Excel-override личных планов (employee_plan): revenue важнее, share подменяет долю.
+  const epMap = {};
+  try {
+    for (const r of db.prepare('SELECT pharmacy_id, fio, revenue, share FROM employee_plan WHERE month=?').all(month)) {
+      epMap[`${r.pharmacy_id}|${r.fio}`] = r;
+    }
+  } catch { /* таблица отсутствует — считаем по share */ }
+  const phFactRow = db.prepare('SELECT SUM(revenue) rev, SUM(COALESCE(checks,0)) chk, SUM(COALESCE(stm,0)) stm, SUM(COALESCE(ustm,0)) ustm FROM fact_day WHERE pharmacy_id=? AND substr(d,1,7)=?').get(ph.id, mkey);
   const phFact = phFactRow?.rev || 0;
+  const phStm = phFactRow?.stm || 0;
+  const phUstm = phFactRow?.ustm || 0;
   const phPct = phPlan ? phFact / phPlan * 100 : 0;
   const phFcstPct = phPlan ? (phFact / elapsed * totalDays) / phPlan * 100 : 0;
 
@@ -191,20 +200,25 @@ export function meData(db, employeeId, delegated = false, asId = null) {
 
   const me = [];
   for (const e of emps) {
-    const plan = Math.round(phPlan * e.share);
-    const fRow = db.prepare('SELECT SUM(revenue) rev, SUM(COALESCE(checks,0)) chk FROM fact_day WHERE employee_id=? AND substr(d,1,7)=?').get(e.id, mkey);
+    const ov = epMap[`${e.pharmacy_id}|${e.fio}`];
+    const plan = Math.round((ov && ov.revenue != null) ? ov.revenue : phPlan * ((ov && ov.share != null) ? ov.share : e.share));
+    const fRow = db.prepare('SELECT SUM(revenue) rev, SUM(COALESCE(checks,0)) chk, SUM(COALESCE(stm,0)) stm, SUM(COALESCE(ustm,0)) ustm FROM fact_day WHERE employee_id=? AND substr(d,1,7)=?').get(e.id, mkey);
     const fact = fRow?.rev || 0;
     const checks = fRow?.chk || 0;
+    const stm = fRow?.stm || 0;
+    const ustm = fRow?.ustm || 0;
     const avgCheck = checks ? fact / checks : null;
     // В виде аптеки (код старшей) персональные цифры не раскрываем — только имена/роли
     const pub = delegated
-      ? { employee_id: e.id, fio: e.fio, role: e.role, share: e.share, plan: null, fact: null, pct: null, left: 0, per_day: null, avg_check: null, tip: null }
+      ? { employee_id: e.id, fio: e.fio, role: e.role, share: e.share, plan: null, fact: null, pct: null, left: 0, per_day: null, avg_check: null, stm: null, ustm: null, tip: null }
       : {
           employee_id: e.id, fio: e.fio, role: e.role, share: e.share,
           plan, fact, pct: plan ? pct1(fact / plan * 100) : null,
           left: Math.max(plan - fact, 0),
           per_day: plan ? Math.round(Math.max(plan - fact, 0) / Math.max(totalDays - elapsed, 1)) : null,
           avg_check: avgCheck != null ? Math.round(avgCheck) : null,
+          stm: Math.round(stm), ustm: Math.round(ustm),
+          stm_share: fact ? pct1(stm / fact * 100) : null,
           tip: myAdvice(db, e, plan, fact, phPct, avgCheck, month),
         };
     me.push(pub);
@@ -233,7 +247,7 @@ export function meData(db, employeeId, delegated = false, asId = null) {
     pharmacy: { id: ph.id, name: ph.name, addr: ph.addr, color: ph.color },
     net: { pct: pct1(netPct) }, // сеть — только процент, без абсолютов
     roles,
-    pharmacy_stats: { plan: phPlan, fact: phFact, pct: pct1(phPct), fcst_pct: pct1(phFcstPct) },
+    pharmacy_stats: { plan: phPlan, fact: phFact, pct: pct1(phPct), fcst_pct: pct1(phFcstPct), stm: Math.round(phStm), ustm: Math.round(phUstm), stm_share: phFact ? pct1(phStm / phFact * 100) : null },
     me, series, stockouts, coupons,
     tip: delegated ? 'Сводка аптеки: план, факт и прогноз. Персональные цифры сотрудников видны только им самим.' : me[0].tip,
   };

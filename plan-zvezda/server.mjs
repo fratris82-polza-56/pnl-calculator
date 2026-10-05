@@ -3,13 +3,14 @@ import http from 'node:http';
 import crypto from 'node:crypto';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
-import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ROOT } from './db.mjs';
+import { openDb, ensureSchema, seed, seedDemo, ensureKpiTargets, ensureEmpPlan, ROOT } from './db.mjs';
 import { ensureTgSchema, tgToken, buildReports, bindNew, broadcast, scheduleDaily } from './broadcast.mjs';
 import { loadModules, serveModuleStatic } from './modules.mjs';
 
 const db = openDb();
 ensureSchema(db);
 ensureKpiTargets(db);
+ensureEmpPlan(db);
 if (seed(db)) {
   const n = seedDemo(db);
   console.log(`seed: план+сотрудники созданы, демо-факт дней: ${n}`);
@@ -158,7 +159,37 @@ route('GET', '/api/catalog', (req, res) => {
   const pharm = db.prepare('SELECT id,name,addr,color FROM pharmacy ORDER BY id').all();
   const plan = db.prepare('SELECT pharmacy_id,month,revenue,margin FROM plan').all();
   const emp = db.prepare('SELECT id,pharmacy_id,fio,role,share FROM employee ORDER BY id').all();
-  json(res, 200, { months: MONTHS, daysIn: DAYS_IN, pharmacy: pharm, plan, employee: emp });
+  const empPlan = db.prepare('SELECT pharmacy_id,fio,month,revenue,share FROM employee_plan').all();
+  json(res, 200, { months: MONTHS, daysIn: DAYS_IN, pharmacy: pharm, plan, employee: emp, empPlan });
+});
+
+// Планы провизоров (Excel-override): список и bulk upsert.
+// В items запись с revenue=null и share=null — удалить override (используется и для очистки тестовых данных).
+route('GET', '/api/plan/employee', (req, res) => {
+  json(res, 200, db.prepare('SELECT pharmacy_id,fio,month,revenue,share FROM employee_plan ORDER BY pharmacy_id,fio,month').all());
+});
+route('POST', /^\/api\/plan\/employee(?:\?|$)/, async (req, res) => {
+  let b;
+  try { b = await readBody(req); } catch { return json(res, 400, { error: 'invalid json' }); }
+  if (!Array.isArray(b.items)) return json(res, 400, { error: 'нужен {items:[{pharmacy_id,fio,month,revenue,share}]}' });
+  const phIds = new Set(db.prepare('SELECT id FROM pharmacy').all().map(r => r.id));
+  const empFio = new Set(db.prepare('SELECT pharmacy_id, fio FROM employee').all().map(r => `${r.pharmacy_id}|${r.fio}`));
+  const up = db.prepare(`INSERT INTO employee_plan(pharmacy_id,fio,month,revenue,share) VALUES (?,?,?,?,?)
+    ON CONFLICT(pharmacy_id,fio,month) DO UPDATE SET revenue=excluded.revenue, share=excluded.share`);
+  const del = db.prepare('DELETE FROM employee_plan WHERE pharmacy_id=? AND fio=? AND month=?');
+  let saved = 0, deleted = 0;
+  const unmatched = [];
+  for (const it of b.items) {
+    const phId = Number(it.pharmacy_id), fio = String(it.fio || '').trim(), month = String(it.month || '').trim();
+    if (!phIds.has(phId) || !fio || !MONTHS.includes(month)) { unmatched.push({ ...it, reason: 'аптека/ФИО/месяц не опознаны' }); continue; }
+    if (!empFio.has(`${phId}|${fio}`)) { unmatched.push({ ...it, reason: 'ФИО не найдено в справочнике аптеки' }); continue; }
+    const rev = it.revenue == null ? null : Number(it.revenue);
+    const sh = it.share == null ? null : Number(it.share);
+    if (rev == null && sh == null) { deleted += del.run(phId, fio, month).changes; continue; }
+    up.run(phId, fio, month, rev, sh);
+    saved++;
+  }
+  json(res, 200, { ok: true, saved, deleted, unmatched });
 });
 
 // Сотрудники: CRUD (упрощённо — список/добавить/доля)
@@ -183,7 +214,7 @@ route('PATCH', /^\/api\/employee\/(\d+)$/, async (req, res, m) => {
   json(res, 200, { ok: true });
 });
 
-// Факт: ручной ввод дня {pharmacy_id, employee_id?, d, revenue, margin, checks?}
+// Факт: ручной ввод дня {pharmacy_id, employee_id?, d, revenue, margin, checks?, stm?, ustm?}
 route('POST', '/api/fact', async (req, res) => {
   const b = await readBody(req);
   if (!b.pharmacy_id || !b.d || b.revenue == null) {
@@ -191,12 +222,13 @@ route('POST', '/api/fact', async (req, res) => {
   }
   if (!monthOf(b.d)) return json(res, 400, { error: 'дата вне сен–дек 2026' });
   try {
-    db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,source)
-                VALUES (?,?,?,?,?,?, 'manual')
+    db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,stm,ustm,source)
+                VALUES (?,?,?,?,?,?,?,?,'manual')
                 ON CONFLICT(pharmacy_id,employee_id,d,source)
-                DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin, checks=excluded.checks`)
+                DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin, checks=excluded.checks, stm=excluded.stm, ustm=excluded.ustm`)
       .run(b.pharmacy_id, b.employee_id ?? null, b.d, Number(b.revenue),
-           Number(b.margin || 0), b.checks != null ? Number(b.checks) : null);
+           Number(b.margin || 0), b.checks != null ? Number(b.checks) : null,
+           Number(b.stm || 0), Number(b.ustm || 0));
     json(res, 201, { ok: true });
   } catch (e) { json(res, 400, { error: String(e.message) }); }
 });
@@ -220,17 +252,17 @@ route('POST', '/api/integration/sales', async (req, res) => {
   }
   const matchEmp = makeEmpMatcher(db);
   const findDup = db.prepare('SELECT id FROM sale_raw WHERE pharmacy_id=? AND doc_id=? AND d=? LIMIT 1');
-  const insRaw = db.prepare(`INSERT INTO sale_raw(pharmacy_id,doc_id,d,employee_name,amount,margin)
-                             VALUES (?,?,?,?,?,?)`);
+  const insRaw = db.prepare(`INSERT INTO sale_raw(pharmacy_id,doc_id,d,employee_name,amount,margin,stm,ustm)
+                             VALUES (?,?,?,?,?,?,?,?)`);
   const mark = db.prepare("UPDATE sale_raw SET state='mapped' WHERE id=?");
-  const insFactAcc = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,source)
-                             VALUES (?,?,?,?,?,1,'api')
+  const insFactAcc = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,stm,ustm,source)
+                             VALUES (?,?,?,?,?,1,?,?,'api')
                              ON CONFLICT(pharmacy_id,employee_id,d,source)
-                             DO UPDATE SET revenue=revenue+excluded.revenue, margin=margin+excluded.margin, checks=checks+1`);
-  const insFactRep = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,source)
-                             VALUES (?,?,?,?,?,1,'api')
+                             DO UPDATE SET revenue=revenue+excluded.revenue, margin=margin+excluded.margin, checks=checks+1, stm=stm+excluded.stm, ustm=ustm+excluded.ustm`);
+  const insFactRep = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,stm,ustm,source)
+                             VALUES (?,?,?,?,?,1,?,?,'api')
                              ON CONFLICT(pharmacy_id,employee_id,d,source)
-                             DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin, checks=excluded.checks`);
+                             DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin, checks=excluded.checks, stm=excluded.stm, ustm=excluded.ustm`);
   let accepted = 0, mapped = 0, duplicates = 0;
   const unmapped = new Set();
   const tx = db.begin ? db.begin() : null;
@@ -241,13 +273,16 @@ route('POST', '/api/integration/sales', async (req, res) => {
       const docId = s.doc_id != null && String(s.doc_id) !== '' ? String(s.doc_id) : null;
       if (docId && findDup.get(b.pharmacy_id, docId, s.d)) { duplicates++; continue; }
       const emp = s.employee_name ? matchEmp(b.pharmacy_id, s.employee_name) : null;
+      const stm = s.stm != null ? Number(s.stm) : 0;
+      const ustm = s.ustm != null ? Number(s.ustm) : 0;
       const info = insRaw.run(b.pharmacy_id, docId, s.d,
-                 s.employee_name || null, Number(s.amount), s.margin != null ? Number(s.margin) : null);
+                 s.employee_name || null, Number(s.amount), s.margin != null ? Number(s.margin) : null,
+                 stm || null, ustm || null);
       if (emp) {
         mapped++;
         mark.run(info.lastInsertRowid);
         (docId ? insFactAcc : insFactRep)
-          .run(b.pharmacy_id, emp.id, s.d, Number(s.amount), s.margin != null ? Number(s.margin) : 0);
+          .run(b.pharmacy_id, emp.id, s.d, Number(s.amount), s.margin != null ? Number(s.margin) : 0, stm, ustm);
       } else if (s.employee_name) {
         unmapped.add(s.employee_name);
       }
@@ -267,13 +302,13 @@ route('POST', '/api/integration/remap', async (req, res) => {
     return json(res, 401, { error: 'нет или неверный ключ доступа' });
   }
   const matchEmp = makeEmpMatcher(db);
-  const rows = db.prepare(`SELECT id, pharmacy_id, d, employee_name, amount, margin
+  const rows = db.prepare(`SELECT id, pharmacy_id, d, employee_name, amount, margin, stm, ustm
                            FROM sale_raw WHERE state='new' AND employee_name IS NOT NULL`).all();
   const mark = db.prepare("UPDATE sale_raw SET state='mapped' WHERE id=?");
-  const insFactAcc = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,source)
-                             VALUES (?,?,?,?,?,1,'api')
+  const insFactAcc = db.prepare(`INSERT INTO fact_day(pharmacy_id,employee_id,d,revenue,margin,checks,stm,ustm,source)
+                             VALUES (?,?,?,?,?,1,?,?,'api')
                              ON CONFLICT(pharmacy_id,employee_id,d,source)
-                             DO UPDATE SET revenue=revenue+excluded.revenue, margin=margin+excluded.margin, checks=checks+1`);
+                             DO UPDATE SET revenue=revenue+excluded.revenue, margin=margin+excluded.margin, checks=checks+1, stm=stm+excluded.stm, ustm=ustm+excluded.ustm`);
   let fixed = 0;
   const tx = db.begin ? db.begin() : null;
   try {
@@ -281,7 +316,7 @@ route('POST', '/api/integration/remap', async (req, res) => {
       const emp = matchEmp(r.pharmacy_id, r.employee_name);
       if (emp) {
         mark.run(r.id);
-        insFactAcc.run(r.pharmacy_id, emp.id, r.d, r.amount, r.margin || 0);
+        insFactAcc.run(r.pharmacy_id, emp.id, r.d, r.amount, r.margin || 0, r.stm || 0, r.ustm || 0);
         fixed++;
       }
     }
@@ -343,6 +378,8 @@ th{background:#f2f4f8}.num{text-align:center}.mut{color:#66707f;font-size:12.5px
 <tr><td><code>sales[].doc_id</code></td><td>строка</td><td>рекомендуется</td><td>номер чека — защита от дублей</td></tr>
 <tr><td><code>sales[].employee_name</code></td><td>строка</td><td>желательно</td><td>ФИО продавца как в справочнике аптеки (совпадение по фамилии+инициалам)</td></tr>
 <tr><td><code>sales[].margin</code></td><td>число</td><td>нет</td><td>сумма чека (валовая прибыль), ₽</td></tr>
+<tr><td><code>sales[].stm</code></td><td>число</td><td>нет</td><td>продажи СТМ (собственная торговая марка) в чеке, ₽</td></tr>
+<tr><td><code>sales[].ustm</code></td><td>число</td><td>нет</td><td>продажи УСТМ (уникальная СТМ) в чеке, ₽</td></tr>
 </table>
 <p class="mut">Если передаются отдельные чеки — указывайте <code>doc_id</code>: они суммируются в факт. Если это сводная выгрузка итогов дня по продавцу — присылайте одну строку на продавца <b>без</b> <code>doc_id</code>: она заменит итог этого дня.</p>
 
@@ -354,7 +391,7 @@ th{background:#f2f4f8}.num{text-align:center}.mut{color:#66707f;font-size:12.5px
   -H "Content-Type: application/json" \\
   -H "X-Intg-Key: ${key}" \\
   -d '{"pharmacy_id":1,"sales":[
-         {"doc_id":"Ч-1042","d":"2026-10-01","employee_name":"Иванова А.С.","amount":1250.50,"margin":310.20},
+         {"doc_id":"Ч-1042","d":"2026-10-01","employee_name":"Иванова А.С.","amount":1250.50,"margin":310.20,"stm":420.00,"ustm":150.00},
          {"doc_id":"Ч-1043","d":"2026-10-01","employee_name":"Петров И.И.","amount":830.00}]}'</pre>
 
 <h2>5. Пример: Python</h2>
@@ -364,7 +401,8 @@ r = requests.post(
     headers={"X-Intg-Key": "${key}"},
     json={"pharmacy_id": 1, "sales": [
         {"doc_id": "Ч-1042", "d": "2026-10-01",
-         "employee_name": "Иванова А.С.", "amount": 1250.50, "margin": 310.20},
+         "employee_name": "Иванова А.С.", "amount": 1250.50, "margin": 310.20,
+         "stm": 420.00, "ustm": 150.00},
     ]}, timeout=15)
 print(r.json())</pre>
 
@@ -403,7 +441,8 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     ORDER BY p.pharmacy_id, p.month`).all(phId, phId, month, month);
 
   const allFact = db.prepare(`
-    SELECT pharmacy_id, d, SUM(revenue) revenue, SUM(margin) margin, SUM(COALESCE(checks,0)) checks
+    SELECT pharmacy_id, d, SUM(revenue) revenue, SUM(margin) margin, SUM(COALESCE(checks,0)) checks,
+           SUM(COALESCE(stm,0)) stm, SUM(COALESCE(ustm,0)) ustm
     FROM fact_day WHERE (? IS NULL OR pharmacy_id=?) GROUP BY pharmacy_id, d`).all(phId, phId);
   const factByPhMonth = {};
   for (const f of allFact) {
@@ -411,9 +450,9 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     if (!mo) continue;
     if (month && mo !== month) continue;
     const k = `${f.pharmacy_id}|${mo}`;
-    factByPhMonth[k] ??= { revenue: 0, margin: 0, checks: 0, days: new Set() };
+    factByPhMonth[k] ??= { revenue: 0, margin: 0, checks: 0, stm: 0, ustm: 0, days: new Set() };
     const a = factByPhMonth[k];
-    a.revenue += f.revenue; a.margin += f.margin; a.checks += f.checks; a.days.add(f.d);
+    a.revenue += f.revenue; a.margin += f.margin; a.checks += f.checks; a.stm += f.stm; a.ustm += f.ustm; a.days.add(f.d);
   }
 
   const MONTH_KEYS = {'Сентябрь':'2026-09','Октябрь':'2026-10','Ноябрь':'2026-11','Декабрь':'2026-12'};
@@ -424,7 +463,8 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     -- month (имя месяца) фильтрует факт по сотруднику; без month — за всё время
     SELECT e.pharmacy_id, e.id employee_id, e.fio, e.share,
            COALESCE(SUM(f.revenue),0) revenue, COALESCE(SUM(f.margin),0) margin,
-           COALESCE(SUM(f.checks),0) checks
+           COALESCE(SUM(f.checks),0) checks,
+           COALESCE(SUM(f.stm),0) stm, COALESCE(SUM(f.ustm),0) ustm
     FROM employee e LEFT JOIN fact_day f
       ON f.employee_id=e.id AND (? IS NULL OR f.d LIKE ?)
     WHERE (? IS NULL OR e.pharmacy_id=?)
@@ -433,7 +473,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
 
   const out = planRows.map(p => {
     const f = factByPhMonth[`${p.pharmacy_id}|${p.month}`] ||
-              { revenue: 0, margin: 0, checks: 0, days: new Set() };
+              { revenue: 0, margin: 0, checks: 0, stm: 0, ustm: 0, days: new Set() };
     const totalDays = DAYS_IN[p.month];
     const now = new Date();
     const isCur = p.month === currentProjectMonth();
@@ -445,6 +485,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
       pharmacy_id: p.pharmacy_id, pharmacy: p.name, month: p.month,
       plan_revenue: p.revenue, plan_margin: p.margin,
       fact_revenue: Math.round(f.revenue), fact_margin: Math.round(f.margin),
+      fact_stm: Math.round(f.stm), fact_ustm: Math.round(f.ustm),
       fact_checks: f.checks, fact_days: f.days.size, total_days: totalDays,
       pct_revenue: p.revenue ? +(f.revenue / p.revenue * 100).toFixed(1) : null,
       pct_margin: p.margin ? +(f.margin / p.margin * 100).toFixed(1) : null,
@@ -459,6 +500,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
     employees: empFact.map(e => ({
       pharmacy_id: e.pharmacy_id, employee_id: e.employee_id, fio: e.fio, share: e.share,
       revenue: Math.round(e.revenue), margin: Math.round(e.margin), checks: e.checks,
+      stm: Math.round(e.stm), ustm: Math.round(e.ustm),
     })),
     asOf: new Date().toISOString().slice(0, 10),
   });

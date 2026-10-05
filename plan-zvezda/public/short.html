@@ -140,6 +140,11 @@ const toneCol = p => p >= 97 ? 'var(--green)' : (p >= 85 ? 'var(--orange)' : 'va
 let catalog = [], sum = null, series = [], kpiRows = [];
 let phId = +(localStorage.getItem('sz_ph') || 1);
 let empId = localStorage.getItem('sz_emp') || '';
+let empPlan = []; // Excel-override личных планов (из /api/catalog.empPlan)
+function epOverride(pharmacy_id, fio, month){
+  const n = s => String(s||'').toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim();
+  return empPlan.find(r=>r.pharmacy_id==pharmacy_id && n(r.fio)===n(fio) && r.month===month) || null;
+}
 
 function currentMonthKey(){
   const now = new Date();
@@ -163,7 +168,9 @@ async function jget(url){
 
 async function loadAll(){
   try{
-    catalog = (await jget('/api/catalog')).pharmacy || [];
+    const _cat = await jget('/api/catalog');
+    catalog = _cat.pharmacy || [];
+    empPlan = _cat.empPlan || [];
     if (!catalog.find(p => p.id === phId)) phId = catalog[0]?.id || 1;
     await loadPh();
   }catch(e){ showError('Не удалось загрузить данные: ' + e.message); }
@@ -212,10 +219,12 @@ function render(){
 
   // персональные метрики: факт сотрудника за текущий месяц против
   // личного плана (план аптеки × доля)
-  const plan   = emp ? row.plan_revenue * emp.share : row.plan_revenue;
+  const _ovE = emp ? epOverride(emp.pharmacy_id, emp.fio, row.month) : null;
+  const _shrE = emp ? ((_ovE && _ovE.share!=null) ? _ovE.share : emp.share) : 0;
+  const plan   = emp ? ((_ovE && _ovE.revenue!=null) ? _ovE.revenue : row.plan_revenue * _shrE) : row.plan_revenue;
   const fact   = emp ? emp.revenue : row.fact_revenue;
   const margin = emp ? emp.margin  : row.fact_margin;
-  const planM  = emp ? row.plan_margin * emp.share : row.plan_margin;
+  const planM  = emp ? row.plan_margin * _shrE : row.plan_margin;
   const fctPct = plan ? fact / plan * 100 : 0;
   const fcVal  = fact / db * DAYS_IN[rowKey(row)];
   const fcPct  = plan ? fcVal / plan * 100 : 0;
@@ -328,7 +337,8 @@ function renderTeam(emps, me){
   const krT = kpiRows.find(r => r.month === MONTHS[rowKey(monthRow())]) || {};
   const at = krT.target_avg_check || null; // цель среднего чека месяца
   box.innerHTML = emps.map(e => {
-    const pp = monthRow().plan_revenue * (e.share || 0);
+    const _ovT = epOverride(e.pharmacy_id, e.fio, monthRow().month);
+    const pp = (_ovT && _ovT.revenue!=null) ? _ovT.revenue : monthRow().plan_revenue * ((_ovT && _ovT.share!=null) ? _ovT.share : (e.share || 0));
     const pct = pp ? e.revenue / pp * 100 : 0;
     const col = toneCol(pct);
     const pch = at ? Math.round(pp / at) : null;        // личный план чеков = план ₽ / цель ср. чека

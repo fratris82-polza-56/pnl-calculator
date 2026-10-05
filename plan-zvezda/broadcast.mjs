@@ -94,6 +94,14 @@ export function buildReports(db) {
   const elapsed = isCurrentCal ? Math.max(now.getUTCDate(), factDays, 1) : Math.max(factDays, 1);
 
   const plans = Object.fromEntries(db.prepare('SELECT pharmacy_id, revenue FROM plan WHERE month=?').all(month).map(p => [p.pharmacy_id, p.revenue]));
+  // Excel-override личных планов (employee_plan): revenue важнее, share подменяет долю аптеки.
+  // Таблицу гарантирует ensureEmpPlan(db) на старте сервера; на случай старой БД — try/catch.
+  const epMap = {};
+  try {
+    for (const r of db.prepare('SELECT pharmacy_id, fio, revenue, share FROM employee_plan WHERE month=?').all(month)) {
+      epMap[`${r.pharmacy_id}|${r.fio}`] = r;
+    }
+  } catch { /* таблица отсутствует — считаем по share */ }
   const names = Object.fromEntries(db.prepare('SELECT id, name FROM pharmacy').all().map(p => [p.id, p.name]));
   const phFact = db.prepare('SELECT pharmacy_id, SUM(revenue) rev FROM fact_day WHERE substr(d,1,7)=? GROUP BY pharmacy_id').all(mkey);
   const ph = {};
@@ -118,8 +126,10 @@ export function buildReports(db) {
     .map(r => [r.id, r.rev || 0]));
 
   const reports = emps.map(e => {
-    const hasRole = e.share > 0;
-    const plan = Math.round((plans[e.pharmacy_id] || 0) * e.share);
+    const ov = epMap[`${e.pharmacy_id}|${e.fio}`];
+    const effShare = (ov && ov.share != null) ? ov.share : e.share;
+    const hasRole = e.share > 0 || !!(ov && ov.revenue != null);
+    const plan = Math.round((ov && ov.revenue != null) ? ov.revenue : (plans[e.pharmacy_id] || 0) * effShare);
     const fact = Math.round(factByEmp[e.id] || 0);
     const p = pct1(hasRole && plan ? fact / plan * 100 : null);
     const left = hasRole ? Math.max(plan - fact, 0) : 0;
