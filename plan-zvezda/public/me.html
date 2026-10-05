@@ -109,6 +109,7 @@ label{font-size:12.5px;color:var(--mut);font-weight:600}
       <div>
         <div class="kv" style="margin-bottom:6px" id="meLeft">—</div>
         <div class="kv" id="meAvg">—</div>
+        <div class="kv" style="margin-top:6px" id="meStm">—</div>
       </div>
     </div>
   </div>
@@ -250,6 +251,9 @@ function render(d){
     bar($('meBar'),d.pharmacy_stats.pct);
     $('meLeft').textContent='Сотрудников: '+d.me.length;
     $('meAvg').textContent='';
+    $('meStm').textContent=(d.pharmacy_stats.stm||d.pharmacy_stats.ustm)
+      ?('СТМ '+fmt(d.pharmacy_stats.stm)+' ₽ · УСТМ '+fmt(d.pharmacy_stats.ustm)+' ₽ ('+(d.pharmacy_stats.stm_share||0).toFixed(1).replace('.',',')+'% ТО)')
+      :'';
   }else{
     $('myTitle').textContent=me.role==='вакансия'?'Статус':'Мой результат';
     if(me.role==='вакансия'){
@@ -258,6 +262,7 @@ function render(d){
       $('mePct').textContent=''; $('meBar').style.width='0%';
       $('meLeft').textContent='';
       $('meAvg').textContent='';
+      $('meStm').textContent='';
     }else{
       $('meFact').textContent=fmt(me.fact)+' ₽';
       $('mePlan').textContent='план '+fmt(me.plan)+' ₽ · доля '+(me.share*100).toFixed(0)+'%';
@@ -265,6 +270,9 @@ function render(d){
       bar($('meBar'),me.pct||0);
       $('meLeft').textContent=me.left>0?('Осталось: '+fmt(me.left)+' ₽ ≈ '+fmt(me.per_day)+' ₽/день'):'План месяца выполнен 🎉';
       $('meAvg').textContent=me.avg_check?('Средний чек: '+fmt(me.avg_check)+' ₽'):'';
+      $('meStm').textContent=(me.stm||me.ustm)
+        ?('СТМ '+fmt(me.stm)+' ₽ · УСТМ '+fmt(me.ustm)+' ₽ ('+(me.stm_share||0).toFixed(1).replace('.',',')+'% ТО)')
+        :'';
     }
   }
 
