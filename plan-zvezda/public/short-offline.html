@@ -343,8 +343,11 @@ function render(){
   // План/факт/%/прогноз СТМ: план ₽ из /api/summary (план ТО × доля), личный — доля × план аптеки
   const _shrK = emp ? (emp.share || 0) : 1;
   const stmPlan = row.plan_stm != null ? row.plan_stm * _shrK : null;
-  const stmPctPlan = stmPlan ? stmVal / stmPlan * 100 : null;
   const stmFc = row.forecast_stm != null ? row.forecast_stm * _shrK : null;
+  // Маркетинг: та же схема план/факт/%/прогноз, что у СТМ
+  const mktVal = emp ? (emp.marketing || 0) : (row.fact_marketing || 0);
+  const mktPlan = row.plan_marketing != null ? row.plan_marketing * _shrK : null;
+  const mktFc = row.forecast_marketing != null ? row.forecast_marketing * _shrK : null;
 
   document.getElementById('asOf').textContent =
     `${emp ? 'Лично: ' + emp.fio + ' · ' : ''}${MONTHS[rowKey(row)]}`;
@@ -367,7 +370,9 @@ function render(){
       <div><div class="t">Наценка</div>
         <div class="v">${Math.round(mkPct)}% <span>· маржа ${Math.round(mgPct)}%</span></div></div>
       <div><div class="t">СТМ</div>
-        <div class="v">${stmVal ? fmtRub(stmVal) : '—'}${stmPlan != null && stmVal ? ` <span>· план ${fmtRub(stmPlan)} · ${stmPctPlan.toFixed(1).replace('.',',')}%</span>` : stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : ''}${stmFc != null && stmVal ? ` <span>· прогноз ${fmtRub(stmFc)}</span>` : ''}</div></div>
+        <div class="v">${fmtRub(stmVal)}${stmPlan != null ? ` <span>· план ${fmtRub(stmPlan)} · ${(stmVal / stmPlan * 100).toFixed(1).replace('.',',')}%</span>` : (stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : '')}${stmFc != null ? ` <span>· прогноз ${fmtRub(stmFc)}</span>` : ''}</div></div>
+      <div><div class="t">Маркетинг</div>
+        <div class="v">${fmtRub(mktVal)}${mktPlan != null ? ` <span>· план ${fmtRub(mktPlan)} · ${(mktVal / mktPlan * 100).toFixed(1).replace('.',',')}%</span>` : ''}${mktFc != null ? ` <span>· прогноз ${fmtRub(mktFc)}</span>` : ''}</div></div>
     </div>
     <div class="chip ${toneCls(fcPct)}">${db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' :
       'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения')}</div>`;
