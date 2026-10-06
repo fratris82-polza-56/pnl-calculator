@@ -26,7 +26,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .brand h1{font-size:15px;font-weight:700;line-height:1.25}
 .brand .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
 .filters,.fbar select{display:none}
-.fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px 2px 2px 54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fbar::-webkit-scrollbar{display:none}
 .chips{display:flex;gap:6px;align-items:center}
 .chip{flex:none;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:34px;white-space:nowrap}
@@ -94,8 +94,8 @@ body.sbl-open .sbl{transform:none}
 body.sbl-open .sbl-ov{display:block}
 .sbl-head{display:flex;align-items:center;gap:10px;padding:16px 14px 10px;color:#fff}
 .sbl-brand{height:20px;width:auto;flex:none}
-.sbl-title{font-size:13.5px;font-weight:700;line-height:1.2}
-.sbl-title small{display:block;font-size:10px;font-weight:600;color:rgba(255,255,255,.55);margin-top:2px}
+.sbl-title{font-size:13.5px;font-weight:700;line-height:1.2;min-width:0}
+.sbl-title small{display:block;font-size:10px;font-weight:600;color:rgba(255,255,255,.55);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sbl-nav{flex:1;overflow-y:auto;padding:4px 10px 12px}
 .sbl-nav::-webkit-scrollbar{width:4px}
 .sbl-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:2px}
@@ -154,9 +154,10 @@ button.btn:active{background:#eef3fa}
   .brand{margin-right:auto}
   .brand h1{font-size:17px}
   .filters,.fbar select{display:none}
-  .fbar{flex:1;justify-content:flex-end}
+  .fbar{padding-left:2px;flex:1;justify-content:flex-end}
   .grid{gap:12px;margin-bottom:14px}
   .kpis{grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
+  .topbar .sbl-btn{display:none}
   .charts{grid-template-columns:1fr 1fr}
   .chart-box{height:260px}
   .chart-card h3{font-size:13px}
@@ -202,10 +203,18 @@ button.btn:active{background:#eef3fa}
 <path d="M31.9986 24.0001C31.9986 26.2121 31.1018 28.2149 29.6531 29.6656C28.2024 31.1164 26.1997 32.0131 23.9876 32.0131H15.989V15.9891H23.9876C28.4137 15.9891 31.9986 19.576 31.9986 24.0001Z" fill="white"/>
 <path d="M15.9891 15.9891V32.0131H8.013C3.58687 32.0131 0 28.4242 0 24.0001C0 19.576 3.58687 15.9891 8.013 15.9891H15.9891Z" fill="#5D8DD4"/>
 </svg>
-      <div class="sbl-title">План «Звезда»<small>аптеки сентябрь–декабрь 2026</small></div>
+      <div class="sbl-title"><small>аптеки сентябрь–декабрь 2026</small></div>
     </div>
     <nav class="sbl-nav" id="mnav">
-      <button class="sbtn active" onclick="mNav('dashboard')" id="mbtn-dashboard"><span class="ic">📊</span><span>Дашборд</span></button>
+      <button class="sbtn active" id="mbtn-dashboard" onclick="mNav('dashboard');sblToggle(false)"><span class="ic">📊</span><span>Дашборд</span></button>
+      <div class="sgrp">Разделы дашборда</div>
+      <button class="sbtn" onclick="sblGo('kpis')"><span class="ic">💵</span><span>Показатели</span></button>
+      <button class="sbtn" onclick="sblGo('charts')"><span class="ic">📈</span><span>Графики</span></button>
+      <button class="sbtn" onclick="sblGo('sec-tbl')"><span class="ic">📋</span><span>Сводная таблица</span></button>
+      <button class="sbtn" onclick="sblGo('sec-emp')"><span class="ic">👥</span><span>Сотрудники</span></button>
+      <button class="sbtn" onclick="sblGo('sec-kpi')"><span class="ic">🎯</span><span>KPI квартала</span></button>
+      <button class="sbtn" onclick="sblGo('sec-mkt')"><span class="ic">🎟️</span><span>Отказы и купоны</span></button>
+      <button class="sbtn" onclick="sblSettings(this)"><span class="ic">⚙️</span><span>Обмен и рассылки</span></button>
     </nav>
     <div class="sbl-foot">
       <a class="sbtn" href="/me.html"><span class="ic">👤</span><span>Личный кабинет</span></a>
@@ -216,18 +225,18 @@ button.btn:active{background:#eef3fa}
 
   <div class="grid kpis" id="kpis"></div>
 
-  <div class="grid charts">
+  <div class="grid charts" id="charts">
     <div class="card chart-card"><h3>План и факт по месяцам (выручка, млн ₽)</h3><div class="chart-box"><canvas id="chMonth"></canvas></div></div>
     <div class="card chart-card"><h3 id="chDayTitle">Накопленный план/факт по дням</h3><div class="chart-box"><canvas id="chDay"></canvas></div></div>
   </div>
 
-  <div class="h2row"><h2>Сводная таблица</h2><span class="note">прогноз = факт/день × дней в месяце</span></div>
+  <div class="h2row" id="sec-tbl"><h2>Сводная таблица</h2><span class="note">прогноз = факт/день × дней в месяце</span></div>
   <div class="card tbl-wrap"><table id="tbl"></table></div>
 
-  <div class="h2row"><h2>Сотрудники</h2><span class="note">личный план = план аптеки × доля</span></div>
+  <div class="h2row" id="sec-emp"><h2>Сотрудники</h2><span class="note">личный план = план аптеки × доля</span></div>
   <div class="card tbl-wrap"><table id="tblEmp"></table></div>
 
-  <div class="h2row"><h2>KPI квартала</h2><span class="note">чеков/день и ср.чек — из факта; купоны — возвраты по промо</span></div>
+  <div class="h2row" id="sec-kpi"><h2>KPI квартала</h2><span class="note">чеков/день и ср.чек — из факта; купоны — возвраты по промо</span></div>
   <div class="card tbl-wrap no-fade"><table id="tblKpi"></table></div>
 
   <div class="h2row" style="margin-top:20px"><button class="btn" id="btnSettings">⚙️ Настройки</button></div>
@@ -288,7 +297,7 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
     </div>
   </div>
 
-  <div class="api">
+  <div class="api" id="sec-mkt">
     <div class="card">
       <h2>Маркетинг Q4: отказы и купоны <span class="badge">KPI</span></h2>
       <p>Отказ («нет в наличии») — потерянный чек: копим топ-позиции и дозакупаем еженедельно. Купон из листовки промоутера — единственный честный KPI раздач: считаем возвраты.</p>
@@ -378,21 +387,21 @@ function renderKpis(sum, phId, month){
         {l:'План', v:sc(t.plan, t.plan), c:'#133367', t:fmtM(t.plan)},
         {l:'Факт', v:sc(t.fact, t.plan), c: pct>=100?'#53a979':'#e5484d', t:`${fmtM(t.fact)} · ${pct.toFixed(0)}%`},
         {l:'Прогноз', v:sc(t.frc, t.plan), c:'#4169aa', t:`${fmtM(t.frc)} · ${fpct.toFixed(0)}%`}
-      ])) +
+      ], true)) +
     kpiBig(`Маркетинг · ${mlab}`, fmtM(t.mkt),
       `<div class="s">${t.pmkt? deltaBadge(mktPct) : `доля ${mktShare.toFixed(1)}% ТО`}</div>`,
       kbars(t.pmkt? [
         {l:'План', v:sc(t.pmkt, t.pmkt), c:'#133367', t:fmtM(t.pmkt)},
         {l:'Факт', v:sc(t.mkt, t.pmkt), c: mktPct>=100?'#53a979':'#e5484d', t:`${fmtM(t.mkt)} · ${mktPct.toFixed(0)}%`},
         {l:'Прогноз', v:sc(t.fmkt, t.pmkt), c:'#4169aa', t:`${fmtM(t.fmkt)} · ${mktFPct.toFixed(0)}%`}
-      ] : null)) +
+      ] : null, true)) +
     kpiBig(`СТМ · ${mlab}`, fmtM(stmSum),
       `<div class="s">${t.pstm? `${deltaBadge(stmPct)} · доля ${stmShare.toFixed(1)}% ТО` : `доля ${stmShare.toFixed(1)}% ТО`}</div>`,
       kbars(t.pstm? [
         {l:'План', v:sc(t.pstm, t.pstm), c:'#133367', t:fmtM(t.pstm)},
         {l:'Факт', v:sc(stmSum, t.pstm), c: stmPct>=100?'#53a979':'#e5484d', t:`${fmtM(stmSum)} · ${stmPct.toFixed(0)}%`},
         {l:'Прогноз', v:sc(t.fstm, t.pstm), c:'#4169aa', t:`${fmtM(t.fstm)} · ${stmFPct.toFixed(0)}%`}
-      ] : null));
+      ] : null, true));
 }
 
   function renderTable(sum){
@@ -756,6 +765,22 @@ async function refresh(){
 }
 
 // ---------- боковая панель: открытие/закрытие ----------
+function sblGo(anchorId){
+  sblToggle(false);
+  mNav('dashboard');
+  const el = document.getElementById(anchorId);
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+function sblSettings(btn){
+  sblToggle(false);
+  mNav('dashboard');
+  const s = document.getElementById('apiSettings');
+  const show = s.style.display === 'none';
+  s.style.display = show ? '' : 'none';
+  const b = document.getElementById('btnSettings');
+  if (b) b.textContent = show ? '✕ Скрыть настройки' : '⚙️ Настройки';
+  if (show){ loadTg(); s.scrollIntoView({ behavior:'smooth', block:'start' }); }
+}
 function sblToggle(open){
   document.body.classList.toggle('sbl-open', open);
 }
@@ -772,14 +797,14 @@ async function _loadModNav(){
     const nav = document.getElementById('mnav');
     const grps = {};
     mods.forEach(function(m){ var g = m.group || ''; if (!grps[g]) grps[g] = []; grps[g].push(m); });
-    var html = '<button class="sbtn active" onclick="mNav(\'dashboard\');sblToggle(false)" id="mbtn-dashboard"><span class="ic">📊</span><span>Дашборд</span></button>';
+    var html = '';
     Object.keys(grps).sort().forEach(function(g){
       if (g) html += '<div class="sgrp">' + _escHtml(g) + '</div>';
       grps[g].forEach(function(m){
         html += '<button class="sbtn" id="mbtn-' + m.id + '" onclick="mNav(\'' + m.id + '\');sblToggle(false)"><span class="ic">' + (m.icon||'') + '</span><span>' + _escHtml(m.title) + '</span></button>';
       });
     });
-    nav.innerHTML = html;
+    nav.insertAdjacentHTML('beforeend', html);
     nav.classList.add('visible');
   } catch (_) {}
 }
@@ -834,8 +859,9 @@ function syncChips(){
 }
 
 // Полосы план/факт/прогноз в карточке метрики (стиль HEADO, цвета Пользы)
-function kbars(rows){
-  if(!rows || !rows.length) return '';
+function kbars(rows, always){
+  if((!rows || !rows.length) && !always) return '';
+  if(!rows || !rows.length) rows = [{l:'План', v:0, c:'#133367', t:'—'},{l:'Факт', v:0, c:'#53a979', t:'—'},{l:'Прогноз', v:0, c:'#4169aa', t:'—'}];
   const max = Math.max(...rows.map(r=>r.v||0), 1);
   return `<div class="kb">` + rows.map(r=>
     `<div class="kb-row"><span class="kb-l">${r.l}</span>` +
