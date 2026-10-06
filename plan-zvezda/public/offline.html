@@ -141,12 +141,12 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 
 /* --- шапка: на мобиле колонкой, фильтры сеткой 2×1 --- */
 .topbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.brand{display:flex;align-items:center;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;padding-left:52px}
 .logo{width:36px;height:36px;flex:none;border-radius:10px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px}
 .brand h1{font-size:15px;font-weight:700;line-height:1.25}
 .brand .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
 .filters,.fbar select{display:none}
-.fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px 2px 2px 54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;margin-left:54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fbar::-webkit-scrollbar{display:none}
 .chips{display:flex;gap:6px;align-items:center}
 .chip{flex:none;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:34px;white-space:nowrap}
@@ -224,6 +224,7 @@ body.sbl-open .sbl-ov{display:block}
 .sbtn:hover{background:rgba(255,255,255,.08)}
 .sbtn.active{background:var(--blue);color:#fff}
 .sbtn .ic{font-size:15px;flex:none;width:20px;text-align:center}
+.sbtn .ic svg{width:17px;height:17px;display:block}
 .sbl-foot{border-top:1px solid rgba(255,255,255,.12);padding:8px 10px calc(10px + env(safe-area-inset-bottom))}
 .sbl-foot .sbtn{font-size:12px;color:rgba(255,255,255,.75)}
 /* телефон/узкий планшет: панель по кнопке ☰, контент — с отступом под кнопку */
@@ -271,10 +272,10 @@ button.btn:active{background:#eef3fa}
 @media (min-width:960px){
   .wrap{margin-left:232px;padding:18px 16px 50px;max-width:1180px}
   .topbar{flex-direction:row;align-items:center;flex-wrap:wrap}
-  .brand{margin-right:auto}
+  .brand{margin-right:auto;padding-left:0}
   .brand h1{font-size:17px}
   .filters,.fbar select{display:none}
-  .fbar{padding-left:2px;flex:1;justify-content:flex-end}
+  .fbar{margin-left:0;padding-left:2px;flex:1;justify-content:flex-end}
   .grid{gap:12px;margin-bottom:14px}
   .kpis{grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
   .topbar .sbl-btn{display:none}
@@ -299,7 +300,7 @@ button.btn:active{background:#eef3fa}
       </div>
     </div>
     <div class="fbar" id="fbar" aria-label="Фильтры">
-      <div class="chips" id="chMonth"></div>
+      <div class="chips" id="chipsMonth"></div>
       <div class="fsep"></div>
       <div class="chips" id="chPh"></div>
       <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
@@ -326,19 +327,19 @@ button.btn:active{background:#eef3fa}
       <div class="sbl-title"><small>аптеки сентябрь–декабрь 2026</small></div>
     </div>
     <nav class="sbl-nav" id="mnav">
-      <button class="sbtn active" id="mbtn-dashboard" onclick="mNav('dashboard');sblToggle(false)"><span class="ic">📊</span><span>Дашборд</span></button>
+      <button class="sbtn active" id="mbtn-dashboard" onclick="mNav('dashboard');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20h17M5.5 20v-7M12 20V5.5M18.5 20v-10"/></svg></span><span>Дашборд</span></button>
       <div class="sgrp">Разделы дашборда</div>
-      <button class="sbtn" onclick="sblGo('kpis')"><span class="ic">💵</span><span>Показатели</span></button>
-      <button class="sbtn" onclick="sblGo('charts')"><span class="ic">📈</span><span>Графики</span></button>
-      <button class="sbtn" onclick="sblGo('sec-tbl')"><span class="ic">📋</span><span>Сводная таблица</span></button>
-      <button class="sbtn" onclick="sblGo('sec-emp')"><span class="ic">👥</span><span>Сотрудники</span></button>
-      <button class="sbtn" onclick="sblGo('sec-kpi')"><span class="ic">🎯</span><span>KPI квартала</span></button>
-      <button class="sbtn" onclick="sblGo('sec-mkt')"><span class="ic">🎟️</span><span>Отказы и купоны</span></button>
-      <button class="sbtn" onclick="sblSettings(this)"><span class="ic">⚙️</span><span>Обмен и рассылки</span></button>
+      <button class="sbtn" onclick="sblGo('kpis')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="6.2" width="18.4" height="11.6" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.2 12h.01M17.8 12h.01"/></svg></span><span>Показатели</span></button>
+      <button class="sbtn" onclick="sblGo('charts')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5h17M4.5 16l4.8-5.3 3.4 3L19 7.5M15.5 7.5H19V11"/></svg></span><span>Графики</span></button>
+      <button class="sbtn" onclick="sblGo('sec-tbl')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2"/><path d="M3.2 9.8h17.6M9.8 9.8v9.4M15.4 9.8v9.4"/></svg></span><span>Сводная таблица</span></button>
+      <button class="sbtn" onclick="sblGo('sec-emp')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.2" r="3.1"/><path d="M3.6 19c.8-3.1 2.8-4.7 5.4-4.7s4.6 1.6 5.4 4.7"/><circle cx="16.9" cy="9.3" r="2.5"/><path d="M16.2 14.7c2.2.3 3.8 1.7 4.5 4.3"/></svg></span><span>Сотрудники</span></button>
+      <button class="sbtn" onclick="sblGo('sec-kpi')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg></span><span>KPI квартала</span></button>
+      <button class="sbtn" onclick="sblGo('sec-mkt')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.2c0-.9.7-1.7 1.7-1.7h13.6c1 0 1.7.8 1.7 1.7v1.5a2.3 2.3 0 0 0 0 4.6v1.5c0 .9-.7 1.7-1.7 1.7H5.2c-1 0-1.7-.8-1.7-1.7v-1.5a2.3 2.3 0 0 0 0-4.6z"/><path d="M14.6 7v10" stroke-dasharray="2.2 2.4"/></svg></span><span>Отказы и купоны</span></button>
+      <button class="sbtn" onclick="sblSettings(this)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.6h8.6M17.4 7.6H20M4 16.4h2.6M11.4 16.4H20"/><circle cx="15" cy="7.6" r="2.1"/><circle cx="9" cy="16.4" r="2.1"/></svg></span><span>Обмен и рассылки</span></button>
     </nav>
     <div class="sbl-foot">
-      
-      <a class="sbtn" href="/short.html"><span class="ic">⚡</span><span>Краткая версия</span></a>
+      <a class="sbtn" href="/me.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.5 19.2c1-3.6 3.4-5.3 6.5-5.3s5.5 1.7 6.5 5.3"/></svg></span><span>Личный кабинет</span></a>
+      <a class="sbtn" href="/short.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.5 6.8 13.4h4.4l-1.6 7.1 7.6-9.9h-4.5z"/></svg></span><span>Краткая версия</span></a>
     </div>
   </aside>
   <iframe class="mframe" id="mframe" title="Модуль"></iframe>
@@ -909,6 +910,11 @@ function sblToggle(open){
 let _mActive = 'dashboard';
 
 async function _loadModNav(){
+  const ICONS = {
+    '🧾': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6-2.4-1.6z"/><path d="M9 8.2h6M9 12h6M9 15.2h3.6"/></svg>',
+    '📦': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 20.4 7.6v8.8L12 20.8 3.6 16.4V7.6z"/><path d="M3.6 7.6 12 12l8.4-4.4M12 12v8.8"/></svg>',
+    '🚚': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.8h11v9.4h-11zM13.8 10h3.9l3.5 3.4v2.8h-7.4"/><circle cx="7" cy="18" r="1.8"/><circle cx="16.6" cy="18" r="1.8"/></svg>'
+  };
   try {
     const r = await fetch('/api/modules', { headers: { 'Authorization': 'Bearer ' + _TOK() } });
     if (!r.ok) return;
@@ -921,7 +927,7 @@ async function _loadModNav(){
     Object.keys(grps).sort().forEach(function(g){
       if (g) html += '<div class="sgrp">' + _escHtml(g) + '</div>';
       grps[g].forEach(function(m){
-        html += '<button class="sbtn" id="mbtn-' + m.id + '" onclick="mNav(\'' + m.id + '\');sblToggle(false)"><span class="ic">' + (m.icon||'') + '</span><span>' + _escHtml(m.title) + '</span></button>';
+        html += '<button class="sbtn" id="mbtn-' + m.id + '" onclick="mNav(\'' + m.id + '\');sblToggle(false)"><span class="ic">' + (ICONS[m.icon] || m.icon || '') + '</span><span>' + _escHtml(m.title) + '</span></button>';
       });
     });
     nav.insertAdjacentHTML('beforeend', html);
@@ -963,7 +969,7 @@ function _escHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return({
 // Чипы-фильтры в стиле HEADO: горизонтальная лента (периоды · аптеки), синхронизирована со скрытыми select
 function chipHtml(val, label, group){ return `<button type="button" class="chip" data-g="${group}" data-v="${_escHtml(String(val))}">${_escHtml(label)}</button>`; }
 function buildChips(){
-  $('#chMonth').innerHTML = chipHtml('', 'Весь период', 'm') + MONTHS.map(m=>chipHtml(m, m, 'm')).join('');
+  $('#chipsMonth').innerHTML = chipHtml('', 'Весь период', 'm') + MONTHS.map(m=>chipHtml(m, m, 'm')).join('');
   $('#chPh').innerHTML = chipHtml('', 'Все аптеки', 'p') + CAT.pharmacy.map(p=>chipHtml(p.id, p.name, 'p')).join('');
   document.querySelectorAll('#fbar .chip').forEach(ch=>{ ch.onclick = () => {
     const sel = ch.dataset.g==='m' ? $('#fMonth') : $('#fPh');
