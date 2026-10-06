@@ -25,8 +25,14 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .logo{width:36px;height:36px;flex:none;border-radius:10px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px}
 .brand h1{font-size:15px;font-weight:700;line-height:1.25}
 .brand .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
-.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:16px;font-weight:600;color:var(--navy);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.filters,.fbar select{display:none}
+.fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fbar::-webkit-scrollbar{display:none}
+.chips{display:flex;gap:6px;align-items:center}
+.chip{flex:none;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:34px;white-space:nowrap}
+.chip:active{background:#eef3fa}
+.chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+.fsep{flex:none;width:1px;height:22px;background:var(--line);margin:0 2px}
 
 /* --- сетки --- */
 .grid{display:grid;gap:10px;margin-bottom:12px}
@@ -39,6 +45,15 @@ select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;b
 .kpi .s{font-size:11px;color:var(--mut)}
 .kpi .b{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
 .b-ok{background:#e5f9ec;color:#0a7d3c}.b-warn{background:#fdf1e2;color:#a05a00}.b-bad{background:#fde8e8;color:#c0272d}
+/* карточка метрики в стиле HEADO: значение + отклонение + полосы план/факт/прогноз */
+.kpi-big .v{font-size:clamp(19px,5vw,26px);margin:4px 0 2px}
+.kpi-big .s{margin-bottom:2px}
+.kb{margin-top:9px;display:flex;flex-direction:column;gap:5px}
+.kb-row{display:flex;align-items:center;gap:6px}
+.kb-l{flex:none;width:52px;font-size:9.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.02em}
+.kb-track{flex:1;height:6px;border-radius:99px;background:#eef2f7;overflow:hidden}
+.kb-fill{display:block;height:100%;border-radius:99px;min-width:2px}
+.kb-v{flex:none;font-size:10px;color:var(--tx);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 
 /* --- графики: столбиком на телефоне --- */
 .charts{grid-template-columns:1fr}
@@ -128,7 +143,7 @@ button.btn:active{background:#eef3fa}
 
 /* ===== Планшет и шире ===== */
 @media (min-width:640px){
-  .kpis{grid-template-columns:repeat(3,1fr)}
+  .kpis{grid-template-columns:repeat(2,1fr)}
   .chart-box{height:240px}
   .m-hide{display:table-cell}
   .log .d{width:auto}
@@ -138,10 +153,10 @@ button.btn:active{background:#eef3fa}
   .topbar{flex-direction:row;align-items:center;flex-wrap:wrap}
   .brand{margin-right:auto}
   .brand h1{font-size:17px}
-  .filters{display:flex;grid-template-columns:none;width:auto}
-  .filters select{width:auto;min-width:170px;min-height:38px;font-size:13px;padding:8px 30px 8px 10px}
+  .filters,.fbar select{display:none}
+  .fbar{flex:1;justify-content:flex-end}
   .grid{gap:12px;margin-bottom:14px}
-  .kpis{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
   .charts{grid-template-columns:1fr 1fr}
   .chart-box{height:260px}
   .chart-card h3{font-size:13px}
@@ -162,7 +177,10 @@ button.btn:active{background:#eef3fa}
         <div class="sub" id="asOf">план/факт · прогноз выполнения · <a href="/me.html" style="color:inherit">личный кабинет</a> · <a href="/short.html" style="color:inherit">краткая версия</a></div>
       </div>
     </div>
-    <div class="filters">
+    <div class="fbar" id="fbar" aria-label="Фильтры">
+      <div class="chips" id="chMonth"></div>
+      <div class="fsep"></div>
+      <div class="chips" id="chPh"></div>
       <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
       <select id="fMonth" aria-label="Месяц"><option value="">Все месяцы</option></select>
     </div>
@@ -333,6 +351,9 @@ function metricCell(fact, plan, pct, fcst, fpct){
     `<div class="${c}" style="font-size:11px">${pct!=null?pct.toFixed(1)+'%':'—'}${fcst!=null?` · ~${fmt(fcst)}`:''}</div>${f}`;
 }
 
+function kpiBig(title, factVal, subHtml, barsHtml){
+  return `<div class="card kpi kpi-big"><div class="t">${title}</div><div class="v num">${factVal}</div>${subHtml||''}${barsHtml||''}</div>`;
+}
 function renderKpis(sum, phId, month){
   const rows = sum.rows;
   const t = {plan:0,fact:0,fvd:0,pvd:0,frc:0,frcVd:0,stm:0,ustm:0,mkt:0,pstm:0,pmkt:0,fstm:0,fmkt:0};
@@ -349,21 +370,22 @@ function renderKpis(sum, phId, month){
   const mktFPct = t.pmkt? t.fmkt/t.pmkt*100 : null;
   const scope = phId? CAT.pharmacy.find(p=>p.id==phId).name : '5 аптек';
   const mlab = month || 'сен–дек';
+  const sc = (f, n) => { const x = n? f/n : 0; return Math.max(2, Math.min(100, x*100)); };
   $('#kpis').innerHTML =
-    kpi(`План ТО · ${mlab}`, fmtM(t.plan), scope) +
-    kpi(`Факт ТО · ${mlab}`, fmtM(t.fact), `ВД: ${fmtM(t.fvd)} (${vdPct.toFixed(0)}% плана)`) +
-    kpi('Выполнение', pct.toFixed(1)+'%', 'факт/план ТО', pct.toFixed(0)+'%', cls(pct)) +
-    kpi('Прогноз ТО', fmtM(t.frc), 'по темпу факта') +
-    kpi('Прогноз выполнения', fpct.toFixed(1)+'%', 'к плану ТО', fpct.toFixed(0)+'%', cls(fpct)) +
-    kpi('План ВД', fmtM(t.pvd), `факт ${fmtM(t.fvd)}`) +
-    kpi('СТМ', fmtM(stmSum), t.pstm
-      ? `план ${fmtM(t.pstm)} · ${stmPct.toFixed(1)}% плана · прогноз ${fmtM(t.fstm)} (${stmFPct.toFixed(0)}%)`
-      : `доля ${stmShare.toFixed(1)}% ТО`,
-      t.pstm? stmPct.toFixed(0)+'%' : null, t.pstm? cls(stmPct) : null) +
-    kpi('Маркетинг', fmtM(t.mkt), t.pmkt
-      ? `план ${fmtM(t.pmkt)} · ${mktPct.toFixed(1)}% плана · прогноз ${fmtM(t.fmkt)} (${mktFPct.toFixed(0)}%)`
-      : `доля ${mktShare.toFixed(1)}% ТО`,
-      t.pmkt? mktPct.toFixed(0)+'%' : null, t.pmkt? cls(mktPct) : null);
+    kpiBig(`Выручка · ${mlab}`, fmtM(t.fact),
+      `<div class="s">${scope} · ВД: ${fmtM(t.fvd)} (${vdPct.toFixed(0)}% плана) ${deltaBadge(pct)}</div>`,
+      kbars([
+        {l:'План', v:sc(t.plan, t.plan), c:'#133367', t:fmtM(t.plan)},
+        {l:'Факт', v:sc(t.fact, t.plan), c: pct>=100?'#53a979':'#e5484d', t:`${fmtM(t.fact)} · ${pct.toFixed(0)}%`},
+        {l:'Прогноз', v:sc(t.frc, t.plan), c:'#4169aa', t:`${fmtM(t.frc)} · ${fpct.toFixed(0)}%`}
+      ])) +
+    kpiBig(`Маркетинг · ${mlab}`, fmtM(t.mkt),
+      `<div class="s">${t.pmkt? deltaBadge(mktPct) : `доля ${mktShare.toFixed(1)}% ТО`}</div>`,
+      kbars(t.pmkt? [
+        {l:'План', v:sc(t.pmkt, t.pmkt), c:'#133367', t:fmtM(t.pmkt)},
+        {l:'Факт', v:sc(t.mkt, t.pmkt), c: mktPct>=100?'#53a979':'#e5484d', t:`${fmtM(t.mkt)} · ${mktPct.toFixed(0)}%`},
+        {l:'Прогноз', v:sc(t.fmkt, t.pmkt), c:'#4169aa', t:`${fmtM(t.fmkt)} · ${mktFPct.toFixed(0)}%`}
+      ] : null));
 }
 
   function renderTable(sum){
@@ -718,6 +740,7 @@ async function refresh(){
   const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId); if(month)q.set('month',month);
   const sum = await api('/api/summary?'+q);
   renderKpis(sum, phId, month);
+  syncChips();
   renderTable(sum);
   renderEmp(sum, phId);
   drawMonth(sum);
@@ -785,11 +808,41 @@ function mNav(id){
 
 function _escHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]); }); }
 
+// Чипы-фильтры в стиле HEADO: горизонтальная лента (периоды · аптеки), синхронизирована со скрытыми select
+function chipHtml(val, label, group){ return `<button type="button" class="chip" data-g="${group}" data-v="${_escHtml(String(val))}">${_escHtml(label)}</button>`; }
+function buildChips(){
+  $('#chMonth').innerHTML = chipHtml('', 'Весь период', 'm') + MONTHS.map(m=>chipHtml(m, m, 'm')).join('');
+  $('#chPh').innerHTML = chipHtml('', 'Все аптеки', 'p') + CAT.pharmacy.map(p=>chipHtml(p.id, p.name, 'p')).join('');
+  document.querySelectorAll('#fbar .chip').forEach(ch=>{ ch.onclick = () => {
+    const sel = ch.dataset.g==='m' ? $('#fMonth') : $('#fPh');
+    sel.value = ch.dataset.v;
+    sel.onchange && sel.onchange();
+  };
+  });
+  syncChips();
+}
+function syncChips(){
+  const mv = $('#fMonth').value, pv = $('#fPh').value;
+  document.querySelectorAll('#fbar .chip').forEach(ch=>{ ch.classList.toggle('active', ch.dataset.v === (ch.dataset.g==='m'?mv:pv)); });
+}
+
+// Полосы план/факт/прогноз в карточке метрики (стиль HEADO, цвета Пользы)
+function kbars(rows){
+  if(!rows || !rows.length) return '';
+  const max = Math.max(...rows.map(r=>r.v||0), 1);
+  return `<div class="kb">` + rows.map(r=>
+    `<div class="kb-row"><span class="kb-l">${r.l}</span>` +
+    `<span class="kb-track"><span class="kb-fill" style="width:${Math.max(0,Math.min(100,r.v/max*100))}%;background:${r.c}"></span></span>` +
+    `<span class="kb-v">${r.t}</span></div>`).join('') + `</div>`;
+}
+function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s = pct>=100?`+${(pct-100).toFixed(1)}%`:`−${(100-pct).toFixed(1)}%`; return `<span class="b ${c}">${s} к плану</span>`; }
+
 (async function init(){
   CAT = await api('/api/catalog');
   CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('#fPh').appendChild(o)});
   MONTHS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;$('#fMonth').appendChild(o)});
   $('#fMonth').value = 'Сентябрь';
+  buildChips();
   const sum = await api('/api/summary');
   $('#asOf').innerHTML = `план/факт по ${sum.asOf} · прогноз выполнения · 5 аптек · <a href="/me.html" style="color:inherit">личный кабинет</a> · <a href="/short.html" style="color:inherit">краткая версия</a>`;
   $('#fPh').onchange=refresh; $('#fMonth').onchange=refresh;
