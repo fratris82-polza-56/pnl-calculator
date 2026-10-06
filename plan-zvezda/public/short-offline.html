@@ -457,8 +457,12 @@ function renderTeam(emps, me){
     const chk = e.checks || 0;
     const ac = chk ? e.revenue / chk : null;            // факт среднего чека
     const st = (e.stm||0)+(e.ustm||0);                   // СТМ+УСТМ — одна метрика
-    const kpiLine = !at && !chk && !st ? '' :
-      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽${st ? ` · СТМ <b>${fmtRub(st)}</b>` : ''}</div>`;
+    const mk = e.marketing || 0;                         // маркетинг — факт сотрудника
+    const _shrK = (_ovT && _ovT.share!=null) ? _ovT.share : (e.share || 0);
+    const mkp = monthRow().plan_marketing != null ? monthRow().plan_marketing * _shrK : null;
+    const mkpct = mkp ? Math.round(mk / mkp * 100) : null;
+    const kpiLine = !at && !chk && !st && !mk && mkp == null ? '' :
+      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽${st ? ` · СТМ <b>${fmtRub(st)}</b>` : ''}${(mk || mkp != null) ? ` · маркетинг <b>${fmtRub(mk)}</b>${mkp != null ? ` / ${fmtRub(mkp)} · ${mkpct}%` : ''}` : ''}</div>`;
     return `<div class="emp${me && e.employee_id === me.employee_id ? ' me' : ''}">
       <div><div class="fio">${esc(e.fio)}</div><div class="role">${fmtRub(e.revenue)} · ${MONTHS[rowKey(monthRow())].toLowerCase()}</div>${kpiLine}</div>
       <div class="pv" style="color:${col}">${Math.round(pct)}%</div>
