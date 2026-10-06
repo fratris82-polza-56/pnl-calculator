@@ -505,6 +505,13 @@ function renderKpis(sum, phId, month){
         {l:'План', v:sc(t.pmkt, t.pmkt), c:'#133367', t:fmtM(t.pmkt)},
         {l:'Факт', v:sc(t.mkt, t.pmkt), c: mktPct>=100?'#53a979':'#e5484d', t:`${fmtM(t.mkt)} · ${mktPct.toFixed(0)}%`},
         {l:'Прогноз', v:sc(t.fmkt, t.pmkt), c:'#4169aa', t:`${fmtM(t.fmkt)} · ${mktFPct.toFixed(0)}%`}
+      ] : null)) +
+    kpiBig(`СТМ · ${mlab}`, fmtM(stmSum),
+      `<div class="s">${t.pstm? `${deltaBadge(stmPct)} · доля ${stmShare.toFixed(1)}% ТО` : `доля ${stmShare.toFixed(1)}% ТО`}</div>`,
+      kbars(t.pstm? [
+        {l:'План', v:sc(t.pstm, t.pstm), c:'#133367', t:fmtM(t.pstm)},
+        {l:'Факт', v:sc(stmSum, t.pstm), c: stmPct>=100?'#53a979':'#e5484d', t:`${fmtM(stmSum)} · ${stmPct.toFixed(0)}%`},
+        {l:'Прогноз', v:sc(t.fstm, t.pstm), c:'#4169aa', t:`${fmtM(t.fstm)} · ${stmFPct.toFixed(0)}%`}
       ] : null));
 }
 
