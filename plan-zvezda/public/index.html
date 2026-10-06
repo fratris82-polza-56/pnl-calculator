@@ -21,10 +21,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 
 /* --- шапка: на мобиле колонкой, фильтры сеткой 2×1 --- */
 .topbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-.brand{display:flex;align-items:center;gap:10px;padding-left:52px}
-.logo{width:36px;height:36px;flex:none;border-radius:10px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px}
-.brand h1{font-size:15px;font-weight:700;line-height:1.25}
-.brand .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
+/* шапка-бренд убрана: осталась только лента фильтров */
 .filters,.fbar select{display:none}
 .fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;margin-left:54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fbar::-webkit-scrollbar{display:none}
@@ -152,8 +149,6 @@ button.btn:active{background:#eef3fa}
 @media (min-width:960px){
   .wrap{margin-left:232px;padding:18px 16px 50px;max-width:1180px}
   .topbar{flex-direction:row;align-items:center;flex-wrap:wrap}
-  .brand{margin-right:auto;padding-left:0}
-  .brand h1{font-size:17px}
   .filters,.fbar select{display:none}
   .fbar{margin-left:0;padding-left:2px;flex:1;justify-content:flex-end}
   .grid{gap:12px;margin-bottom:14px}
@@ -172,13 +167,6 @@ button.btn:active{background:#eef3fa}
 <body>
 <div class="wrap">
   <div class="topbar">
-    <div class="brand">
-      <div class="logo" style="background:var(--bright)">З</div>
-      <div>
-        <h1>План «Звезда» · аптеки сентябрь–декабрь 2026</h1>
-        <div class="sub" id="asOf">план/факт · прогноз выполнения · <a href="/me.html" style="color:inherit">личный кабинет</a> · <a href="/short.html" style="color:inherit">краткая версия</a></div>
-      </div>
-    </div>
     <div class="fbar" id="fbar" aria-label="Фильтры">
       <div class="chips" id="chipsMonth"></div>
       <div class="fsep"></div>
@@ -883,7 +871,6 @@ function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s =
   $('#fMonth').value = 'Сентябрь';
   buildChips();
   const sum = await api('/api/summary');
-  $('#asOf').innerHTML = `план/факт по ${sum.asOf} · прогноз выполнения · 5 аптек · <a href="/me.html" style="color:inherit">личный кабинет</a> · <a href="/short.html" style="color:inherit">краткая версия</a>`;
   $('#fPh').onchange=refresh; $('#fMonth').onchange=refresh;
   await refresh();
   await loadLog();
