@@ -343,8 +343,11 @@ function render(){
   // План/факт/%/прогноз СТМ: план ₽ из /api/summary (план ТО × доля), личный — доля × план аптеки
   const _shrK = emp ? (emp.share || 0) : 1;
   const stmPlan = row.plan_stm != null ? row.plan_stm * _shrK : null;
-  const stmPctPlan = stmPlan ? stmVal / stmPlan * 100 : null;
   const stmFc = row.forecast_stm != null ? row.forecast_stm * _shrK : null;
+  // Маркетинг: та же схема план/факт/%/прогноз, что у СТМ
+  const mktVal = emp ? (emp.marketing || 0) : (row.fact_marketing || 0);
+  const mktPlan = row.plan_marketing != null ? row.plan_marketing * _shrK : null;
+  const mktFc = row.forecast_marketing != null ? row.forecast_marketing * _shrK : null;
 
   document.getElementById('asOf').textContent =
     `${emp ? 'Лично: ' + emp.fio + ' · ' : ''}${MONTHS[rowKey(row)]}`;
@@ -367,7 +370,9 @@ function render(){
       <div><div class="t">Наценка</div>
         <div class="v">${Math.round(mkPct)}% <span>· маржа ${Math.round(mgPct)}%</span></div></div>
       <div><div class="t">СТМ</div>
-        <div class="v">${stmVal ? fmtRub(stmVal) : '—'}${stmPlan != null && stmVal ? ` <span>· план ${fmtRub(stmPlan)} · ${stmPctPlan.toFixed(1).replace('.',',')}%</span>` : stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : ''}${stmFc != null && stmVal ? ` <span>· прогноз ${fmtRub(stmFc)}</span>` : ''}</div></div>
+        <div class="v">${fmtRub(stmVal)}${stmPlan != null ? ` <span>· план ${fmtRub(stmPlan)} · ${(stmVal / stmPlan * 100).toFixed(1).replace('.',',')}%</span>` : (stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : '')}${stmFc != null ? ` <span>· прогноз ${fmtRub(stmFc)}</span>` : ''}</div></div>
+      <div><div class="t">Маркетинг</div>
+        <div class="v">${fmtRub(mktVal)}${mktPlan != null ? ` <span>· план ${fmtRub(mktPlan)} · ${(mktVal / mktPlan * 100).toFixed(1).replace('.',',')}%</span>` : ''}${mktFc != null ? ` <span>· прогноз ${fmtRub(mktFc)}</span>` : ''}</div></div>
     </div>
     <div class="chip ${toneCls(fcPct)}">${db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' :
       'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения')}</div>`;
@@ -452,8 +457,12 @@ function renderTeam(emps, me){
     const chk = e.checks || 0;
     const ac = chk ? e.revenue / chk : null;            // факт среднего чека
     const st = (e.stm||0)+(e.ustm||0);                   // СТМ+УСТМ — одна метрика
-    const kpiLine = !at && !chk && !st ? '' :
-      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽${st ? ` · СТМ <b>${fmtRub(st)}</b>` : ''}</div>`;
+    const mk = e.marketing || 0;                         // маркетинг — факт сотрудника
+    const _shrK = (_ovT && _ovT.share!=null) ? _ovT.share : (e.share || 0);
+    const mkp = monthRow().plan_marketing != null ? monthRow().plan_marketing * _shrK : null;
+    const mkpct = mkp ? Math.round(mk / mkp * 100) : null;
+    const kpiLine = !at && !chk && !st && !mk && mkp == null ? '' :
+      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽${st ? ` · СТМ <b>${fmtRub(st)}</b>` : ''}${(mk || mkp != null) ? ` · маркетинг <b>${fmtRub(mk)}</b>${mkp != null ? ` / ${fmtRub(mkp)} · ${mkpct}%` : ''}` : ''}</div>`;
     return `<div class="emp${me && e.employee_id === me.employee_id ? ' me' : ''}">
       <div><div class="fio">${esc(e.fio)}</div><div class="role">${fmtRub(e.revenue)} · ${MONTHS[rowKey(monthRow())].toLowerCase()}</div>${kpiLine}</div>
       <div class="pv" style="color:${col}">${Math.round(pct)}%</div>
