@@ -141,15 +141,12 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 
 /* --- шапка: на мобиле колонкой, фильтры сеткой 2×1 --- */
 .topbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
-/* шапка-бренд убрана: осталась только лента фильтров */
-.filters,.fbar select{display:none}
+/* шапка-бренд убрана: фильтры — выпадающие списки */
+.fbar select{appearance:none;-webkit-appearance:none;flex:none;border:1px solid var(--line);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center/10px 6px;color:var(--navy);border-radius:99px;padding:7px 30px 7px 14px;font-size:12.5px;font-weight:600;min-height:34px;cursor:pointer;font-family:inherit}
+.fbar select:focus{outline:none;border-color:var(--blue)}
 .fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;margin-left:54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fbar::-webkit-scrollbar{display:none}
-.chips{display:flex;gap:6px;align-items:center}
-.chip{flex:none;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:34px;white-space:nowrap}
-.chip:active{background:#eef3fa}
-.chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
-.fsep{flex:none;width:1px;height:22px;background:var(--line);margin:0 2px}
+/* чипы-фильтры заменены на выпадающие списки */
 
 /* --- сетки --- */
 .grid{display:grid;gap:10px;margin-bottom:12px}
@@ -211,8 +208,7 @@ body.sbl-open .sbl{transform:none}
 body.sbl-open .sbl-ov{display:block}
 .sbl-head{display:flex;align-items:center;gap:10px;padding:16px 14px 10px;color:#fff}
 .sbl-brand{height:20px;width:auto;flex:none}
-.sbl-title{font-size:13.5px;font-weight:700;line-height:1.2;min-width:0}
-.sbl-title small{display:block;font-size:10px;font-weight:600;color:rgba(255,255,255,.55);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbl-brand{height:20px;width:auto;flex:none}
 .sbl-nav{flex:1;overflow-y:auto;padding:4px 10px 12px}
 .sbl-nav::-webkit-scrollbar{width:4px}
 .sbl-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:2px}
@@ -269,7 +265,6 @@ button.btn:active{background:#eef3fa}
 @media (min-width:960px){
   .wrap{margin-left:232px;padding:18px 16px 50px;max-width:1180px}
   .topbar{flex-direction:row;align-items:center;flex-wrap:wrap}
-  .filters,.fbar select{display:none}
   .fbar{margin-left:0;padding-left:2px;flex:1;justify-content:flex-end}
   .grid{gap:12px;margin-bottom:14px}
   .kpis{grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
@@ -288,11 +283,8 @@ button.btn:active{background:#eef3fa}
 <div class="wrap">
   <div class="topbar">
     <div class="fbar" id="fbar" aria-label="Фильтры">
-      <div class="chips" id="chipsMonth"></div>
-      <div class="fsep"></div>
-      <div class="chips" id="chPh"></div>
-      <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
       <select id="fMonth" aria-label="Месяц"><option value="">Все месяцы</option></select>
+      <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
     </div>
   </div>
 
@@ -312,7 +304,6 @@ button.btn:active{background:#eef3fa}
 <path d="M31.9986 24.0001C31.9986 26.2121 31.1018 28.2149 29.6531 29.6656C28.2024 31.1164 26.1997 32.0131 23.9876 32.0131H15.989V15.9891H23.9876C28.4137 15.9891 31.9986 19.576 31.9986 24.0001Z" fill="white"/>
 <path d="M15.9891 15.9891V32.0131H8.013C3.58687 32.0131 0 28.4242 0 24.0001C0 19.576 3.58687 15.9891 8.013 15.9891H15.9891Z" fill="#5D8DD4"/>
 </svg>
-      <div class="sbl-title"><small>аптеки сентябрь–декабрь 2026</small></div>
     </div>
     <nav class="sbl-nav" id="mnav">
       <button class="sbtn active" id="mbtn-dashboard" onclick="mNav('dashboard');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20h17M5.5 20v-7M12 20V5.5M18.5 20v-10"/></svg></span><span>Дашборд</span></button>
@@ -438,7 +429,7 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
   </div>
 </div>
 <script>
-const MONTHS = ['Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 const DAYS_IN = {'Сентябрь':30,'Октябрь':31,'Ноябрь':30,'Декабрь':31};
 const $ = s => document.querySelector(s);
 const fmtM = v => (v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн ₽';
@@ -487,7 +478,7 @@ function renderKpis(sum, phId, month){
   const stmFPct = t.pstm? t.fstm/t.pstm*100 : null;
   const mktFPct = t.pmkt? t.fmkt/t.pmkt*100 : null;
   const scope = phId? CAT.pharmacy.find(p=>p.id==phId).name : '5 аптек';
-  const mlab = month || 'сен–дек';
+  const mlab = month || 'весь период';
   const sc = (f, n) => { const x = n? f/n : 0; return Math.max(2, Math.min(100, x*100)); };
   $('#kpis').innerHTML =
     kpiBig(`Выручка · ${mlab}`, fmtM(t.fact),
@@ -572,7 +563,7 @@ function renderEmp(sum, phId){
   if(!emps.length){ $('#tblEmp').innerHTML = '<tbody><tr><td class="l mut">нет данных по факту — пришлите продажи через API</td></tr></tbody>'; return; }
   emps.forEach(e=>{
     const ph = CAT.pharmacy.find(p=>p.id===e.pharmacy_id);
-    const midx = $('#fMonth').value? MONTHS.indexOf($('#fMonth').value) : 0;
+    const midx = $('#fMonth').value? MONTHS.indexOf($('#fMonth').value) : MONTHS.indexOf('Сентябрь');
     const planRow = CAT.plan.find(p=>p.pharmacy_id===e.pharmacy_id && p.month===MONTHS[midx]);
     const ov = empPlanOverride(e.pharmacy_id, e.fio, MONTHS[midx]);
     const effShare = (ov && ov.share!=null)? ov.share : (e.share||0);
@@ -865,7 +856,6 @@ async function refresh(){
   const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId); if(month)q.set('month',month);
   const sum = await api('/api/summary?'+q);
   renderKpis(sum, phId, month);
-  syncChips();
   renderTable(sum);
   renderEmp(sum, phId);
   drawMonth(sum);
@@ -954,23 +944,7 @@ function mNav(id){
 
 function _escHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]); }); }
 
-// Чипы-фильтры в стиле HEADO: горизонтальная лента (периоды · аптеки), синхронизирована со скрытыми select
-function chipHtml(val, label, group){ return `<button type="button" class="chip" data-g="${group}" data-v="${_escHtml(String(val))}">${_escHtml(label)}</button>`; }
-function buildChips(){
-  $('#chipsMonth').innerHTML = chipHtml('', 'Весь период', 'm') + MONTHS.map(m=>chipHtml(m, m, 'm')).join('');
-  $('#chPh').innerHTML = chipHtml('', 'Все аптеки', 'p') + CAT.pharmacy.map(p=>chipHtml(p.id, p.name, 'p')).join('');
-  document.querySelectorAll('#fbar .chip').forEach(ch=>{ ch.onclick = () => {
-    const sel = ch.dataset.g==='m' ? $('#fMonth') : $('#fPh');
-    sel.value = ch.dataset.v;
-    sel.onchange && sel.onchange();
-  };
-  });
-  syncChips();
-}
-function syncChips(){
-  const mv = $('#fMonth').value, pv = $('#fPh').value;
-  document.querySelectorAll('#fbar .chip').forEach(ch=>{ ch.classList.toggle('active', ch.dataset.v === (ch.dataset.g==='m'?mv:pv)); });
-}
+// Фильтры — выпадающие списки в шапке (#fMonth, #fPh)
 
 // Полосы план/факт/прогноз в карточке метрики (стиль HEADO, цвета Пользы)
 function kbars(rows, always){
@@ -989,7 +963,6 @@ function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s =
   CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('#fPh').appendChild(o)});
   MONTHS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;$('#fMonth').appendChild(o)});
   $('#fMonth').value = 'Сентябрь';
-  buildChips();
   const sum = await api('/api/summary');
   $('#fPh').onchange=refresh; $('#fMonth').onchange=refresh;
   await refresh();
