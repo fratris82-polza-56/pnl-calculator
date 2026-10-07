@@ -244,6 +244,13 @@ button.btn:active{background:#eef3fa}
   <div class="h2row" id="sec-kpi"><h2>KPI квартала</h2><span class="note">чеков/день и ср.чек — из факта; купоны — возвраты по промо</span></div>
   <div class="card tbl-wrap no-fade"><table id="tblKpi"></table></div>
 
+  <div class="h2row" id="sec-ob"><h2>Обороты по месяцам (1С)</h2><span class="note">выручка и ВД по бухгалтерским данным · январь–октябрь 2026</span></div>
+  <div class="grid charts" id="chartsOb">
+    <div class="card chart-card"><h3>Выручка по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObRev"></canvas></div></div>
+    <div class="card chart-card"><h3>Валовая доходность, млн ₽</h3><div class="chart-box"><canvas id="chObMar"></canvas></div></div>
+  </div>
+  <div class="card tbl-wrap"><table id="tblOb"></table></div>
+
   <div class="h2row" style="margin-top:20px"><button class="btn" id="btnSettings">⚙️ Настройки</button></div>
   <div class="api" id="apiSettings" style="display:none">
     <div class="card">
@@ -261,6 +268,7 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
        "sales":[{"doc_id":"Ч-1042","d":"2026-09-29",
                  "employee_name":"Иванова А.С.",
                  "amount":1250.50,"margin":310.20}]}'</pre>
+          <p><b>POST</b> <code>/api/integration/obeorot</code> — обороты по месяцам из 1С <span class="mut">(rows:[{pharmacy_id, ym:"2026-01", revenue, margin, checks?}])</span></p>
           <p><b>GET</b> <code>/api/summary?pharmacy_id=&amp;month=</code> — план/факт/прогноз</p>
           <p><b>GET</b> <code>/api/s.series?pharmacy_id=&amp;month=</code> — факт по дням</p>
           <p><b>GET</b> <code>/api/catalog</code> — аптеки, план, сотрудники</p>
@@ -340,7 +348,50 @@ const $ = s => document.querySelector(s);
 const fmtM = v => (v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн ₽';
 const fmt = v => Math.round(v).toLocaleString('ru-RU')+' ₽';
 const cls = pct => pct>=100?'b-ok':pct>=90?'b-warn':'b-bad';
-let CAT=null, chM=null, chD=null;
+let CAT=null, chM=null, chD=null, chObR=null, chObM=null;
+function obPhName(id){ const p=(CAT&&CAT.pharmacy||[]).find(p=>p.id==id); return p?p.name:('Аптека '+id); }
+async function loadOb(){
+  const hide=()=>{ $('#sec-ob').style.display='none'; $('#chartsOb').style.display='none'; $('#tblOb').closest('.card').style.display='none'; };
+  let ob;
+  try{ ob = await api('/api/obeorot'); }catch(e){ hide(); return; }
+  const rows = ob.rows||[];
+  if(!rows.length){ hide(); return; }
+  const yms=[...new Set(rows.map(r=>r.ym))].sort();
+  const MN=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  const labels=yms.map(ym=>{const [y,m]=ym.split('-');return `${MN[Number(m)-1]} ${y.slice(2)}`;});
+  const phIds=[...new Set(rows.map(r=>r.pharmacy_id))].sort((a,b)=>a-b);
+  const val=(pid,ym,k)=>{const r=rows.find(x=>x.pharmacy_id==pid&&x.ym===ym);return r?(r[k]||0):0;};
+  const palette=['#4169aa','#53a979','#f1974e','#9467bd','#8ea0bf'];
+  const mkSeries=(k,div)=>phIds.map((pid,i)=>({label:obPhName(pid),data:yms.map(ym=>+(val(pid,ym,k)/div).toFixed(2)),backgroundColor:palette[i%palette.length],borderRadius:4}));
+  if(chObR) chObR.destroy();
+  chObR=new Chart($('#chObRev'),{type:'bar',data:{labels,datasets:mkSeries('revenue',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
+  if(chObM) chObM.destroy();
+  chObM=new Chart($('#chObMar'),{type:'bar',data:{labels,datasets:mkSeries('margin',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
+  const pc=(a,b)=>b?(a/b*100).toFixed(1)+'%':'—';
+  let h='<thead><tr><th class="l stick">Аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
+  phIds.forEach(pid=>{
+    const vals=yms.map(ym=>val(pid,ym,'revenue'));
+    h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num"><b>${fmtM(vals.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+  });
+  const tr=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.revenue,0));
+  h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tr.map(v=>`<td class="num"><b>${fmtM(v)}</b></td>`).join('')+`<td class="num"><b>${fmtM(tr.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+  h+='</tbody><thead><tr><th class="l stick">ВД · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
+  phIds.forEach(pid=>{
+    const vals=yms.map(ym=>val(pid,ym,'margin'));
+    h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num"><b>${fmtM(vals.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+  });
+  const tm=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.margin,0));
+  h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tm.map((v,i)=>`<td class="num"><b>${fmtM(v)}</b> <span class="mut" style="font-size:10px">${pc(v,tr[i])}</span></td>`).join('')+`<td class="num"><b>${fmtM(tm.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+  h+='</tbody><thead><tr><th class="l stick">Чеков · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
+  phIds.forEach(pid=>{
+    const vals=yms.map(ym=>val(pid,ym,'checks'));
+    h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?v.toLocaleString('ru-RU'):'—'}</td>`).join('')+`<td class="num"><b>${vals.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</b></td></tr>`;
+  });
+  const tc=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+(r.checks||0),0));
+  h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tc.map(v=>`<td class="num"><b>${v.toLocaleString('ru-RU')}</b></td>`).join('')+`<td class="num"><b>${tc.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</b></td></tr>`;
+  h+='</tbody>';
+  $('#tblOb').innerHTML=h;
+}
 
 // Единый доступ: Bearer из me_token; при 401/403 → на вход
 const _TOK = () => localStorage.getItem('me_token') || '';
@@ -900,6 +951,7 @@ async function main(){
   await refresh();
   await loadLog();
   await loadKpi();
+  await loadOb();
   phOptions($('#soPh')); phOptions($('#cpPh'));
   await loadSoTop();
   $('#btnSo').onclick=addSo; $('#btnCp').onclick=addCp; $('#btnSoTop').onclick=loadSoTop;

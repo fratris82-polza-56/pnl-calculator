@@ -71,6 +71,18 @@ export function ensureSchema(db) {
     campaign TEXT NOT NULL DEFAULT 'листовка',
     created_at TEXT NOT NULL DEFAULT (datetime('now')));
   CREATE INDEX IF NOT EXISTS i_coupon ON coupon(pharmacy_id, d);
+  -- Оборотная ведомость по месяцам (импорт из 1С: «Оборотная ведомость [итоги по месяцам]»).
+  -- выручка = «Розн+скидка» (расход за вычетом скидки), ВД = «Прибыль»; месяцы вне плана Q4
+  CREATE TABLE IF NOT EXISTS obeorot_month(
+    id INTEGER PRIMARY KEY,
+    pharmacy_id INTEGER NOT NULL REFERENCES pharmacy(id),
+    ym TEXT NOT NULL,
+    revenue REAL NOT NULL DEFAULT 0,
+    margin REAL NOT NULL DEFAULT 0,
+    checks INTEGER,
+    imported_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(pharmacy_id, ym));
+  CREATE INDEX IF NOT EXISTS i_obeorot ON obeorot_month(ym);
   -- Цели KPI квартала (сеть): чеков/день, ср.чек, доля чеков 2+ позиции, купонов/нед/аптеку
   CREATE TABLE IF NOT EXISTS kpi_target(
     month TEXT PRIMARY KEY CHECK(month IN ('Сентябрь','Октябрь','Ноябрь','Декабрь')),

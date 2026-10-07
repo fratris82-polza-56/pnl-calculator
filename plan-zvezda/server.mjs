@@ -330,6 +330,45 @@ route('POST', '/api/integration/remap', async (req, res) => {
   json(res, 200, { ok: true, checked: rows.length, fixed });
 });
 
+// Оборотная ведомость по месяцам (выгрузка 1С «Оборотная ведомость [итоги по месяцам]»):
+// POST /api/integration/obeorot  {rows:[{pharmacy_id, ym:"2026-01", revenue, margin, checks?}]}
+// Повтор той же партией просто обновляет те же ячейки (апсерт по аптека+месяц).
+route('POST', '/api/integration/obeorot', async (req, res) => {
+  if (String(req.headers['x-intg-key'] || '') !== intgKey()) {
+    return json(res, 401, { error: 'нет или неверный ключ доступа (заголовок X-Intg-Key)' });
+  }
+  const b = await readBody(req);
+  if (!Array.isArray(b.rows) || !b.rows.length) return json(res, 400, { error: 'нужен непустой rows[]' });
+  const upsert = db.prepare(`INSERT INTO obeorot_month(pharmacy_id, ym, revenue, margin, checks)
+                            VALUES (?,?,?,?,?)
+                            ON CONFLICT(pharmacy_id, ym)
+                            DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin, checks=excluded.checks,
+                              imported_at=datetime('now')`);
+  let applied = 0; const bad = [];
+  const tx = db.begin ? db.begin() : null;
+  try {
+    for (const r of b.rows) {
+      const ym = String(r.ym || '');
+      if (!r.pharmacy_id || !/^\d{4}-\d{2}$/.test(ym) || r.revenue == null) { bad.push(ym || '?'); continue; }
+      if (!db.prepare('SELECT id FROM pharmacy WHERE id=?').get(r.pharmacy_id)) { bad.push(ym + '/ph' + r.pharmacy_id); continue; }
+      upsert.run(Number(r.pharmacy_id), ym, Number(r.revenue), Number(r.margin || 0), r.checks != null ? Number(r.checks) : null);
+      applied++;
+    }
+    if (tx) tx.commit();
+  } catch (e) {
+    if (tx) tx.rollback();
+    return json(res, 500, { error: String(e.message) });
+  }
+  json(res, 200, { ok: true, applied, skipped: bad.length, bad });
+});
+
+// Обороты по месяцам для дашборда (вне плана Q4 — годовая картина из 1С)
+route('GET', /^\/api\/obeorot(?:\?|$)/, (req, res, m, url) => {
+  const rows = db.prepare(`SELECT o.pharmacy_id, o.ym, o.revenue, o.margin, o.checks
+                          FROM obeorot_month o ORDER BY o.ym, o.pharmacy_id`).all();
+  json(res, 200, { rows });
+});
+
 // Состояние интеграции для карточки в настройках дашборда
 route('GET', /^\/api\/integration\/info(?:\?|$)/, (req, res) => {
   const phs = db.prepare('SELECT id, name FROM pharmacy ORDER BY id').all();
@@ -423,7 +462,23 @@ print(r.json())</pre>
 <pre>{"ok":true,"accepted":2,"duplicates":0,"mapped":2,"unmapped":[]}</pre>
 <p class="mut">Если <code>unmapped</code> не пусто — ФИО из пакета не нашлось в справочнике: продажа учтётся на аптеку, но не на сотрудника. Сообщите нам список — поправим ФИО в справочнике, данные доначислятся при следующей разметке.</p>
 
-<h2>8. Проверка связи</h2>
+<h2>8. Обороты по месяцам (оборотная ведомость 1С)</h2>
+<p><b>POST</b> <code>http://${host}/api/integration/obeorot</code> — итоги оборотной ведомости по месяцам («Оборотная ведомость [итоги по месяцам]»). Они попадают в блок «Обороты по месяцам (1С)» дашборда: выручка, ВД и чеки по каждой аптеке за январь–декабрь.</p>
+<pre>curl -X POST http://${host}/api/integration/obeorot \\
+  -H "Content-Type: application/json" \\
+  -H "X-Intg-Key: ${key}" \\
+  -d '{"rows":[{"pharmacy_id":1,"ym":"2026-01","revenue":10302750.42,"margin":1244556.27,"checks":4819}]}'</pre>
+<table>
+<tr><th>Поле</th><th>Тип</th><th>Обязательно</th><th>Описание</th></tr>
+<tr><td><code>rows[].pharmacy_id</code></td><td>число</td><td>да</td><td>код аптеки (таблица выше)</td></tr>
+<tr><td><code>rows[].ym</code></td><td>строка</td><td>да</td><td>месяц, <code>ГГГГ-ММ</code></td></tr>
+<tr><td><code>rows[].revenue</code></td><td>число</td><td>да</td><td>выручка месяца («Розн+скидка»), ₽</td></tr>
+<tr><td><code>rows[].margin</code></td><td>число</td><td>нет</td><td>валовая доходность («Прибыль»), ₽</td></tr>
+<tr><td><code>rows[].checks</code></td><td>число</td><td>нет</td><td>количество чеков за месяц</td></tr>
+</table>
+<p class="mut">Повторная отправка месяца обновляет те же ячейки (без задвоения).</p>
+
+<h2>9. Проверка связи</h2>
 <p><b>GET</b> <code>http://${host}/api/health</code> — без ключа, должен вернуть <code>{"ok":true,...}</code>.</p>
 <p class="mut">Коды месяцев: сентябрь–декабрь 2026. Даты вне этого периода отбрасываются без ошибки.</p>
 </body></html>`;
@@ -816,6 +871,7 @@ const EXEMPT_PATHS = [
   '/api/me/login',
   '/api/integration/sales',
   '/api/integration/remap',
+  '/api/integration/obeorot',
   '/api/modules',
 ];
 // Публичная статика: экран входа, оболочка дашборда (данные — только по API с доступом) + вендорная библиотека
