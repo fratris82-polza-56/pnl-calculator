@@ -999,17 +999,7 @@ function kbars(rows, always){
 function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s = pct>=100?`+${(pct-100).toFixed(1)}%`:`−${(100-pct).toFixed(1)}%`; return `<span class="b ${c}">${s} к плану</span>`; }
 
 // Проверка доступа до загрузки данных: нет сессии — экран входа, данные не тянем
-(async function boot(){
-  const tok=_TOK();
-  if(!tok){ gateShow(); return; }
-  try{
-    const chk=await fetch('/api/catalog',{headers:{'Authorization':'Bearer '+tok}});
-    if(chk.status===401){ localStorage.removeItem('me_token'); gateShow(); return; }
-    if(chk.status===403){ gateShow('этот код не даёт доступ к общему дашборду'); return; }
-    if(!chk.ok){ gateShow('сервер недоступен'); return; }
-  }catch(_){ gateShow('сеть недоступна'); return; }
-  try{ await main(); }catch(e){ if(e && e.message!=='auth') throw e; }
-})();
+(async function boot(){ await main(); })();
 async function main(){
   CAT = await api('/api/catalog');
   CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('#fPh').appendChild(o)});
