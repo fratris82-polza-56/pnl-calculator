@@ -246,9 +246,9 @@ button.btn:active{background:#eef3fa}
 
   <div class="h2row" id="sec-ob"><h2>Обороты по месяцам</h2><span class="note">выручка и ВД по бухгалтерским данным · январь–октябрь 2026</span></div>
   <div class="grid charts" id="chartsOb">
-    <div class="card chart-card"><h3>Выручка по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObRev"></canvas></div></div>
-    <div class="card chart-card"><h3>Валовая доходность, млн ₽</h3><div class="chart-box"><canvas id="chObMar"></canvas></div></div>
-    <div class="card chart-card" style="grid-column:1/-1"><h3>Сеть: выручка (ТО) и ВД по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObNet"></canvas></div></div>
+    <div class="card chart-card" id="cardObRev"><h3>Выручка по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObRev"></canvas></div></div>
+    <div class="card chart-card" id="cardObMar"><h3>Валовая доходность, млн ₽</h3><div class="chart-box"><canvas id="chObMar"></canvas></div></div>
+    <div class="card chart-card" id="cardObNet" style="grid-column:1/-1"><h3 id="hObNet">Сеть: выручка (ТО) и ВД по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObNet"></canvas></div></div>
   </div>
   <div class="card tbl-wrap"><table id="tblOb"></table></div>
 
@@ -360,26 +360,39 @@ async function loadOb(){
   const yms=[...new Set(rows.map(r=>r.ym))].sort();
   const MN=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   const labels=yms.map(ym=>{const [y,m]=ym.split('-');return `${MN[Number(m)-1]} ${y.slice(2)}`;});
-  const phIds=[...new Set(rows.map(r=>r.pharmacy_id))].sort((a,b)=>a-b);
-  const hasEcom=rows.some(r=>(r.channel||'retail')==='ecom');
+  const phId = $('#fPh').value;
+  const shown = phId ? rows.filter(r=>String(r.pharmacy_id)===phId) : rows;
+  const phIds=[...new Set(shown.map(r=>r.pharmacy_id))].sort((a,b)=>a-b);
+  const hasEcom=shown.some(r=>(r.channel||'retail')==='ecom');
   const val=(pid,ym,k,ch)=>{const r=rows.find(x=>x.pharmacy_id==pid&&x.ym===ym&&(x.channel||'retail')===ch);return r?(r[k]||0):0;};
   const valT=(pid,ym,k)=>val(pid,ym,k,'retail')+val(pid,ym,k,'ecom');
   const palette=['#4169aa','#53a979','#f1974e','#9467bd','#8ea0bf'];
+  const one = phIds.length === 1; // выбрана конкретная аптека
+  $('#cardObRev').style.display = one ? 'none' : '';
+  $('#cardObMar').style.display = one ? 'none' : '';
+  $('#hObNet').textContent = one ? obPhName(phIds[0]) + ': розница и Ecom по месяцам, млн ₽' : 'Сеть: выручка (ТО) и ВД по месяцам, млн ₽';
   const mkSeries=(k,div)=>phIds.map((pid,i)=>({label:obPhName(pid),data:yms.map(ym=>+(val(pid,ym,k)/div).toFixed(2)),backgroundColor:palette[i%palette.length],borderRadius:4}));
-  if(chObR) chObR.destroy();
-  chObR=new Chart($('#chObRev'),{type:'bar',data:{labels,datasets:mkSeries('revenue',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
-  if(chObM) chObM.destroy();
-  chObM=new Chart($('#chObMar'),{type:'bar',data:{labels,datasets:mkSeries('margin',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
+  if(!one){
+    if(chObR) chObR.destroy();
+    chObR=new Chart($('#chObRev'),{type:'bar',data:{labels,datasets:mkSeries('revenue',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
+    if(chObM) chObM.destroy();
+    chObM=new Chart($('#chObMar'),{type:'bar',data:{labels,datasets:mkSeries('margin',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
+  }
   const net=(ym,k,ch)=>phIds.reduce((a,pid)=>a+val(pid,ym,k,ch),0);
   if(chObN) chObN.destroy();
   chObN=new Chart($('#chObNet'),{type:'bar',data:{labels,datasets:[
-    {label:'Розница · ТО',data:yms.map(ym=>+(net(ym,'revenue','retail')/1e6).toFixed(2)),backgroundColor:'#4169aa',borderRadius:4},
-    {label:'Розница · ВД',data:yms.map(ym=>+(net(ym,'margin','retail')/1e6).toFixed(2)),backgroundColor:'#53a979',borderRadius:4},
-    {label:'Ecom · ТО',data:yms.map(ym=>+(net(ym,'revenue','ecom')/1e6).toFixed(2)),backgroundColor:'#f1974e',borderRadius:4},
-    {label:'Ecom · ВД',data:yms.map(ym=>+(net(ym,'margin','ecom')/1e6).toFixed(2)),backgroundColor:'#9467bd',borderRadius:4}
+    {label:one?obPhName(phIds[0])+' · Розница':'Розница · ТО',data:yms.map(ym=>+(net(ym,'revenue','retail')/1e6).toFixed(2)),backgroundColor:'#4169aa',borderRadius:4},
+    {label:one?obPhName(phIds[0])+' · Розница ВД':'Розница · ВД',data:yms.map(ym=>+(net(ym,'margin','retail')/1e6).toFixed(2)),backgroundColor:'#53a979',borderRadius:4},
+    {label:one?obPhName(phIds[0])+' · Ecom':'Ecom · ТО',data:yms.map(ym=>+(net(ym,'revenue','ecom')/1e6).toFixed(2)),backgroundColor:'#f1974e',borderRadius:4},
+    {label:one?obPhName(phIds[0])+' · Ecom ВД':'Ecom · ВД',data:yms.map(ym=>+(net(ym,'margin','ecom')/1e6).toFixed(2)),backgroundColor:'#9467bd',borderRadius:4}
   ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:10},maxRotation:0,autoSkip:false}}}}});
   const pc=(a,b)=>b?(a/b*100).toFixed(1)+'%':'—';
   let h='<thead><tr><th class="l stick">Аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
+  const netRow=(label,agg,fmt,pctOf)=>{
+    if(!one){
+      h+=`<tr><td class="l stick"><b>${label}</b></td>`+agg.map((v,i)=>`<td class="num"><b>${fmt(v)}</b>${pctOf?` <span class="mut" style="font-size:10px">${pc(v,pctOf[i])}</span>`:''}</td>`).join('')+`<td class="num"><b>${fmt(agg.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+    }
+  };
   phIds.forEach(pid=>{
     const vals=yms.map(ym=>valT(pid,ym,'revenue'));
     h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num"><b>${fmtM(vals.reduce((a,b)=>a+b,0))}</b></td></tr>`;
@@ -389,7 +402,7 @@ async function loadOb(){
     }
   });
   const tr=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.revenue,0));
-  h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tr.map(v=>`<td class="num"><b>${fmtM(v)}</b></td>`).join('')+`<td class="num"><b>${fmtM(tr.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+  netRow('Сеть', tr, v=>v?fmtM(v):'—');
   h+='</tbody><thead><tr><th class="l stick">ВД · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
   phIds.forEach(pid=>{
     const vals=yms.map(ym=>valT(pid,ym,'margin'));
@@ -400,7 +413,7 @@ async function loadOb(){
     }
   });
   const tm=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.margin,0));
-  h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tm.map((v,i)=>`<td class="num"><b>${fmtM(v)}</b> <span class="mut" style="font-size:10px">${pc(v,tr[i])}</span></td>`).join('')+`<td class="num"><b>${fmtM(tm.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+  netRow('Сеть', tm, v=>v?fmtM(v):'—', tr);
   h+='</tbody><thead><tr><th class="l stick">Чеков · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
   phIds.forEach(pid=>{
     const vals=yms.map(ym=>val(pid,ym,'checks','retail')+val(pid,ym,'checks','ecom'));
@@ -411,7 +424,7 @@ async function loadOb(){
     }
   });
   const tc=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+(r.checks||0),0));
-  h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tc.map(v=>`<td class="num"><b>${v.toLocaleString('ru-RU')}</b></td>`).join('')+`<td class="num"><b>${tc.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</b></td></tr>`;
+  netRow('Сеть', tc, v=>v.toLocaleString('ru-RU'));
   h+='</tbody>';
   $('#tblOb').innerHTML=h;
 }
@@ -970,7 +983,7 @@ async function main(){
   MONTHS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;$('#fMonth').appendChild(o)});
   $('#fMonth').value = 'Сентябрь';
   const sum = await api('/api/summary');
-  $('#fPh').onchange=refresh; $('#fMonth').onchange=refresh;
+  $('#fPh').onchange=()=>{ refresh(); loadOb(); }; $('#fMonth').onchange=refresh;
   await refresh();
   await loadLog();
   await loadKpi();
