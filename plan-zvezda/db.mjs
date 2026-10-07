@@ -77,11 +77,11 @@ export function ensureSchema(db) {
     id INTEGER PRIMARY KEY,
     pharmacy_id INTEGER NOT NULL REFERENCES pharmacy(id),
     ym TEXT NOT NULL,
+    channel TEXT NOT NULL DEFAULT 'retail',
     revenue REAL NOT NULL DEFAULT 0,
     margin REAL NOT NULL DEFAULT 0,
     checks INTEGER,
-    imported_at TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE(pharmacy_id, ym));
+    imported_at TEXT NOT NULL DEFAULT (datetime('now')));
   CREATE INDEX IF NOT EXISTS i_obeorot ON obeorot_month(ym);
   -- Цели KPI квартала (сеть): чеков/день, ср.чек, доля чеков 2+ позиции, купонов/нед/аптеку
   CREATE TABLE IF NOT EXISTS kpi_target(
@@ -107,6 +107,7 @@ function migrateSchema(db) {
   add('sale_raw', 'stm', 'REAL');
   add('sale_raw', 'ustm', 'REAL');
   add('sale_raw', 'marketing', 'REAL');
+  add('obeorot_month', 'channel', "TEXT NOT NULL DEFAULT 'retail'");
 }
 
 export function seed(db) {

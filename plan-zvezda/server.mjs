@@ -331,27 +331,28 @@ route('POST', '/api/integration/remap', async (req, res) => {
 });
 
 // Оборотная ведомость по месяцам (выгрузка 1С «Оборотная ведомость [итоги по месяцам]»):
-// POST /api/integration/obeorot  {rows:[{pharmacy_id, ym:"2026-01", revenue, margin, checks?}]}
-// Повтор той же партией просто обновляет те же ячейки (апсерт по аптека+месяц).
+// POST /api/integration/obeorot  {rows:[{pharmacy_id, ym:"2026-01", channel?:"retail"|"ecom", revenue, margin, checks?}]}
+// Повтор той же партией обновляет те же ячейки (месяц очищается перед записью — без дублей).
 route('POST', '/api/integration/obeorot', async (req, res) => {
   if (String(req.headers['x-intg-key'] || '') !== intgKey()) {
     return json(res, 401, { error: 'нет или неверный ключ доступа (заголовок X-Intg-Key)' });
   }
   const b = await readBody(req);
   if (!Array.isArray(b.rows) || !b.rows.length) return json(res, 400, { error: 'нужен непустой rows[]' });
-  const upsert = db.prepare(`INSERT INTO obeorot_month(pharmacy_id, ym, revenue, margin, checks)
-                            VALUES (?,?,?,?,?)
-                            ON CONFLICT(pharmacy_id, ym)
-                            DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin, checks=excluded.checks,
-                              imported_at=datetime('now')`);
+  const ins = db.prepare(`INSERT INTO obeorot_month(pharmacy_id, ym, channel, revenue, margin, checks)
+                          VALUES (?,?,?,?,?,?)`);
+  const touched = new Set(); // ключи "ph|ym": месяц+аптека перезаливаем целиком
   let applied = 0; const bad = [];
   const tx = db.begin ? db.begin() : null;
   try {
     for (const r of b.rows) {
       const ym = String(r.ym || '');
+      const ch = r.channel === 'ecom' ? 'ecom' : 'retail';
       if (!r.pharmacy_id || !/^\d{4}-\d{2}$/.test(ym) || r.revenue == null) { bad.push(ym || '?'); continue; }
       if (!db.prepare('SELECT id FROM pharmacy WHERE id=?').get(r.pharmacy_id)) { bad.push(ym + '/ph' + r.pharmacy_id); continue; }
-      upsert.run(Number(r.pharmacy_id), ym, Number(r.revenue), Number(r.margin || 0), r.checks != null ? Number(r.checks) : null);
+      const tk = r.pharmacy_id + '|' + ym;
+      if (!touched.has(tk)) { db.prepare('DELETE FROM obeorot_month WHERE pharmacy_id=? AND ym=?').run(Number(r.pharmacy_id), ym); touched.add(tk); }
+      ins.run(Number(r.pharmacy_id), ym, ch, Number(r.revenue), Number(r.margin || 0), r.checks != null ? Number(r.checks) : null);
       applied++;
     }
     if (tx) tx.commit();
@@ -364,8 +365,8 @@ route('POST', '/api/integration/obeorot', async (req, res) => {
 
 // Обороты по месяцам для дашборда (вне плана Q4 — годовая картина из 1С)
 route('GET', /^\/api\/obeorot(?:\?|$)/, (req, res, m, url) => {
-  const rows = db.prepare(`SELECT o.pharmacy_id, o.ym, o.revenue, o.margin, o.checks
-                          FROM obeorot_month o ORDER BY o.ym, o.pharmacy_id`).all();
+  const rows = db.prepare(`SELECT o.pharmacy_id, o.ym, o.channel, o.revenue, o.margin, o.checks
+                          FROM obeorot_month o ORDER BY o.ym, o.pharmacy_id, o.channel`).all();
   json(res, 200, { rows });
 });
 
@@ -463,11 +464,12 @@ print(r.json())</pre>
 <p class="mut">Если <code>unmapped</code> не пусто — ФИО из пакета не нашлось в справочнике: продажа учтётся на аптеку, но не на сотрудника. Сообщите нам список — поправим ФИО в справочнике, данные доначислятся при следующей разметке.</p>
 
 <h2>8. Обороты по месяцам (оборотная ведомость 1С)</h2>
-<p><b>POST</b> <code>http://${host}/api/integration/obeorot</code> — итоги оборотной ведомости по месяцам («Оборотная ведомость [итоги по месяцам]»). Они попадают в блок «Обороты по месяцам (1С)» дашборда: выручка, ВД и чеки по каждой аптеке за январь–декабрь.</p>
+<p><b>POST</b> <code>http://${host}/api/integration/obeorot</code> — итоги оборотной ведомости по месяцам («Оборотная ведомость [итоги по месяцам]»). Попадают в блок «Обороты по месяцам» дашборда: выручка, ВД и чеки по каждой аптеке за январь–декабрь, отдельно розница и интернет-заказы.</p>
 <pre>curl -X POST http://${host}/api/integration/obeorot \\
   -H "Content-Type: application/json" \\
   -H "X-Intg-Key: ${key}" \\
-  -d '{"rows":[{"pharmacy_id":1,"ym":"2026-01","revenue":10302750.42,"margin":1244556.27,"checks":4819}]}'</pre>
+  -d '{"rows":[{"pharmacy_id":1,"ym":"2026-01","channel":"retail","revenue":10302750.42,"margin":1244556.27,"checks":4819},
+       {"pharmacy_id":1,"ym":"2026-01","channel":"ecom","revenue":5414616.85,"margin":228331.09,"checks":666}]}'</pre>
 <table>
 <tr><th>Поле</th><th>Тип</th><th>Обязательно</th><th>Описание</th></tr>
 <tr><td><code>rows[].pharmacy_id</code></td><td>число</td><td>да</td><td>код аптеки (таблица выше)</td></tr>

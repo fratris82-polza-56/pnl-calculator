@@ -361,38 +361,54 @@ async function loadOb(){
   const MN=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   const labels=yms.map(ym=>{const [y,m]=ym.split('-');return `${MN[Number(m)-1]} ${y.slice(2)}`;});
   const phIds=[...new Set(rows.map(r=>r.pharmacy_id))].sort((a,b)=>a-b);
-  const val=(pid,ym,k)=>{const r=rows.find(x=>x.pharmacy_id==pid&&x.ym===ym);return r?(r[k]||0):0;};
+  const hasEcom=rows.some(r=>(r.channel||'retail')==='ecom');
+  const val=(pid,ym,k,ch)=>{const r=rows.find(x=>x.pharmacy_id==pid&&x.ym===ym&&(x.channel||'retail')===ch);return r?(r[k]||0):0;};
+  const valT=(pid,ym,k)=>val(pid,ym,k,'retail')+val(pid,ym,k,'ecom');
   const palette=['#4169aa','#53a979','#f1974e','#9467bd','#8ea0bf'];
   const mkSeries=(k,div)=>phIds.map((pid,i)=>({label:obPhName(pid),data:yms.map(ym=>+(val(pid,ym,k)/div).toFixed(2)),backgroundColor:palette[i%palette.length],borderRadius:4}));
   if(chObR) chObR.destroy();
   chObR=new Chart($('#chObRev'),{type:'bar',data:{labels,datasets:mkSeries('revenue',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
   if(chObM) chObM.destroy();
   chObM=new Chart($('#chObMar'),{type:'bar',data:{labels,datasets:mkSeries('margin',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
-  const sumYm=k=>yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+(r[k]||0),0));
+  const net=(ym,k,ch)=>phIds.reduce((a,pid)=>a+val(pid,ym,k,ch),0);
   if(chObN) chObN.destroy();
   chObN=new Chart($('#chObNet'),{type:'bar',data:{labels,datasets:[
-    {label:'Выручка (ТО)',data:sumYm('revenue').map(v=>+(v/1e6).toFixed(2)),backgroundColor:'#4169aa',borderRadius:4},
-    {label:'ВД',data:sumYm('margin').map(v=>+(v/1e6).toFixed(2)),backgroundColor:'#53a979',borderRadius:4}
+    {label:'Розница · ТО',data:yms.map(ym=>+(net(ym,'revenue','retail')/1e6).toFixed(2)),backgroundColor:'#4169aa',borderRadius:4},
+    {label:'Розница · ВД',data:yms.map(ym=>+(net(ym,'margin','retail')/1e6).toFixed(2)),backgroundColor:'#53a979',borderRadius:4},
+    {label:'Ecom · ТО',data:yms.map(ym=>+(net(ym,'revenue','ecom')/1e6).toFixed(2)),backgroundColor:'#f1974e',borderRadius:4},
+    {label:'Ecom · ВД',data:yms.map(ym=>+(net(ym,'margin','ecom')/1e6).toFixed(2)),backgroundColor:'#9467bd',borderRadius:4}
   ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:10},maxRotation:0,autoSkip:false}}}}});
   const pc=(a,b)=>b?(a/b*100).toFixed(1)+'%':'—';
   let h='<thead><tr><th class="l stick">Аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
   phIds.forEach(pid=>{
-    const vals=yms.map(ym=>val(pid,ym,'revenue'));
+    const vals=yms.map(ym=>valT(pid,ym,'revenue'));
     h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num"><b>${fmtM(vals.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+    if(hasEcom){
+      const ev=yms.map(ym=>val(pid,ym,'revenue','ecom'));
+      h+=`<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>`+ev.map(v=>`<td class="num mut" style="font-size:11px">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a,b)=>a+b,0))}</td></tr>`;
+    }
   });
   const tr=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.revenue,0));
   h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tr.map(v=>`<td class="num"><b>${fmtM(v)}</b></td>`).join('')+`<td class="num"><b>${fmtM(tr.reduce((a,b)=>a+b,0))}</b></td></tr>`;
   h+='</tbody><thead><tr><th class="l stick">ВД · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
   phIds.forEach(pid=>{
-    const vals=yms.map(ym=>val(pid,ym,'margin'));
+    const vals=yms.map(ym=>valT(pid,ym,'margin'));
     h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num"><b>${fmtM(vals.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+    if(hasEcom){
+      const ev=yms.map(ym=>val(pid,ym,'margin','ecom'));
+      h+=`<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>`+ev.map(v=>`<td class="num mut" style="font-size:11px">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a,b)=>a+b,0))}</td></tr>`;
+    }
   });
   const tm=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.margin,0));
   h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tm.map((v,i)=>`<td class="num"><b>${fmtM(v)}</b> <span class="mut" style="font-size:10px">${pc(v,tr[i])}</span></td>`).join('')+`<td class="num"><b>${fmtM(tm.reduce((a,b)=>a+b,0))}</b></td></tr>`;
   h+='</tbody><thead><tr><th class="l stick">Чеков · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
   phIds.forEach(pid=>{
-    const vals=yms.map(ym=>val(pid,ym,'checks'));
+    const vals=yms.map(ym=>val(pid,ym,'checks','retail')+val(pid,ym,'checks','ecom'));
     h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?v.toLocaleString('ru-RU'):'—'}</td>`).join('')+`<td class="num"><b>${vals.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</b></td></tr>`;
+    if(hasEcom){
+      const ev=yms.map(ym=>val(pid,ym,'checks','ecom'));
+      h+=`<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>`+ev.map(v=>`<td class="num mut" style="font-size:11px">${v?v.toLocaleString('ru-RU'):'—'}</td>`).join('')+`<td class="num mut" style="font-size:11px">${ev.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</td></tr>`;
+    }
   });
   const tc=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+(r.checks||0),0));
   h+=`<tr><td class="l stick"><b>Сеть</b></td>`+tc.map(v=>`<td class="num"><b>${v.toLocaleString('ru-RU')}</b></td>`).join('')+`<td class="num"><b>${tc.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</b></td></tr>`;
