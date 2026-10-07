@@ -128,6 +128,11 @@ export function createDelegation(db, employeeId) {
 
 // ---------- данные ----------
 function activeMonth(db) {
+  // Текущий календарный месяц планирования (Сентябрь–Декабрь) — даже если факта
+  // ещё нет: сотрудник видит тот же месяц, что руководитель в short.html.
+  const now = new Date();
+  const cur = MM[`0${now.getUTCMonth() + 1}`.slice(-2)];
+  if (cur) return cur;
   const d = db.prepare('SELECT MAX(d) md FROM fact_day').get()?.md;
   return (d && MM[d.slice(5, 7)]) || 'Сентябрь';
 }
