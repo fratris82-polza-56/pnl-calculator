@@ -269,6 +269,10 @@ pre .c{color:#7d93b8}
 .badge{display:inline-block;background:#eef3fa;color:var(--navy);border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:700;margin-left:6px;vertical-align:middle}
 button.btn{border:1px solid var(--line);background:#fff;color:var(--navy);padding:9px 14px;border-radius:9px;font-size:12.5px;font-weight:600;cursor:pointer;min-height:40px}
 button.btn:active{background:#eef3fa}
+button.btn-gear{display:inline-flex;align-items:center;gap:8px;color:var(--navy)}
+button.btn-gear .gear-ic{width:16px;height:16px;flex:none;transition:transform .3s ease}
+button.btn-gear:hover .gear-ic{transform:rotate(45deg)}
+button.btn-gear.is-open{background:var(--navy);border-color:var(--navy);color:#fff}
 .ok-line{color:#0a7d3c;font-weight:600}.err-line{color:#c0272d;font-weight:600}
 
 /* ===== Планшет и шире ===== */
@@ -373,7 +377,7 @@ button.btn:active{background:#eef3fa}
   </div>
   <div class="card tbl-wrap"><table id="tblOb"></table></div>
 
-  <div class="h2row" style="margin-top:20px"><button class="btn" id="btnSettings">⚙️ Настройки</button></div>
+  <div class="h2row" style="margin-top:20px"><button class="btn btn-gear" id="btnSettings"><svg class="gear-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.9 1.9M7.4 16.6l-1.9 1.9M18.5 18.5l-1.9-1.9M7.4 7.4L5.5 5.5"/></svg><span>Настройки</span></button></div>
   <div class="api" id="apiSettings" style="display:none">
     <div class="card">
       <h2>Обмен данными с аптечным ПО <span class="badge">REST API</span></h2>
@@ -1104,7 +1108,7 @@ async function main(){
   $('#btnSo').onclick=addSo; $('#btnCp').onclick=addCp; $('#btnSoTop').onclick=loadSoTop;
   $('#btnTgCheck').onclick=async()=>{ const r=await api('/api/tg/check',{method:'POST'}); $('#tgMsg').textContent = r.ok? `проверено обновлений: ${r.scanned}, новых привязок: ${(r.bound||[]).length}` : (r.error||'ошибка'); if(r.ok) loadTg(); };
   $('#btnTgSend').onclick=async()=>{ $('#btnTgSend').disabled=true; const r=await api('/api/tg/broadcast',{method:'POST'}); $('#btnTgSend').disabled=false; $('#tgMsg').innerHTML = r.error? `<span class="err-line">${r.error}</span>` : `отправлено: ${r.sent} · ошибок: ${r.failed} · не привязано: ${r.unbound}`; if(!r.error) loadTg(); };
-  $('#btnSettings').onclick=()=>{ const s=$('#apiSettings'); const show=s.style.display==='none'; s.style.display=show?'':'none'; $('#btnSettings').textContent=show?'✕ Скрыть настройки':'⚙️ Настройки'; if(show){ loadTg(); s.scrollIntoView({behavior:'smooth',block:'start'}); } };
+  $('#btnSettings').onclick=()=>{ const s=$('#apiSettings'); const show=s.style.display==='none'; s.style.display=show?'':'none'; $('#btnSettings').classList.toggle('is-open',show); $('#btnSettings span').textContent=show?'Скрыть настройки':'Настройки'; if(show){ loadTg(); s.scrollIntoView({behavior:'smooth',block:'start'}); } };
   setInterval(loadLog, 15000);
   _loadModNav();
 }
