@@ -250,7 +250,8 @@ function render(d){
   showApp();
   const me=d.me[0];
   $('hello').textContent=d.view==='pharmacy' ? 'Аптека «'+d.pharmacy.name+'»' : me.fio;
-  $('phName').textContent=d.pharmacy.name+' · '+d.month;
+  $('phName').textContent=d.pharmacy.name+' · '+d.month
+    +(d.days_left!=null?(' · осталось '+d.days_left+' дн.'):'');
   rolebar(d);
   _loadModNav();
   $('tip').textContent=d.tip||me.tip;
@@ -373,7 +374,15 @@ async function boot(){
   if(!TOKEN){ showLogin(); return; }
   try{
     const r=await fetch('/api/me',{headers:{'Authorization':'Bearer '+TOKEN}});
-    if(r.status===403){ location.href='/'; return; } // manager-токен: ЛК не для него
+    if(r.status===403){ // manager-токен: ЛК не для него; восстанавливаем cookie-сессию и на дашборд
+      if(/^M-[A-Z0-9]{4,12}$/.test(TOKEN)){
+        try{
+          const lr=await fetch('/api/me/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:TOKEN})});
+          if(lr.ok){ location.href='/'; return; }
+        }catch(_){}
+      }
+      localStorage.removeItem('me_token'); showLogin(); return;
+    }
     if(r.status===401){ TOKEN='';localStorage.removeItem('me_token'); showLogin(); return; }
     load();
   }catch(_){ showLogin(); }

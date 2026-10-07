@@ -261,6 +261,7 @@ export function meData(db, employeeId, delegated = false, asId = null) {
   return {
     view: delegated ? 'pharmacy' : 'me',
     month, days_in: totalDays, elapsed,
+    days_left: isCur ? Math.max(totalDays - elapsed, 0) : null,
     pharmacy: { id: ph.id, name: ph.name, addr: ph.addr, color: ph.color },
     net: { pct: pct1(netPct) }, // сеть — только процент, без абсолютов
     roles,

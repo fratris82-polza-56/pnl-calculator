@@ -83,6 +83,21 @@ th.stick,td.stick{position:sticky;left:0;background:var(--card);z-index:1;box-sh
 /* --- боковая панель навигации модулей --- */
 .sbl-btn{display:none;position:fixed;z-index:60;top:10px;left:10px;width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--navy);font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(19,51,103,.10);align-items:center;justify-content:center}
 .sbl-ov{display:none;position:fixed;inset:0;background:rgba(19,51,103,.42);z-index:54}
+/* Экран входа (виден только без доступа) */
+.gate{display:none;position:fixed;inset:0;z-index:70;background:var(--bg);align-items:center;justify-content:center;padding:16px}
+.gate.show{display:flex}
+.gate-card{width:100%;max-width:340px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 20px;box-shadow:0 6px 24px rgba(19,51,103,.10)}
+.gate-card .glogo{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.gate-card .glogo .gmark{width:34px;height:34px;border-radius:9px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}
+.gate-card .glogo b{font-size:15px;color:var(--navy)}
+.gate-card .gsub{font-size:12.5px;color:var(--mut);margin-bottom:14px}
+.gate-card input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:15px;letter-spacing:.5px;text-transform:uppercase;outline:none;background:#fff;color:var(--tx)}
+.gate-card input:focus{border-color:var(--blue)}
+.gate-card button{width:100%;margin-top:10px;padding:10px 12px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-size:14px;font-weight:700;cursor:pointer}
+.gate-card button:hover{background:var(--navy)}
+.gate-card .gerr{display:none;margin-top:8px;font-size:12.5px;color:var(--red)}
+.gate-card .gerr.show{display:block}
+.gate-card .ghint{margin-top:12px;font-size:11.5px;color:var(--mut);line-height:1.45}
 .sbl{position:fixed;z-index:55;top:0;left:0;bottom:0;width:232px;background:var(--navy);display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease}
 body.sbl-open .sbl{transform:none}
 body.sbl-open .sbl-ov{display:block}
@@ -160,6 +175,16 @@ button.btn:active{background:#eef3fa}
 </style>
 </head>
 <body>
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="glogo"><span class="gmark">З</span><b>План «Звезда»</b></div>
+    <div class="gsub">Вход по коду руководителя</div>
+    <input id="gCode" type="text" placeholder="Код доступа" autocomplete="off">
+    <button id="gGo">Войти</button>
+    <div class="gerr" id="gErr"></div>
+    <div class="ghint">Код выдаёт администратор. Личный кабинет сотрудников — <a href="/me.html">/me.html</a>.</div>
+  </div>
+</div>
 <div class="wrap">
   <div class="topbar">
     <div class="fbar" id="fbar" aria-label="Фильтры">
@@ -319,11 +344,26 @@ let CAT=null, chM=null, chD=null;
 
 // Единый доступ: Bearer из me_token; при 401/403 → на вход
 const _TOK = () => localStorage.getItem('me_token') || '';
-function _toLogin(){ localStorage.removeItem('me_token'); location.href='/me.html'; }
+const _GATE = () => document.getElementById('gate');
+function gateShow(msg){ const g=_GATE(); if(!g) return; if(msg){ const e=g.querySelector('#gErr'); e.textContent=msg; e.classList.add('show'); } g.classList.add('show'); }
+function gateHide(){ const g=_GATE(); if(g) g.classList.remove('show'); }
+function _toLogin(msg){ localStorage.removeItem('me_token'); gateShow(msg||''); }
+async function gateLogin(){
+  const code=(document.getElementById('gCode').value||'').trim().toUpperCase();
+  const err=document.getElementById('gErr');
+  if(!code){ err.textContent='введите код'; err.classList.add('show'); return; }
+  try{
+    const r=await fetch('/api/me/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok){ err.textContent=d.error||'код не найден'; err.classList.add('show'); return; }
+    localStorage.setItem('me_token', d.token);   // сессионный токен; cookie ставит сервер
+    location.reload();
+  }catch(_){ err.textContent='сеть недоступна'; err.classList.add('show'); }
+}
 async function api(path, opt={}){
   const h = Object.assign({'Authorization':'Bearer '+_TOK()}, opt.headers||{});
   const r = await fetch(path, Object.assign({}, opt, {headers:h}));
-  if(r.status===401 || r.status===403){ _toLogin(); throw new Error('auth'); }
+  if(r.status===401 || r.status===403){ _toLogin('сессия истекла — войдите заново'); throw new Error('auth'); }
   return r.json();
 }
 
@@ -838,7 +878,19 @@ function kbars(rows, always){
 }
 function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s = pct>=100?`+${(pct-100).toFixed(1)}%`:`−${(100-pct).toFixed(1)}%`; return `<span class="b ${c}">${s} к плану</span>`; }
 
-(async function init(){
+// Проверка доступа до загрузки данных: нет сессии — экран входа, данные не тянем
+(async function boot(){
+  const tok=_TOK();
+  if(!tok){ gateShow(); return; }
+  try{
+    const chk=await fetch('/api/catalog',{headers:{'Authorization':'Bearer '+tok}});
+    if(chk.status===401){ localStorage.removeItem('me_token'); gateShow(); return; }
+    if(chk.status===403){ gateShow('этот код не даёт доступ к общему дашборду'); return; }
+    if(!chk.ok){ gateShow('сервер недоступен'); return; }
+  }catch(_){ gateShow('сеть недоступна'); return; }
+  try{ await main(); }catch(e){ if(e && e.message!=='auth') throw e; }
+})();
+async function main(){
   CAT = await api('/api/catalog');
   CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('#fPh').appendChild(o)});
   MONTHS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;$('#fMonth').appendChild(o)});
@@ -856,7 +908,12 @@ function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s =
   $('#btnSettings').onclick=()=>{ const s=$('#apiSettings'); const show=s.style.display==='none'; s.style.display=show?'':'none'; $('#btnSettings').textContent=show?'✕ Скрыть настройки':'⚙️ Настройки'; if(show){ loadTg(); s.scrollIntoView({behavior:'smooth',block:'start'}); } };
   setInterval(loadLog, 15000);
   _loadModNav();
-})();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const btn=document.getElementById('gGo'); const inp=document.getElementById('gCode');
+  if(btn) btn.onclick=gateLogin;
+  if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter') gateLogin(); });
+});
 </script>
 </body>
 </html>

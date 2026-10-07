@@ -818,8 +818,8 @@ const EXEMPT_PATHS = [
   '/api/integration/remap',
   '/api/modules',
 ];
-// Публичная статика: экран входа + вендорная библиотека
-const STATIC_PUBLIC = new Set(['/me.html', '/chart.min.js']);
+// Публичная статика: экран входа, оболочка дашборда (данные — только по API с доступом) + вендорная библиотека
+const STATIC_PUBLIC = new Set(['/me.html', '/index.html', '/chart.min.js']);
 function effRe(r) { return r.pattern instanceof RegExp ? r.pattern : new RegExp(`^${r.pattern}$`); }
 function applyAccessControl() {
   for (let i = 0; i < routes.length; i++) {
