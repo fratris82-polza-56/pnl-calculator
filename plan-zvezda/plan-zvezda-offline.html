@@ -9,7 +9,11 @@ window.fetch = async function(url){
   const u = String(url);
   const mk = d => new Response(JSON.stringify(d), {headers:{'Content-Type':'application/json'}});
   const qp = (()=>{ try{ return new URL(u, 'http://x/').searchParams; }catch(e){ return new URLSearchParams(); } })();
-  const fPh = qp.get('pharmacy_id'), fMo = qp.get('month');
+  const fPh = qp.get('pharmacy_id');
+  const MONTHS_OK = ['Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  let fMs = String(qp.get('months')||'').split(',').map(s=>s.trim()).filter(m=>MONTHS_OK.includes(m));
+  if(!fMs.length){ const one = qp.get('month'); if(one && MONTHS_OK.includes(one)) fMs=[one]; }
+  const fQ = qp.get('quarter') === '1';
   const monthKey = m => ({'Сентябрь':'2026-09','Октябрь':'2026-10','Ноябрь':'2026-11','Декабрь':'2026-12'}[m]||'');
   const _epLS = ()=>{ try{ return JSON.parse(localStorage.getItem('pz.empPlan')||'[]'); }catch(e){ return []; } };
   if(u.includes('/api/plan/employee')){
@@ -42,7 +46,28 @@ window.fetch = async function(url){
   if(u.includes('/api/summary')){
     let rows = SNAPSHOT.summary.rows;
     if(fPh) rows = rows.filter(r=>String(r.pharmacy_id)===fPh);
-    if(fMo) rows = rows.filter(r=>r.month===fMo);
+    if(fMs.length) rows = rows.filter(r=>fMs.includes(r.month));
+    if(fQ){
+      // Квартальные агрегаты (как сервер): Сентябрь → 3 кв., остальное → 4 кв.
+      const groups = {};
+      rows.forEach(r=>{
+        const qi = r.month==='Сентябрь' ? 3 : 4;
+        const key = r.pharmacy_id+'|'+qi;
+        const g = groups[key] ??= {pharmacy_id:r.pharmacy_id, pharmacy:r.pharmacy, month:'', q:qi,
+          plan_revenue:0, plan_margin:0, fact_revenue:0, fact_margin:0, fact_stm:0, fact_ustm:0, fact_marketing:0,
+          plan_stm:0, plan_marketing:0,
+          forecast_revenue:0, forecast_margin:0, forecast_stm:0, forecast_marketing:0, fact_checks:0, fact_days:0, total_days:0};
+        for(const k of ['plan_revenue','plan_margin','fact_revenue','fact_margin','fact_stm','fact_ustm','fact_marketing','plan_stm','plan_marketing','fact_checks','fact_days','total_days','forecast_revenue','forecast_margin','forecast_stm','forecast_marketing']) g[k]+=r[k]||0;
+      });
+      Object.values(groups).forEach(g=>{ g.month = (g.q===3?'3 кв. · Сентябрь':'4 кв. · Октябрь+Ноябрь+Декабрь');
+        const factStm=g.fact_stm+g.fact_ustm;
+        g.pct_revenue=g.plan_revenue?+(g.fact_revenue/g.plan_revenue*100).toFixed(1):null;
+        g.pct_margin=g.plan_margin?+(g.fact_margin/g.plan_margin*100).toFixed(1):null;
+        g.pct_stm=g.plan_stm?+(factStm/g.plan_stm*100).toFixed(1):null;
+        g.pct_marketing=g.plan_marketing?+(g.fact_marketing/g.plan_marketing*100).toFixed(1):null;
+        g.forecast_pct=g.plan_revenue?+(g.forecast_revenue/g.plan_revenue*100).toFixed(1):null; });
+      rows = Object.values(groups).sort((a,b)=>a.pharmacy_id-b.pharmacy_id||a.q-b.q);
+    }
     let emps = SNAPSHOT.summary.employees||[];
     if(fPh) emps = emps.filter(e=>String(e.pharmacy_id)===fPh);
     return mk({rows, employees: emps, asOf: SNAPSHOT.summary.asOf});
@@ -59,7 +84,7 @@ window.fetch = async function(url){
         ser = Object.entries(byDay).sort((a,b)=>a[0]<b[0]?-1:1).map(([d,fact])=>({d,fact}));
       } else ser = SNAPSHOT.sseries.series||[];
     }
-    if(fMo) ser = ser.filter(x=>x.d.startsWith(monthKey(fMo)));
+    if(fMs.length) ser = ser.filter(x=>fMs.some(m=>x.d.startsWith(monthKey(m))));
     return mk({series: ser});
   }
   if(u.includes('/api/integration/log')) return mk([]);
@@ -145,6 +170,24 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 /* шапка-бренд убрана: фильтры — выпадающие списки */
 .fbar select{appearance:none;-webkit-appearance:none;flex:none;border:1px solid var(--line);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center/10px 6px;color:var(--navy);border-radius:99px;padding:7px 30px 7px 14px;font-size:12.5px;font-weight:600;min-height:34px;cursor:pointer;font-family:inherit}
 .fbar select:focus{outline:none;border-color:var(--blue)}
+/* Мультиселект месяцев и кнопка кварталов */
+.ms{position:relative;flex:none}
+.ms-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;min-height:34px;cursor:pointer;font-family:inherit}
+.ms-btn:focus{outline:none;border-color:var(--blue)}
+.ms-car{width:10px;height:6px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain;transition:transform .15s ease}
+.ms.open .ms-car{transform:rotate(180deg)}
+.ms-pop{display:none;position:absolute;z-index:50;top:calc(100% + 6px);left:0;min-width:190px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 28px rgba(19,51,103,.14);padding:6px}
+.ms.open .ms-pop{display:block}
+.ms-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;white-space:nowrap}
+.ms-opt:hover{background:#eef3fa}
+.ms-ck{width:14px;height:14px;flex:none;border:1.5px solid #b8c4d4;border-radius:4px;position:relative}
+.ms-opt.on .ms-ck{background:var(--navy);border-color:var(--navy)}
+.ms-opt.on .ms-ck::after{content:'';position:absolute;left:3.5px;top:1px;width:4px;height:7px;border:solid #fff;border-width:0 1.8px 1.8px 0;transform:rotate(40deg)}
+.ms-opt.all.on .ms-ck{background:var(--blue);border-color:var(--blue)}
+.ms-foot{display:flex;gap:6px;border-top:1px solid var(--line);margin-top:5px;padding:6px 4px 2px}
+.ms-foot button{flex:1;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:11px;font-weight:600;border-radius:8px;padding:4px 6px;cursor:pointer;font-family:inherit}
+.ms-foot button:hover{background:#eef3fa}
+.ms-foot #msClr{color:var(--mut)}
 .fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;margin-left:54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fbar::-webkit-scrollbar{display:none}
 /* чипы-фильтры заменены на выпадающие списки */
@@ -273,6 +316,7 @@ button.btn-gear{display:inline-flex;align-items:center;gap:8px;color:var(--navy)
 button.btn-gear .gear-ic{width:16px;height:16px;flex:none;transition:transform .3s ease}
 button.btn-gear:hover .gear-ic{transform:rotate(45deg)}
 button.btn-gear.is-open{background:var(--navy);border-color:var(--navy);color:#fff}
+button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
 .ok-line{color:#0a7d3c;font-weight:600}.err-line{color:#c0272d;font-weight:600}
 
 /* ===== Планшет и шире ===== */
@@ -313,7 +357,23 @@ button.btn-gear.is-open{background:var(--navy);border-color:var(--navy);color:#f
 <div class="wrap">
   <div class="topbar">
     <div class="fbar" id="fbar" aria-label="Фильтры">
-      <select id="fMonth" aria-label="Месяц"><option value="">Все месяцы</option></select>
+      <div class="ms" id="msMonth">
+        <button type="button" class="ms-btn" id="msBtn" aria-haspopup="listbox" aria-expanded="false">
+          <span id="msLabel">Все месяцы</span><span class="ms-car"></span>
+        </button>
+        <div class="ms-pop" id="msPop">
+          <div class="ms-opt all" data-v=""><span class="ms-ck"></span>Все месяцы</div>
+          <div class="ms-opt" data-v="Сентябрь"><span class="ms-ck"></span>Сентябрь</div>
+          <div class="ms-opt" data-v="Октябрь"><span class="ms-ck"></span>Октябрь</div>
+          <div class="ms-opt" data-v="Ноябрь"><span class="ms-ck"></span>Ноябрь</div>
+          <div class="ms-opt" data-v="Декабрь"><span class="ms-ck"></span>Декабрь</div>
+          <div class="ms-foot">
+            <button type="button" id="msClr">Снять</button>
+            <button type="button" id="msAll">Все</button>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-q" id="btnQ" title="Группировать месяцы по кварталам">По кварталам</button>
       <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
     </div>
   </div>
@@ -695,7 +755,11 @@ function renderEmp(sum, phId){
   if(!emps.length){ $('#tblEmp').innerHTML = '<tbody><tr><td class="l mut">нет данных по факту — пришлите продажи через API</td></tr></tbody>'; return; }
   emps.forEach(e=>{
     const ph = CAT.pharmacy.find(p=>p.id===e.pharmacy_id);
-    const midx = $('#fMonth').value? MONTHS.indexOf($('#fMonth').value) : MONTHS.indexOf('Сентябрь');
+    // Личные планы считаем по первому выбранному месяцу (или текущему, если выбрано несколько/все)
+    const __selM = (typeof msGet!=='undefined')? msGet() : [];
+    const __cur = ['Сентябрь','Октябрь','Ноябрь','Декабрь'][new Date().getUTCMonth()-8] || 'Сентябрь';
+    const __m1 = (__selM.length===1)? __selM[0] : (__selM.includes(__cur)? __cur : (__selM[0]||__cur));
+    const midx = MONTHS.indexOf(__m1);
     const planRow = CAT.plan.find(p=>p.pharmacy_id===e.pharmacy_id && p.month===MONTHS[midx]);
     const ov = empPlanOverride(e.pharmacy_id, e.fio, MONTHS[midx]);
     const effShare = (ov && ov.share!=null)? ov.share : (e.share||0);
@@ -716,11 +780,21 @@ function renderEmp(sum, phId){
 }
 
 function drawMonth(sum){
-  const labels = MONTHS;
+  // Режим кварталов: строки с полем q>0 — квартальные агрегаты; иначе обычные месяцы
+  const qrows = sum.rows.filter(r=>r.q>0);
+  if(qrows.length){
+    const labels = [...new Set(qrows.map(r=>r.month))];   // «3 кв. · Сентябрь», «4 кв. · …»
+    const phId=$('#fPh').value;
+    const agg = lab => qrows.filter(r=>r.month===lab&&(!phId||r.pharmacy_id==phId))
+      .reduce((a,r)=>{a.plan+=r.plan_revenue;a.fact+=r.fact_revenue;a.fc+=r.forecast_revenue;return a},{plan:0,fact:0,fc:0});
+    const P = labels.map(l=>agg(l).plan/1e6), F = labels.map(l=>agg(l).fact/1e6), FC = labels.map(l=>agg(l).fc/1e6);
+    drawMonthChart(labels,P,F,FC);
+    return;
+  }
   const pick = m => sum.rows.find(x=>x.month===m&&(!$('#fPh').value||x.pharmacy_id==$('#fPh').value))||{plan_revenue:0,fact_revenue:0,forecast_revenue:0};
-  const plan = MONTHS.map(m=>pick(m).plan_revenue/1e6);
-  const fact = MONTHS.map(m=>pick(m).fact_revenue/1e6);
-  const fc = MONTHS.map(m=>pick(m).forecast_revenue/1e6);
+  drawMonthChart(MONTHS, MONTHS.map(m=>pick(m).plan_revenue/1e6), MONTHS.map(m=>pick(m).fact_revenue/1e6), MONTHS.map(m=>pick(m).forecast_revenue/1e6));
+}
+function drawMonthChart(labels,plan,fact,fc){
   if(chM) chM.destroy();
   chM = new Chart($('#chMonth'), {
     type: 'bar',
@@ -738,9 +812,12 @@ function drawMonth(sum){
 }
 
 async function drawDay(){
-  const phId = $('#fPh').value, month = $('#fMonth').value || 'Сентябрь';
+  const phId = $('#fPh').value;
+  const sel = (typeof msGet!=='undefined')? msGet() : [];
+  const month = sel.length===1? sel[0] : (sel[0]||'Сентябрь');
   $('#chDayTitle').textContent = `Накопленный план/факт по дням (${month.toLowerCase()})`;
-  const q = new URLSearchParams(); if(phId) q.set('pharmacy_id',phId); q.set('month',month);
+  const q = new URLSearchParams(); if(phId) q.set('pharmacy_id',phId);
+  if(sel.length) q.set('months',sel.join(','));
   const s = await api('/api/s.series?'+q);
   if(!s.series || !s.series.length) return;
   const nD = DAYS_IN[month];
@@ -984,10 +1061,14 @@ $('#btnSim').onclick = async () => {
 };
 
 async function refresh(){
-  const phId=$('#fPh').value, month=$('#fMonth').value;
-  const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId); if(month)q.set('month',month);
+  const phId=$('#fPh').value;
+  const sel = (typeof msGet!=='undefined')? msGet() : [];
+  const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId);
+  if(qtOn && sel.length>1) q.set('quarter','1');
+  if(sel.length) q.set('months',sel.join(','));
+  const mlab = qtOn? 'по кварталам' : (sel.length? sel.join(' + ') : 'весь период');
   const sum = await api('/api/summary?'+q);
-  renderKpis(sum, phId, month);
+  renderKpis(sum, phId, mlab);
   renderTable(sum);
   renderEmp(sum, phId);
   drawMonth(sum);
@@ -1090,15 +1171,59 @@ function kbars(rows, always){
 }
 function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s = pct>=100?`+${(pct-100).toFixed(1)}%`:`−${(100-pct).toFixed(1)}%`; return `<span class="b ${c}">${s} к плану</span>`; }
 
+// ---------- Мультиселект месяцев (Ctrl/клик) + режим кварталов ----------
+let msSel = ['Сентябрь'];            // выбранные месяцы; [] = все
+let qtOn = false;                    // «По кварталам»
+function msGet(){ return msSel; }
+function msLabel(){
+  if(!msSel.length) return 'Все месяцы';
+  if(msSel.length===1) return msSel[0];
+  return msSel.length+' мес.';
+}
+function msSync(){
+  const lbl = $('#msLabel'); if(lbl) lbl.textContent = msLabel();
+  document.querySelectorAll('#msPop .ms-opt').forEach(el=>{
+    const v = el.dataset.v;
+    el.classList.toggle('on', msSel.includes(v));
+    el.setAttribute('aria-selected', msSel.includes(v)?'true':'false');
+  });
+  const box = $('#msMonth'); if(box) box.classList.toggle('open', box.classList.contains('open'));
+}
+function msApply(){ msSync(); refresh(); }
+function initMonthFilter(){
+  const box = $('#msMonth'), btn = $('#msBtn'), pop = $('#msPop');
+  if(!box || !btn || !pop) return;
+  btn.onclick = e=>{ e.stopPropagation(); const open = !box.classList.contains('open'); box.classList.toggle('open',open); btn.setAttribute('aria-expanded',open?'true':'false'); };
+  pop.addEventListener('click', e=>e.stopPropagation());
+  document.addEventListener('click', ()=>{ box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); });
+  pop.querySelectorAll('.ms-opt').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      const v = el.dataset.v;
+      if(!v){ msSel = []; msApply(); return; }        // «Все месяцы»
+      if(e.ctrlKey || e.metaKey){                      // Ctrl-мультиселект
+        const i = msSel.indexOf(v);
+        if(i>=0) msSel.splice(i,1); else { msSel.push(v); msSel.sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b)); }
+      } else msSel = [v];                              // обычный клик — одиночный выбор
+      msApply();
+    });
+  });
+  const clr = $('#msClr'), all = $('#msAll');
+  if(clr) clr.onclick = e=>{ e.stopPropagation(); msSel = []; msApply(); };
+  if(all) all.onclick = e=>{ e.stopPropagation(); msSel = []; msApply(); };
+  const bq = $('#btnQ');
+  if(bq) bq.onclick = ()=>{ qtOn = !qtOn; bq.classList.toggle('on',qtOn); refresh(); };
+  msSync();
+}
+
 // Проверка доступа до загрузки данных: нет сессии — экран входа, данные не тянем
 (async function boot(){ await main(); })();
 async function main(){
   CAT = await api('/api/catalog');
   CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('#fPh').appendChild(o)});
-  MONTHS.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;$('#fMonth').appendChild(o)});
-  $('#fMonth').value = 'Сентябрь';
+  initMonthFilter();
   const sum = await api('/api/summary');
-  $('#fPh').onchange=()=>{ refresh(); loadOb(); }; $('#fMonth').onchange=refresh;
+  $('#fPh').onchange=()=>{ refresh(); loadOb(); };
   await refresh();
   await loadLog();
   await loadKpi();

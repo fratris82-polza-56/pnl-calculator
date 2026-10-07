@@ -492,13 +492,20 @@ print(r.json())</pre>
 route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
   const q = url.searchParams;
   const phId = q.get('pharmacy_id') ? Number(q.get('pharmacy_id')) : null;
-  const month = q.get('month');
+  // Месяцы: month=Имя (одиночный, старый вид) или months=Имя1,Имя2… (Ctrl-мультиселект)
+  const MONTHS_OK = ['Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+  let months = String(q.get('months')||'').split(',').map(s=>s.trim()).filter(m=>MONTHS_OK.includes(m));
+  if (!months.length){ const one = q.get('month'); if (one && MONTHS_OK.includes(one)) months=[one]; }
+  const quarter = q.get('quarter');            // «1»|«2» — агрегировать строки плана по кварталам
+  const byMonths = months.length && months.length<MONTHS_OK.length; // подмножество месяцев
 
+  const hasM = months.length > 0;
   const planRows = db.prepare(`
     SELECT p.pharmacy_id, p.month, p.revenue, p.margin, ph.name
     FROM plan p JOIN pharmacy ph ON ph.id=p.pharmacy_id
-    WHERE (? IS NULL OR p.pharmacy_id=?) AND (? IS NULL OR p.month=?)
-    ORDER BY p.pharmacy_id, p.month`).all(phId, phId, month, month);
+    WHERE (? IS NULL OR p.pharmacy_id=?)${hasM? ` AND p.month IN (${months.map(()=>'?').join(',')})` : ''}
+    ORDER BY p.pharmacy_id, p.month`)
+    .all(phId, phId, ...(hasM?months:[]));
 
   const allFact = db.prepare(`
     SELECT pharmacy_id, d, SUM(revenue) revenue, SUM(margin) margin, SUM(COALESCE(checks,0)) checks,
@@ -508,7 +515,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
   for (const f of allFact) {
     const mo = monthOf(f.d);
     if (!mo) continue;
-    if (month && mo !== month) continue;
+    if (byMonths && !months.includes(mo)) continue;
     const k = `${f.pharmacy_id}|${mo}`;
     factByPhMonth[k] ??= { revenue: 0, margin: 0, checks: 0, stm: 0, ustm: 0, marketing: 0, days: new Set() };
     const a = factByPhMonth[k];
@@ -516,8 +523,10 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
   }
 
   const MONTH_KEYS = {'Сентябрь':'2026-09','Октябрь':'2026-10','Ноябрь':'2026-11','Декабрь':'2026-12'};
-  const mKey = month ? (MONTH_KEYS[month] || null) : null;   // для фильтра дат факта
-  const mLike = mKey ? mKey + '%' : null;                     // LIKE '2026-10%'
+  // Фильтр дат факта для сотрудников: по выбранным месяцам (мультиселект) или одиночному
+  const fMonths = months.length? months : null;   // null = за всё время
+  const mKeys = fMonths? fMonths.map(m=>MONTH_KEYS[m]).filter(Boolean) : [];
+  const mLike = mKeys.length? mKeys.map(k=>k+'%') : null;   // список LIKE '2026-10%'
   // Целевые доли СТМ/Маркетинга: план ₽ = план ТО × доля (metric_target)
   const tgtMap = {};
   try {
@@ -525,18 +534,76 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
   } catch { /* таблица ещё не создана — планы null */ }
   const empFact = db.prepare(`
     -- Все сотрудники аптеки, даже без факта (иначе дашборд «теряет» новых)
-    -- month (имя месяца) фильтрует факт по сотруднику; без month — за всё время
+    -- месяц(ы) (имена месяцев) фильтрует факт по сотруднику; без них — за всё время
     SELECT e.pharmacy_id, e.id employee_id, e.fio, e.share,
            COALESCE(SUM(f.revenue),0) revenue, COALESCE(SUM(f.margin),0) margin,
            COALESCE(SUM(f.checks),0) checks,
            COALESCE(SUM(f.stm),0) stm, COALESCE(SUM(f.ustm),0) ustm, COALESCE(SUM(f.marketing),0) marketing
     FROM employee e LEFT JOIN fact_day f
-      ON f.employee_id=e.id AND (? IS NULL OR f.d LIKE ?)
+      ON f.employee_id=e.id ${mLike? 'AND ('+mLike.map(()=>'f.d LIKE ?').join(' OR ')+')' : ''}
     WHERE (? IS NULL OR e.pharmacy_id=?)
     GROUP BY e.id ORDER BY e.pharmacy_id, e.id`)
-    .all(mKey, mLike, phId, phId);
+    .all(...(mLike?mLike:[]), phId, phId);
 
-  const out = planRows.map(p => {
+  // Кварталы: агрегируем строки плана по (pharmacy_id, quarter) — сумма планов/факта
+  let out;
+  if (quarter) {
+    const groups = {};
+    const QLABEL = {3:'3 кв.',4:'4 кв.'};
+    planRows.forEach(p => {
+      const idx = MONTHS_OK.indexOf(p.month);
+      const qi = Math.floor((8+idx)/3)+1;   // календарный квартал: Сентябрь→3, Октябрь–Декабрь→4
+      const key = `${p.pharmacy_id}|Q${qi}`;
+      groups[key] ??= { pharmacy_id: p.pharmacy_id, pharmacy: p.name, quarter: qi,
+        plan_revenue:0, plan_margin:0, fact_revenue:0, fact_margin:0, fact_stm:0, fact_ustm:0, fact_marketing:0,
+        plan_stm_sum:0, plan_mkt_sum:0, hasStmPlan:false, hasMktPlan:false,
+        forecast_revenue:0, forecast_margin:0, forecast_stm:0, forecast_marketing:0, fact_checks:0, fact_days:0, total_days:0, months:[] };
+      const g = groups[key]; g.months.push(p.month);
+      g.plan_revenue += p.revenue; g.plan_margin += p.margin;
+      const f = factByPhMonth[`${p.pharmacy_id}|${p.month}`] ||
+                { revenue: 0, margin: 0, checks: 0, stm: 0, ustm: 0, marketing: 0, days: new Set() };
+      const totalDays = DAYS_IN[p.month];
+      const now = new Date();
+      const isCur = p.month === currentProjectMonth();
+      const elapsed = isCur ? now.getUTCDate() : (f.days.size > 0 ? f.days.size : 0);
+      const dayBase = Math.max(elapsed, 1);
+      g.fact_revenue += f.revenue; g.fact_margin += f.margin; g.fact_stm += f.stm; g.fact_ustm += f.ustm; g.fact_marketing += f.marketing;
+      g.fact_checks += f.checks; g.fact_days += f.days.size; g.total_days += totalDays;
+      g.forecast_revenue += (f.revenue/dayBase)*totalDays;
+      g.forecast_margin += (f.margin/dayBase)*totalDays;
+      const factStm = f.stm + f.ustm;
+      g.forecast_stm += (factStm/dayBase)*totalDays;
+      g.forecast_marketing += (f.marketing/dayBase)*totalDays;
+      const tg = tgtMap[p.month];
+      const planStm = tg?.stm_share != null ? p.revenue * tg.stm_share : null;
+      const planMkt = tg?.marketing_share != null ? p.revenue * tg.marketing_share : null;
+      if (planStm != null){ g.plan_stm_sum += planStm; g.hasStmPlan = true; }
+      if (planMkt != null){ g.plan_mkt_sum += planMkt; g.hasMktPlan = true; }
+    });
+    out = Object.values(groups).sort((a,b)=> a.pharmacy_id-b.pharmacy_id || a.quarter-b.quarter).map(g => {
+      const factStm = g.fact_stm + g.fact_ustm;
+      const planStm = g.hasStmPlan? Math.round(g.plan_stm_sum) : null;
+      const planMkt = g.hasMktPlan? Math.round(g.plan_mkt_sum) : null;
+      return {
+        pharmacy_id: g.pharmacy_id, pharmacy: g.pharmacy, month: `${QLABEL[g.quarter]||('Q'+g.quarter)} · ${g.months.join('+')}`, q: g.quarter,
+        plan_revenue: Math.round(g.plan_revenue), plan_margin: Math.round(g.plan_margin),
+        fact_revenue: Math.round(g.fact_revenue), fact_margin: Math.round(g.fact_margin),
+        fact_stm: Math.round(g.fact_stm), fact_ustm: Math.round(g.fact_ustm), fact_marketing: Math.round(g.fact_marketing),
+        plan_stm: planStm, plan_marketing: planMkt,
+        pct_stm: planStm? +(factStm/planStm*100).toFixed(1) : null,
+        pct_marketing: planMkt? +(g.fact_marketing/planMkt*100).toFixed(1) : null,
+        forecast_stm: Math.round(g.forecast_stm), forecast_marketing: Math.round(g.forecast_marketing),
+        forecast_pct_stm: planStm? +(g.forecast_stm/planStm*100).toFixed(1) : null,
+        forecast_pct_marketing: planMkt? +(g.forecast_marketing/planMkt*100).toFixed(1) : null,
+        fact_checks: g.fact_checks, fact_days: g.fact_days, total_days: g.total_days,
+        pct_revenue: g.plan_revenue? +(g.fact_revenue/g.plan_revenue*100).toFixed(1) : null,
+        pct_margin: g.plan_margin? +(g.fact_margin/g.plan_margin*100).toFixed(1) : null,
+        forecast_revenue: Math.round(g.forecast_revenue), forecast_margin: Math.round(g.forecast_margin),
+        forecast_pct: g.plan_revenue? +(g.forecast_revenue/g.plan_revenue*100).toFixed(1) : null,
+      };
+    });
+  } else {
+  out = planRows.map(p => {
     const f = factByPhMonth[`${p.pharmacy_id}|${p.month}`] ||
               { revenue: 0, margin: 0, checks: 0, stm: 0, ustm: 0, marketing: 0, days: new Set() };
     const totalDays = DAYS_IN[p.month];
@@ -573,6 +640,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
       forecast_pct: p.revenue ? +(forecastRev / p.revenue * 100).toFixed(1) : null,
     };
   });
+  }
 
   json(res, 200, {
     rows: out,
@@ -590,12 +658,18 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
 route('GET', /^\/api\/s\.series(?:\?|$)/, (req, res, m, url) => {
   const q = url.searchParams;
   const phId = q.get('pharmacy_id') ? Number(q.get('pharmacy_id')) : null;
-  const month = q.get('month');
+  const MONTHS_OK = ['Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+  let months = String(q.get('months')||'').split(',').map(s=>s.trim()).filter(m=>MONTHS_OK.includes(m));
+  if (!months.length){ const one = q.get('month'); if (one && MONTHS_OK.includes(one)) months=[one]; }
   const all = db.prepare(`
     SELECT pharmacy_id, d, SUM(revenue) revenue
     FROM fact_day WHERE (? IS NULL OR pharmacy_id=?) GROUP BY pharmacy_id, d ORDER BY d`)
     .all(phId, phId)
-    .filter(f => !month || monthOf(f.d) === month);
+    .filter(f => {
+      if (!months.length) return true;
+      const mo = monthOf(f.d);
+      return mo && months.includes(mo);
+    });
   const byDay = {};
   for (const f of all) {
     byDay[f.d] ??= 0;
