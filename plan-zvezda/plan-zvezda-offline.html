@@ -369,6 +369,7 @@ button.btn:active{background:#eef3fa}
   <div class="grid charts" id="chartsOb">
     <div class="card chart-card"><h3>Выручка по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObRev"></canvas></div></div>
     <div class="card chart-card"><h3>Валовая доходность, млн ₽</h3><div class="chart-box"><canvas id="chObMar"></canvas></div></div>
+    <div class="card chart-card" style="grid-column:1/-1"><h3>Сеть: выручка (ТО) и ВД по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObNet"></canvas></div></div>
   </div>
   <div class="card tbl-wrap"><table id="tblOb"></table></div>
 
@@ -469,7 +470,7 @@ const $ = s => document.querySelector(s);
 const fmtM = v => (v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн ₽';
 const fmt = v => Math.round(v).toLocaleString('ru-RU')+' ₽';
 const cls = pct => pct>=100?'b-ok':pct>=90?'b-warn':'b-bad';
-let CAT=null, chM=null, chD=null, chObR=null, chObM=null;
+let CAT=null, chM=null, chD=null, chObR=null, chObM=null, chObN=null;
 function obPhName(id){ const p=(CAT&&CAT.pharmacy||[]).find(p=>p.id==id); return p?p.name:('Аптека '+id); }
 async function loadOb(){
   const hide=()=>{ $('#sec-ob').style.display='none'; $('#chartsOb').style.display='none'; $('#tblOb').closest('.card').style.display='none'; };
@@ -488,6 +489,12 @@ async function loadOb(){
   chObR=new Chart($('#chObRev'),{type:'bar',data:{labels,datasets:mkSeries('revenue',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
   if(chObM) chObM.destroy();
   chObM=new Chart($('#chObMar'),{type:'bar',data:{labels,datasets:mkSeries('margin',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
+  const sumYm=k=>yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+(r[k]||0),0));
+  if(chObN) chObN.destroy();
+  chObN=new Chart($('#chObNet'),{type:'bar',data:{labels,datasets:[
+    {label:'Выручка (ТО)',data:sumYm('revenue').map(v=>+(v/1e6).toFixed(2)),backgroundColor:'#4169aa',borderRadius:4},
+    {label:'ВД',data:sumYm('margin').map(v=>+(v/1e6).toFixed(2)),backgroundColor:'#53a979',borderRadius:4}
+  ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:10},maxRotation:0,autoSkip:false}}}}});
   const pc=(a,b)=>b?(a/b*100).toFixed(1)+'%':'—';
   let h='<thead><tr><th class="l stick">Аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
   phIds.forEach(pid=>{
