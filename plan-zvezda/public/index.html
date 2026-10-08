@@ -393,547 +393,638 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
   </div>
 </div>
 <script>
-const MONTHS = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-const DAYS_IN = {'Сентябрь':30,'Октябрь':31,'Ноябрь':30,'Декабрь':31};
-const $ = s => document.querySelector(s);
-const fmtM = v => (v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2})+' млн ₽';
-const fmt = v => Math.round(v).toLocaleString('ru-RU')+' ₽';
-const cls = pct => pct>=100?'b-ok':pct>=90?'b-warn':'b-bad';
-let CAT=null, chM=null, chD=null, chObR=null, chObM=null, chObN=null;
-function obPhName(id){ const p=(CAT&&CAT.pharmacy||[]).find(p=>p.id==id); return p?p.name:('Аптека '+id); }
-async function loadOb(){
-  const hide=()=>{ $('#sec-ob').style.display='none'; $('#chartsOb').style.display='none'; $('#tblOb').closest('.card').style.display='none'; };
+const MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+const DAYS_IN = { "Сентябрь": 30, "Октябрь": 31, "Ноябрь": 30, "Декабрь": 31 };
+const $ = (s) => document.querySelector(s);
+const fmtM = (v) => (v / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млн ₽";
+const fmt = (v) => Math.round(v).toLocaleString("ru-RU") + " ₽";
+const cls = (pct) => pct >= 100 ? "b-ok" : pct >= 90 ? "b-warn" : "b-bad";
+let CAT = null, chM = null, chD = null, chObR = null, chObM = null, chObN = null;
+function obPhName(id) {
+  const p = (CAT && CAT.pharmacy || []).find((p2) => p2.id == id);
+  return p ? p.name : "Аптека " + id;
+}
+async function loadOb() {
+  const hide = () => {
+    $("#sec-ob").style.display = "none";
+    $("#chartsOb").style.display = "none";
+    $("#tblOb").closest(".card").style.display = "none";
+  };
   let ob;
-  try{ ob = await api('/api/obeorot'); }catch(e){ hide(); return; }
-  const rows = ob.rows||[];
-  if(!rows.length){ hide(); return; }
-  const yms=[...new Set(rows.map(r=>r.ym))].sort();
-  const MN=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-  const labels=yms.map(ym=>{const [y,m]=ym.split('-');return `${MN[Number(m)-1]} ${y.slice(2)}`;});
-  const phId = $('#fPh').value;
-  const shown = phId ? rows.filter(r=>String(r.pharmacy_id)===phId) : rows;
-  const phIds=[...new Set(shown.map(r=>r.pharmacy_id))].sort((a,b)=>a-b);
-  const hasEcom=shown.some(r=>(r.channel||'retail')==='ecom');
-  const val=(pid,ym,k,ch)=>{const r=rows.find(x=>x.pharmacy_id==pid&&x.ym===ym&&(x.channel||'retail')===ch);return r?(r[k]||0):0;};
-  const valT=(pid,ym,k)=>val(pid,ym,k,'retail')+val(pid,ym,k,'ecom');
-  const palette=['#4169aa','#53a979','#f1974e','#9467bd','#8ea0bf'];
-  const one = phIds.length === 1; // выбрана конкретная аптека
-  $('#cardObRev').style.display = one ? 'none' : '';
-  $('#cardObMar').style.display = one ? 'none' : '';
-  $('#hObNet').textContent = one ? obPhName(phIds[0]) + ': розница и Ecom по месяцам, млн ₽' : 'Сеть: выручка (ТО) и ВД по месяцам, млн ₽';
-  const mkSeries=(k,div)=>phIds.map((pid,i)=>({label:obPhName(pid),data:yms.map(ym=>+(val(pid,ym,k)/div).toFixed(2)),backgroundColor:palette[i%palette.length],borderRadius:4}));
-  if(!one){
-    if(chObR) chObR.destroy();
-    chObR=new Chart($('#chObRev'),{type:'bar',data:{labels,datasets:mkSeries('revenue',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
-    if(chObM) chObM.destroy();
-    chObM=new Chart($('#chObMar'),{type:'bar',data:{labels,datasets:mkSeries('margin',1e6)},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxRotation:0,autoSkip:false}}}}});
+  try {
+    ob = await api("/api/obeorot");
+  } catch (e) {
+    hide();
+    return;
   }
-  const net=(ym,k,ch)=>phIds.reduce((a,pid)=>a+val(pid,ym,k,ch),0);
-  if(chObN) chObN.destroy();
-  chObN=new Chart($('#chObNet'),{type:'bar',data:{labels,datasets:[
-    {label:one?obPhName(phIds[0])+' · Розница':'Розница · ТО',data:yms.map(ym=>+(net(ym,'revenue','retail')/1e6).toFixed(2)),backgroundColor:'#4169aa',borderRadius:4},
-    {label:one?obPhName(phIds[0])+' · Розница ВД':'Розница · ВД',data:yms.map(ym=>+(net(ym,'margin','retail')/1e6).toFixed(2)),backgroundColor:'#53a979',borderRadius:4},
-    {label:one?obPhName(phIds[0])+' · Ecom':'Ecom · ТО',data:yms.map(ym=>+(net(ym,'revenue','ecom')/1e6).toFixed(2)),backgroundColor:'#f1974e',borderRadius:4},
-    {label:one?obPhName(phIds[0])+' · Ecom ВД':'Ecom · ВД',data:yms.map(ym=>+(net(ym,'margin','ecom')/1e6).toFixed(2)),backgroundColor:'#9467bd',borderRadius:4}
-  ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},scales:{y:{ticks:{font:{size:10}},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:10},maxRotation:0,autoSkip:false}}}}});
-  const pc=(a,b)=>b?(a/b*100).toFixed(1)+'%':'—';
-  let h='<thead><tr><th class="l stick">Аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
-  const netRow=(label,agg,fmt,pctOf)=>{
-    if(!one){
-      h+=`<tr><td class="l stick"><b>${label}</b></td>`+agg.map((v,i)=>`<td class="num"><b>${fmt(v)}</b>${pctOf?` <span class="mut" style="font-size:10px">${pc(v,pctOf[i])}</span>`:''}</td>`).join('')+`<td class="num"><b>${fmt(agg.reduce((a,b)=>a+b,0))}</b></td></tr>`;
+  const rows = ob.rows || [];
+  if (!rows.length) {
+    hide();
+    return;
+  }
+  const yms = [...new Set(rows.map((r) => r.ym))].sort();
+  const MN = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+  const labels = yms.map((ym) => {
+    const [y, m] = ym.split("-");
+    return `${MN[Number(m) - 1]} ${y.slice(2)}`;
+  });
+  const phId = $("#fPh").value;
+  const shown = phId ? rows.filter((r) => String(r.pharmacy_id) === phId) : rows;
+  const phIds = [...new Set(shown.map((r) => r.pharmacy_id))].sort((a, b) => a - b);
+  const hasEcom = shown.some((r) => (r.channel || "retail") === "ecom");
+  const val = (pid, ym, k, ch) => {
+    const r = rows.find((x) => x.pharmacy_id == pid && x.ym === ym && (x.channel || "retail") === ch);
+    return r ? r[k] || 0 : 0;
+  };
+  const valT = (pid, ym, k) => val(pid, ym, k, "retail") + val(pid, ym, k, "ecom");
+  const palette = ["#4169aa", "#53a979", "#f1974e", "#9467bd", "#8ea0bf"];
+  const one = phIds.length === 1;
+  $("#cardObRev").style.display = one ? "none" : "";
+  $("#cardObMar").style.display = one ? "none" : "";
+  $("#hObNet").textContent = one ? obPhName(phIds[0]) + ": розница и Ecom по месяцам, млн ₽" : "Сеть: выручка (ТО) и ВД по месяцам, млн ₽";
+  const mkSeries = (k, div) => phIds.map((pid, i) => ({ label: obPhName(pid), data: yms.map((ym) => +(val(pid, ym, k) / div).toFixed(2)), backgroundColor: palette[i % palette.length], borderRadius: 4 }));
+  if (!one) {
+    if (chObR) chObR.destroy();
+    chObR = new Chart($("#chObRev"), { type: "bar", data: { labels, datasets: mkSeries("revenue", 1e6) }, options: { maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: false } } } } });
+    if (chObM) chObM.destroy();
+    chObM = new Chart($("#chObMar"), { type: "bar", data: { labels, datasets: mkSeries("margin", 1e6) }, options: { maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: false } } } } });
+  }
+  const net = (ym, k, ch) => phIds.reduce((a, pid) => a + val(pid, ym, k, ch), 0);
+  if (chObN) chObN.destroy();
+  chObN = new Chart($("#chObNet"), { type: "bar", data: { labels, datasets: [
+    { label: one ? obPhName(phIds[0]) + " · Розница" : "Розница · ТО", data: yms.map((ym) => +(net(ym, "revenue", "retail") / 1e6).toFixed(2)), backgroundColor: "#4169aa", borderRadius: 4 },
+    { label: one ? obPhName(phIds[0]) + " · Розница ВД" : "Розница · ВД", data: yms.map((ym) => +(net(ym, "margin", "retail") / 1e6).toFixed(2)), backgroundColor: "#53a979", borderRadius: 4 },
+    { label: one ? obPhName(phIds[0]) + " · Ecom" : "Ecom · ТО", data: yms.map((ym) => +(net(ym, "revenue", "ecom") / 1e6).toFixed(2)), backgroundColor: "#f1974e", borderRadius: 4 },
+    { label: one ? obPhName(phIds[0]) + " · Ecom ВД" : "Ecom · ВД", data: yms.map((ym) => +(net(ym, "margin", "ecom") / 1e6).toFixed(2)), backgroundColor: "#9467bd", borderRadius: 4 }
+  ] }, options: { maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: false } } } } });
+  const pc = (a, b) => b ? (a / b * 100).toFixed(1) + "%" : "—";
+  let h = '<thead><tr><th class="l stick">Аптека</th>' + yms.map((ym) => `<th class="num">${labels[yms.indexOf(ym)]}</th>`).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
+  const netRow = (label, agg, fmt2, pctOf) => {
+    if (!one) {
+      h += `<tr><td class="l stick"><b>${label}</b></td>` + agg.map((v, i) => `<td class="num"><b>${fmt2(v)}</b>${pctOf ? ` <span class="mut" style="font-size:10px">${pc(v, pctOf[i])}</span>` : ""}</td>`).join("") + `<td class="num"><b>${fmt2(agg.reduce((a, b) => a + b, 0))}</b></td></tr>`;
     }
   };
-  phIds.forEach(pid=>{
-    const vals=yms.map(ym=>valT(pid,ym,'revenue'));
-    h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num"><b>${fmtM(vals.reduce((a,b)=>a+b,0))}</b></td></tr>`;
-    if(hasEcom){
-      const ev=yms.map(ym=>val(pid,ym,'revenue','ecom'));
-      h+=`<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>`+ev.map(v=>`<td class="num mut" style="font-size:11px">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a,b)=>a+b,0))}</td></tr>`;
+  phIds.forEach((pid) => {
+    const vals = yms.map((ym) => valT(pid, ym, "revenue"));
+    h += `<tr><td class="l stick">${obPhName(pid)}</td>` + vals.map((v) => `<td class="num">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num"><b>${fmtM(vals.reduce((a, b) => a + b, 0))}</b></td></tr>`;
+    if (hasEcom) {
+      const ev = yms.map((ym) => val(pid, ym, "revenue", "ecom"));
+      h += `<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>` + ev.map((v) => `<td class="num mut" style="font-size:11px">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a, b) => a + b, 0))}</td></tr>`;
     }
   });
-  const tr=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.revenue,0));
-  netRow('Сеть', tr, v=>v?fmtM(v):'—');
-  h+='</tbody><thead><tr><th class="l stick">ВД · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
-  phIds.forEach(pid=>{
-    const vals=yms.map(ym=>valT(pid,ym,'margin'));
-    h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num"><b>${fmtM(vals.reduce((a,b)=>a+b,0))}</b></td></tr>`;
-    if(hasEcom){
-      const ev=yms.map(ym=>val(pid,ym,'margin','ecom'));
-      h+=`<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>`+ev.map(v=>`<td class="num mut" style="font-size:11px">${v?fmtM(v):'—'}</td>`).join('')+`<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a,b)=>a+b,0))}</td></tr>`;
+  const tr = yms.map((ym) => rows.filter((r) => r.ym === ym).reduce((a, r) => a + r.revenue, 0));
+  netRow("Сеть", tr, (v) => v ? fmtM(v) : "—");
+  h += '</tbody><thead><tr><th class="l stick">ВД · аптека</th>' + yms.map((ym) => `<th class="num">${labels[yms.indexOf(ym)]}</th>`).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
+  phIds.forEach((pid) => {
+    const vals = yms.map((ym) => valT(pid, ym, "margin"));
+    h += `<tr><td class="l stick">${obPhName(pid)}</td>` + vals.map((v) => `<td class="num">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num"><b>${fmtM(vals.reduce((a, b) => a + b, 0))}</b></td></tr>`;
+    if (hasEcom) {
+      const ev = yms.map((ym) => val(pid, ym, "margin", "ecom"));
+      h += `<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>` + ev.map((v) => `<td class="num mut" style="font-size:11px">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a, b) => a + b, 0))}</td></tr>`;
     }
   });
-  const tm=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+r.margin,0));
-  netRow('Сеть', tm, v=>v?fmtM(v):'—', tr);
-  h+='</tbody><thead><tr><th class="l stick">Чеков · аптека</th>'+yms.map(ym=>`<th class="num">${labels[yms.indexOf(ym)]}</th>`).join('')+'<th class="num">Итого</th></tr></thead><tbody>';
-  phIds.forEach(pid=>{
-    const vals=yms.map(ym=>val(pid,ym,'checks','retail')+val(pid,ym,'checks','ecom'));
-    h+=`<tr><td class="l stick">${obPhName(pid)}</td>`+vals.map(v=>`<td class="num">${v?v.toLocaleString('ru-RU'):'—'}</td>`).join('')+`<td class="num"><b>${vals.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</b></td></tr>`;
-    if(hasEcom){
-      const ev=yms.map(ym=>val(pid,ym,'checks','ecom'));
-      h+=`<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>`+ev.map(v=>`<td class="num mut" style="font-size:11px">${v?v.toLocaleString('ru-RU'):'—'}</td>`).join('')+`<td class="num mut" style="font-size:11px">${ev.reduce((a,b)=>a+b,0).toLocaleString('ru-RU')}</td></tr>`;
+  const tm = yms.map((ym) => rows.filter((r) => r.ym === ym).reduce((a, r) => a + r.margin, 0));
+  netRow("Сеть", tm, (v) => v ? fmtM(v) : "—", tr);
+  h += '</tbody><thead><tr><th class="l stick">Чеков · аптека</th>' + yms.map((ym) => `<th class="num">${labels[yms.indexOf(ym)]}</th>`).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
+  phIds.forEach((pid) => {
+    const vals = yms.map((ym) => val(pid, ym, "checks", "retail") + val(pid, ym, "checks", "ecom"));
+    h += `<tr><td class="l stick">${obPhName(pid)}</td>` + vals.map((v) => `<td class="num">${v ? v.toLocaleString("ru-RU") : "—"}</td>`).join("") + `<td class="num"><b>${vals.reduce((a, b) => a + b, 0).toLocaleString("ru-RU")}</b></td></tr>`;
+    if (hasEcom) {
+      const ev = yms.map((ym) => val(pid, ym, "checks", "ecom"));
+      h += `<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>` + ev.map((v) => `<td class="num mut" style="font-size:11px">${v ? v.toLocaleString("ru-RU") : "—"}</td>`).join("") + `<td class="num mut" style="font-size:11px">${ev.reduce((a, b) => a + b, 0).toLocaleString("ru-RU")}</td></tr>`;
     }
   });
-  const tc=yms.map(ym=>rows.filter(r=>r.ym===ym).reduce((a,r)=>a+(r.checks||0),0));
-  netRow('Сеть', tc, v=>v.toLocaleString('ru-RU'));
-  h+='</tbody>';
-  $('#tblOb').innerHTML=h;
+  const tc = yms.map((ym) => rows.filter((r) => r.ym === ym).reduce((a, r) => a + (r.checks || 0), 0));
+  netRow("Сеть", tc, (v) => v.toLocaleString("ru-RU"));
+  h += "</tbody>";
+  $("#tblOb").innerHTML = h;
 }
-
-// Единый доступ: Bearer из me_token; при 401/403 → на вход
-const _TOK = () => localStorage.getItem('me_token') || '';
-const _GATE = () => document.getElementById('gate');
-function gateShow(msg){ const g=_GATE(); if(!g) return; if(msg){ const e=g.querySelector('#gErr'); e.textContent=msg; e.classList.add('show'); } g.classList.add('show'); }
-function gateHide(){ const g=_GATE(); if(g) g.classList.remove('show'); }
-function _toLogin(msg){ localStorage.removeItem('me_token'); gateShow(msg||''); }
-async function gateLogin(){
-  const code=(document.getElementById('gCode').value||'').trim().toUpperCase();
-  const err=document.getElementById('gErr');
-  if(!code){ err.textContent='введите код'; err.classList.add('show'); return; }
-  try{
-    const r=await fetch('/api/me/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
-    const d=await r.json().catch(()=>({}));
-    if(!r.ok){ err.textContent=d.error||'код не найден'; err.classList.add('show'); return; }
-    localStorage.setItem('me_token', d.token);   // сессионный токен; cookie ставит сервер
+const _TOK = () => localStorage.getItem("me_token") || "";
+const _GATE = () => document.getElementById("gate");
+function gateShow(msg) {
+  const g = _GATE();
+  if (!g) return;
+  if (msg) {
+    const e = g.querySelector("#gErr");
+    e.textContent = msg;
+    e.classList.add("show");
+  }
+  g.classList.add("show");
+}
+function gateHide() {
+  const g = _GATE();
+  if (g) g.classList.remove("show");
+}
+function _toLogin(msg) {
+  localStorage.removeItem("me_token");
+  gateShow(msg || "");
+}
+async function gateLogin() {
+  const code = (document.getElementById("gCode").value || "").trim().toUpperCase();
+  const err = document.getElementById("gErr");
+  if (!code) {
+    err.textContent = "введите код";
+    err.classList.add("show");
+    return;
+  }
+  try {
+    const r = await fetch("/api/me/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      err.textContent = d.error || "код не найден";
+      err.classList.add("show");
+      return;
+    }
+    localStorage.setItem("me_token", d.token);
     location.reload();
-  }catch(_){ err.textContent='сеть недоступна'; err.classList.add('show'); }
+  } catch (_) {
+    err.textContent = "сеть недоступна";
+    err.classList.add("show");
+  }
 }
-async function api(path, opt={}){
-  const h = Object.assign({'Authorization':'Bearer '+_TOK()}, opt.headers||{});
-  const r = await fetch(path, Object.assign({}, opt, {headers:h}));
-  if(r.status===401 || r.status===403){ _toLogin('сессия истекла — войдите заново'); throw new Error('auth'); }
+async function api(path, opt = {}) {
+  const h = Object.assign({ "Authorization": "Bearer " + _TOK() }, opt.headers || {});
+  const r = await fetch(path, Object.assign({}, opt, { headers: h }));
+  if (r.status === 401 || r.status === 403) {
+    _toLogin("сессия истекла — войдите заново");
+    throw new Error("auth");
+  }
   return r.json();
 }
-
-function kpi(t,v,s,badge,bcls){
-  return `<div class="card kpi"><div class="t">${t}</div><div class="v num">${v}</div><div class="s">${s}</div>${badge?`<span class="b ${bcls}">${badge}</span>`:''}</div>`;
+function kpi(t, v, s, badge, bcls) {
+  return `<div class="card kpi"><div class="t">${t}</div><div class="v num">${v}</div><div class="s">${s}</div>${badge ? `<span class="b ${bcls}">${badge}</span>` : ""}</div>`;
 }
-
-// Ячейка метрики СТМ/Маркетинг: «факт / план · % · прогноз X%»
-function metricCell(fact, plan, pct, fcst, fpct){
-  if(!plan) return fact? fmt(fact) : '—';
-  const c = pct==null? '' : (pct>=100?'pos':pct>=90?'':'neg');
-  const f = fpct==null? '' : `<div class="mut" style="font-size:10px">прогноз ${fpct.toFixed(0)}%</div>`;
-  return `<div>${fmt(fact)} <span class="mut">/ ${fmt(plan)}</span></div>`+
-    `<div class="${c}" style="font-size:11px">${pct!=null?pct.toFixed(1)+'%':'—'}${fcst!=null?` · ~${fmt(fcst)}`:''}</div>${f}`;
+function metricCell(fact, plan, pct, fcst, fpct) {
+  if (!plan) return fact ? fmt(fact) : "—";
+  const c = pct == null ? "" : pct >= 100 ? "pos" : pct >= 90 ? "" : "neg";
+  const f = fpct == null ? "" : `<div class="mut" style="font-size:10px">прогноз ${fpct.toFixed(0)}%</div>`;
+  return `<div>${fmt(fact)} <span class="mut">/ ${fmt(plan)}</span></div><div class="${c}" style="font-size:11px">${pct != null ? pct.toFixed(1) + "%" : "—"}${fcst != null ? ` · ~${fmt(fcst)}` : ""}</div>${f}`;
 }
-
-function kpiBig(title, factVal, subHtml, barsHtml){
-  return `<div class="card kpi kpi-big"><div class="t">${title}</div><div class="v num">${factVal}</div>${subHtml||''}${barsHtml||''}</div>`;
+function kpiBig(title, factVal, subHtml, barsHtml) {
+  return `<div class="card kpi kpi-big"><div class="t">${title}</div><div class="v num">${factVal}</div>${subHtml || ""}${barsHtml || ""}</div>`;
 }
-function renderKpis(sum, phId, month){
+function renderKpis(sum, phId, month) {
   const rows = sum.rows;
-  const t = {plan:0,fact:0,fvd:0,pvd:0,frc:0,frcVd:0,stm:0,ustm:0,mkt:0,pstm:0,pmkt:0,fstm:0,fmkt:0};
-  rows.forEach(r=>{t.plan+=r.plan_revenue;t.fact+=r.fact_revenue;t.fvd+=r.fact_margin;t.pvd+=r.plan_margin;t.frc+=r.forecast_revenue;t.frcVd+=r.forecast_margin;t.stm+=(r.fact_stm||0);t.ustm+=(r.fact_ustm||0);t.mkt+=(r.fact_marketing||0);t.pstm+=(r.plan_stm||0);t.pmkt+=(r.plan_marketing||0);t.fstm+=(r.forecast_stm||0);t.fmkt+=(r.forecast_marketing||0)});
-  const pct = t.plan? t.fact/t.plan*100 : 0;
-  const fpct = t.plan? t.frc/t.plan*100 : 0;
-  const vdPct = t.pvd? t.fvd/t.pvd*100 : 0;
+  const t = { plan: 0, fact: 0, fvd: 0, pvd: 0, frc: 0, frcVd: 0, stm: 0, ustm: 0, mkt: 0, pstm: 0, pmkt: 0, fstm: 0, fmkt: 0 };
+  rows.forEach((r) => {
+    t.plan += r.plan_revenue;
+    t.fact += r.fact_revenue;
+    t.fvd += r.fact_margin;
+    t.pvd += r.plan_margin;
+    t.frc += r.forecast_revenue;
+    t.frcVd += r.forecast_margin;
+    t.stm += r.fact_stm || 0;
+    t.ustm += r.fact_ustm || 0;
+    t.mkt += r.fact_marketing || 0;
+    t.pstm += r.plan_stm || 0;
+    t.pmkt += r.plan_marketing || 0;
+    t.fstm += r.forecast_stm || 0;
+    t.fmkt += r.forecast_marketing || 0;
+  });
+  const pct = t.plan ? t.fact / t.plan * 100 : 0;
+  const fpct = t.plan ? t.frc / t.plan * 100 : 0;
+  const vdPct = t.pvd ? t.fvd / t.pvd * 100 : 0;
   const stmSum = t.stm + t.ustm;
-  const stmShare = t.fact? stmSum/t.fact*100 : 0;
-  const mktShare = t.fact? t.mkt/t.fact*100 : 0;
-  const stmPct = t.pstm? stmSum/t.pstm*100 : null;
-  const mktPct = t.pmkt? t.mkt/t.pmkt*100 : null;
-  const stmFPct = t.pstm? t.fstm/t.pstm*100 : null;
-  const mktFPct = t.pmkt? t.fmkt/t.pmkt*100 : null;
-  const scope = phId? CAT.pharmacy.find(p=>p.id==phId).name : '5 аптек';
-  const mlab = month || 'весь период';
-  const sc = (f, n) => { const x = n? f/n : 0; return Math.max(2, Math.min(100, x*100)); };
-  $('#kpis').innerHTML =
-    kpiBig(`Выручка · ${mlab}`, fmtM(t.fact),
-      `<div class="s">${scope} · ВД: ${fmtM(t.fvd)} (${vdPct.toFixed(0)}% плана) ${deltaBadge(pct)}</div>`,
-      kbars([
-        {l:'План', v:sc(t.plan, t.plan), c:'#133367', t:fmtM(t.plan)},
-        {l:'Факт', v:sc(t.fact, t.plan), c: pct>=100?'#53a979':'#e5484d', t:`${fmtM(t.fact)} · ${pct.toFixed(0)}%`},
-        {l:'Прогноз', v:sc(t.frc, t.plan), c:'#4169aa', t:`${fmtM(t.frc)} · ${fpct.toFixed(0)}%`}
-      ], true)) +
-    kpiBig(`Маркетинг · ${mlab}`, fmtM(t.mkt),
-      `<div class="s">${t.pmkt? deltaBadge(mktPct) : `доля ${mktShare.toFixed(1)}% ТО`}</div>`,
-      kbars(t.pmkt? [
-        {l:'План', v:sc(t.pmkt, t.pmkt), c:'#133367', t:fmtM(t.pmkt)},
-        {l:'Факт', v:sc(t.mkt, t.pmkt), c: mktPct>=100?'#53a979':'#e5484d', t:`${fmtM(t.mkt)} · ${mktPct.toFixed(0)}%`},
-        {l:'Прогноз', v:sc(t.fmkt, t.pmkt), c:'#4169aa', t:`${fmtM(t.fmkt)} · ${mktFPct.toFixed(0)}%`}
-      ] : null, true)) +
-    kpiBig(`СТМ · ${mlab}`, fmtM(stmSum),
-      `<div class="s">${t.pstm? `${deltaBadge(stmPct)} · доля ${stmShare.toFixed(1)}% ТО` : `доля ${stmShare.toFixed(1)}% ТО`}</div>`,
-      kbars(t.pstm? [
-        {l:'План', v:sc(t.pstm, t.pstm), c:'#133367', t:fmtM(t.pstm)},
-        {l:'Факт', v:sc(stmSum, t.pstm), c: stmPct>=100?'#53a979':'#e5484d', t:`${fmtM(stmSum)} · ${stmPct.toFixed(0)}%`},
-        {l:'Прогноз', v:sc(t.fstm, t.pstm), c:'#4169aa', t:`${fmtM(t.fstm)} · ${stmFPct.toFixed(0)}%`}
-      ] : null, true));
+  const stmShare = t.fact ? stmSum / t.fact * 100 : 0;
+  const mktShare = t.fact ? t.mkt / t.fact * 100 : 0;
+  const stmPct = t.pstm ? stmSum / t.pstm * 100 : null;
+  const mktPct = t.pmkt ? t.mkt / t.pmkt * 100 : null;
+  const stmFPct = t.pstm ? t.fstm / t.pstm * 100 : null;
+  const mktFPct = t.pmkt ? t.fmkt / t.pmkt * 100 : null;
+  const scope = phId ? CAT.pharmacy.find((p) => p.id == phId).name : "5 аптек";
+  const mlab = month || "весь период";
+  const sc = (f, n) => {
+    const x = n ? f / n : 0;
+    return Math.max(2, Math.min(100, x * 100));
+  };
+  $("#kpis").innerHTML = kpiBig(
+    `Выручка · ${mlab}`,
+    fmtM(t.fact),
+    `<div class="s">${scope} · ВД: ${fmtM(t.fvd)} (${vdPct.toFixed(0)}% плана) ${deltaBadge(pct)}</div>`,
+    kbars([
+      { l: "План", v: sc(t.plan, t.plan), c: "#133367", t: fmtM(t.plan) },
+      { l: "Факт", v: sc(t.fact, t.plan), c: pct >= 100 ? "#53a979" : "#e5484d", t: `${fmtM(t.fact)} · ${pct.toFixed(0)}%` },
+      { l: "Прогноз", v: sc(t.frc, t.plan), c: "#4169aa", t: `${fmtM(t.frc)} · ${fpct.toFixed(0)}%` }
+    ], true)
+  ) + kpiBig(
+    `Маркетинг · ${mlab}`,
+    fmtM(t.mkt),
+    `<div class="s">${t.pmkt ? deltaBadge(mktPct) : `доля ${mktShare.toFixed(1)}% ТО`}</div>`,
+    kbars(t.pmkt ? [
+      { l: "План", v: sc(t.pmkt, t.pmkt), c: "#133367", t: fmtM(t.pmkt) },
+      { l: "Факт", v: sc(t.mkt, t.pmkt), c: mktPct >= 100 ? "#53a979" : "#e5484d", t: `${fmtM(t.mkt)} · ${mktPct.toFixed(0)}%` },
+      { l: "Прогноз", v: sc(t.fmkt, t.pmkt), c: "#4169aa", t: `${fmtM(t.fmkt)} · ${mktFPct.toFixed(0)}%` }
+    ] : null, true)
+  ) + kpiBig(
+    `СТМ · ${mlab}`,
+    fmtM(stmSum),
+    `<div class="s">${t.pstm ? `${deltaBadge(stmPct)} · доля ${stmShare.toFixed(1)}% ТО` : `доля ${stmShare.toFixed(1)}% ТО`}</div>`,
+    kbars(t.pstm ? [
+      { l: "План", v: sc(t.pstm, t.pstm), c: "#133367", t: fmtM(t.pstm) },
+      { l: "Факт", v: sc(stmSum, t.pstm), c: stmPct >= 100 ? "#53a979" : "#e5484d", t: `${fmtM(stmSum)} · ${stmPct.toFixed(0)}%` },
+      { l: "Прогноз", v: sc(t.fstm, t.pstm), c: "#4169aa", t: `${fmtM(t.fstm)} · ${stmFPct.toFixed(0)}%` }
+    ] : null, true)
+  );
 }
-
-  function renderTable(sum){
-  const COLLAPSE_KEY='pz.tbl.collapsed';
+function renderTable(sum) {
+  const COLLAPSE_KEY = "pz.tbl.collapsed";
   let collapsed;
-  try{ collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY)||'{}'); }catch(e){ collapsed={}; }
-  const phId = $('#fPh').value;
+  try {
+    collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}");
+  } catch (e) {
+    collapsed = {};
+  }
+  const phId = $("#fPh").value;
   const groups = [];
-  CAT.pharmacy.forEach(p=>{
-    const rows = sum.rows.filter(r=>r.pharmacy_id===p.id);
-    if(rows.length) groups.push({ph:p, rows});
+  CAT.pharmacy.forEach((p) => {
+    const rows = sum.rows.filter((r) => r.pharmacy_id === p.id);
+    if (rows.length) groups.push({ ph: p, rows });
   });
-  const rest = sum.rows.filter(r=>!CAT.pharmacy.find(p=>p.id===r.pharmacy_id));
-  if(rest.length) groups.push({ph:{id:0,name:'Прочее',color:'#999'}, rows:rest});
+  const rest = sum.rows.filter((r) => !CAT.pharmacy.find((p) => p.id === r.pharmacy_id));
+  if (rest.length) groups.push({ ph: { id: 0, name: "Прочее", color: "#999" }, rows: rest });
   let h = '<thead><tr><th class="l stick">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th class="m-hide">План ВД</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th><th class="m-hide">Чеков</th><th class="m-hide">Дней</th></tr></thead><tbody>';
-  groups.forEach(g=>{
+  groups.forEach((g) => {
     const open = phId ? true : !collapsed[g.ph.id];
-    const agg = g.rows.reduce((a,r)=>{a.plan+=r.plan_revenue;a.fact+=r.fact_revenue;a.frc+=r.forecast_revenue;a.pm+=r.plan_margin;a.fm+=r.fact_margin;a.stm+=(r.fact_stm||0);a.ustm+=(r.fact_ustm||0);a.mkt+=(r.fact_marketing||0);a.pstm+=(r.plan_stm||0);a.pmktP+=(r.plan_marketing||0);a.fstm+=(r.forecast_stm||0);a.fmkt+=(r.forecast_marketing||0);return a;},{plan:0,fact:0,frc:0,pm:0,fm:0,stm:0,ustm:0,mkt:0,pstm:0,pmktP:0,fstm:0,fmkt:0});
-    const apc = agg.plan? agg.fact/agg.plan*100 : 0;
-    const rowsHtml = g.rows.map(r=>{
-      const pc = r.fact_revenue/r.plan_revenue*100;
-      const stmFact=(r.fact_stm||0)+(r.fact_ustm||0);
-      return `<tr class="sub"><td class="l stick"></td><td class="l">${r.month}</td><td class="num m-hide">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td>`+
-        `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,pc)}%;background:${pc>=100?'var(--green)':pc>=90?'var(--gold)':'var(--red)'}"></i></div>${pc.toFixed(1)}%</div></td>`+
-        `<td class="num m-hide">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct>=100?'pos':'neg'}">${r.forecast_pct}%</td>`+
-        `<td class="num m-hide">${fmt(r.plan_margin)}</td><td class="num m-hide">${fmt(r.fact_margin)}</td>`+
-        `<td class="num m-hide">${metricCell(stmFact,r.plan_stm,r.pct_stm,r.forecast_stm,r.forecast_pct_stm)}</td>`+
-        `<td class="num m-hide">${metricCell(r.fact_marketing,r.plan_marketing,r.pct_marketing,r.forecast_marketing,r.forecast_pct_marketing)}</td>`+
-        `<td class="num m-hide">${r.fact_checks||'—'}</td><td class="num mut m-hide">${r.fact_days}/${r.total_days}</td></tr>`;
-    }).join('');
-    h += `<tr class="ph-row" data-ph="${g.ph.id}" style="cursor:pointer" title="Нажмите, чтобы ${open?'свернуть':'развернуть'}">`+
-      `<td class="l stick"><span class="dot" style="background:${g.ph.color}"></span>${g.ph.name} <span style="font-size:13px;color:var(--blue);font-weight:700">${open?'▾':'▸'}</span></td>`+
-      `<td class="l mut">итого</td><td class="num m-hide">${fmt(agg.plan)}</td><td class="num">${fmt(agg.fact)}</td>`+
-      `<td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100,apc)}%;background:${apc>=100?'var(--green)':apc>=90?'var(--gold)':'var(--red)'}"></i></div>${apc.toFixed(1)}%</div></td>`+
-      `<td class="num m-hide">${fmt(agg.frc)}</td><td class="num"></td>`+
-      `<td class="num m-hide">${fmt(agg.pm)}</td><td class="num m-hide">${fmt(agg.fm)}</td>`+
-      `<td class="num m-hide">${metricCell(agg.stm+agg.ustm,agg.pstm,agg.pstm?(agg.stm+agg.ustm)/agg.pstm*100:null,agg.fstm,agg.pstm?agg.fstm/agg.pstm*100:null)}</td>`+
-      `<td class="num m-hide">${metricCell(agg.mkt,agg.pmktP,agg.pmktP?agg.mkt/agg.pmktP*100:null,agg.fmkt,agg.pmktP?agg.fmkt/agg.pmktP*100:null)}</td>`+
-      `<td class="num m-hide"></td><td class="num mut m-hide"></td></tr>`;
-    if(open) h += rowsHtml;
+    const agg = g.rows.reduce((a, r) => {
+      a.plan += r.plan_revenue;
+      a.fact += r.fact_revenue;
+      a.frc += r.forecast_revenue;
+      a.pm += r.plan_margin;
+      a.fm += r.fact_margin;
+      a.stm += r.fact_stm || 0;
+      a.ustm += r.fact_ustm || 0;
+      a.mkt += r.fact_marketing || 0;
+      a.pstm += r.plan_stm || 0;
+      a.pmktP += r.plan_marketing || 0;
+      a.fstm += r.forecast_stm || 0;
+      a.fmkt += r.forecast_marketing || 0;
+      return a;
+    }, { plan: 0, fact: 0, frc: 0, pm: 0, fm: 0, stm: 0, ustm: 0, mkt: 0, pstm: 0, pmktP: 0, fstm: 0, fmkt: 0 });
+    const apc = agg.plan ? agg.fact / agg.plan * 100 : 0;
+    const rowsHtml = g.rows.map((r) => {
+      const pc = r.fact_revenue / r.plan_revenue * 100;
+      const stmFact = (r.fact_stm || 0) + (r.fact_ustm || 0);
+      return `<tr class="sub"><td class="l stick"></td><td class="l">${r.month}</td><td class="num m-hide">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td><td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100, pc)}%;background:${pc >= 100 ? "var(--green)" : pc >= 90 ? "var(--gold)" : "var(--red)"}"></i></div>${pc.toFixed(1)}%</div></td><td class="num m-hide">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct >= 100 ? "pos" : "neg"}">${r.forecast_pct}%</td><td class="num m-hide">${fmt(r.plan_margin)}</td><td class="num m-hide">${fmt(r.fact_margin)}</td><td class="num m-hide">${metricCell(stmFact, r.plan_stm, r.pct_stm, r.forecast_stm, r.forecast_pct_stm)}</td><td class="num m-hide">${metricCell(r.fact_marketing, r.plan_marketing, r.pct_marketing, r.forecast_marketing, r.forecast_pct_marketing)}</td><td class="num m-hide">${r.fact_checks || "—"}</td><td class="num mut m-hide">${r.fact_days}/${r.total_days}</td></tr>`;
+    }).join("");
+    h += `<tr class="ph-row" data-ph="${g.ph.id}" style="cursor:pointer" title="Нажмите, чтобы ${open ? "свернуть" : "развернуть"}"><td class="l stick"><span class="dot" style="background:${g.ph.color}"></span>${g.ph.name} <span style="font-size:13px;color:var(--blue);font-weight:700">${open ? "▾" : "▸"}</span></td><td class="l mut">итого</td><td class="num m-hide">${fmt(agg.plan)}</td><td class="num">${fmt(agg.fact)}</td><td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100, apc)}%;background:${apc >= 100 ? "var(--green)" : apc >= 90 ? "var(--gold)" : "var(--red)"}"></i></div>${apc.toFixed(1)}%</div></td><td class="num m-hide">${fmt(agg.frc)}</td><td class="num"></td><td class="num m-hide">${fmt(agg.pm)}</td><td class="num m-hide">${fmt(agg.fm)}</td><td class="num m-hide">${metricCell(agg.stm + agg.ustm, agg.pstm, agg.pstm ? (agg.stm + agg.ustm) / agg.pstm * 100 : null, agg.fstm, agg.pstm ? agg.fstm / agg.pstm * 100 : null)}</td><td class="num m-hide">${metricCell(agg.mkt, agg.pmktP, agg.pmktP ? agg.mkt / agg.pmktP * 100 : null, agg.fmkt, agg.pmktP ? agg.fmkt / agg.pmktP * 100 : null)}</td><td class="num m-hide"></td><td class="num mut m-hide"></td></tr>`;
+    if (open) h += rowsHtml;
   });
-  $('#tbl').innerHTML = h+'</tbody>';
+  $("#tbl").innerHTML = h + "</tbody>";
   window.__lastSum = sum;
-  if(!phId){
-    $('#tbl').querySelectorAll('tr.ph-row').forEach(tr=>{
-      tr.addEventListener('click', ()=>{
+  if (!phId) {
+    $("#tbl").querySelectorAll("tr.ph-row").forEach((tr) => {
+      tr.addEventListener("click", () => {
         const id = tr.dataset.ph;
         collapsed[id] = !collapsed[id];
-        try{localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));}catch(e){}
+        try {
+          localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));
+        } catch (e) {
+        }
         renderTable(window.__lastSum);
       });
     });
   }
 }
-
-function renderEmp(sum, phId){
-  const emps = phId? sum.employees.filter(e=>e.pharmacy_id==phId) : sum.employees;
+function renderEmp(sum, phId) {
+  const emps = phId ? sum.employees.filter((e) => e.pharmacy_id == phId) : sum.employees;
   let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th class="m-hide">Доля</th><th class="m-hide">Личный план (мес)</th><th>Факт ТО</th><th>% вып.</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th></tr></thead><tbody>';
-  if(!emps.length){ $('#tblEmp').innerHTML = '<tbody><tr><td class="l mut">нет данных по факту — пришлите продажи через API</td></tr></tbody>'; return; }
-  emps.forEach(e=>{
-    const ph = CAT.pharmacy.find(p=>p.id===e.pharmacy_id);
-    // Личные планы считаем по первому выбранному месяцу (или текущему, если выбрано несколько/все)
-    const __selM = (typeof msGet!=='undefined')? msGet() : [];
-    const __cur = ['Сентябрь','Октябрь','Ноябрь','Декабрь'][new Date().getUTCMonth()-8] || 'Сентябрь';
-    const __m1 = (__selM.length===1)? __selM[0] : (__selM.includes(__cur)? __cur : (__selM[0]||__cur));
-    const midx = MONTHS.indexOf(__m1);
-    const planRow = CAT.plan.find(p=>p.pharmacy_id===e.pharmacy_id && p.month===MONTHS[midx]);
-    const ov = empPlanOverride(e.pharmacy_id, e.fio, MONTHS[midx]);
-    const effShare = (ov && ov.share!=null)? ov.share : (e.share||0);
-    const personal = (ov && ov.revenue!=null)? ov.revenue : (planRow? planRow.revenue*effShare : null);
-    const pc = personal? e.revenue/personal*100 : null;
-    // Личные планы метрик = личный план ТО × целевая доля (metric_targets из /api/summary)
-    const mt = sum.metric_targets? sum.metric_targets[MONTHS[midx]] : null;
-    const pStm = (personal!=null && mt && mt.stm_share!=null)? personal*mt.stm_share : null;
-    const pMkt = (personal!=null && mt && mt.marketing_share!=null)? personal*mt.marketing_share : null;
-    const eStm = (e.stm||0)+(e.ustm||0);
-    h += `<tr${ov? ' title="план из Excel-загрузки"':''}><td class="l stick">${e.fio}${ov? ' <span style="font-size:9px" title="план из Excel">✎</span>':''}</td><td class="l"><span class="dot" style="background:${ph.color}"></span>${ph.name}</td><td class="num m-hide">${(effShare*100).toFixed(0)}%</td>`+
-      `<td class="num m-hide">${personal?fmt(personal):'—'}</td><td class="num">${fmt(e.revenue)}</td>`+
-      `<td class="num ${pc!=null?(pc>=100?'pos':'neg'):''}">${pc!=null?pc.toFixed(1)+'%':'—'}</td><td class="num m-hide">${fmt(e.margin)}</td>`+
-      `<td class="num m-hide">${metricCell(eStm,pStm,pStm?eStm/pStm*100:null,null,null)}</td>`+
-      `<td class="num m-hide">${metricCell(e.marketing,pMkt,pMkt?e.marketing/pMkt*100:null,null,null)}</td></tr>`;
-  });
-  $('#tblEmp').innerHTML = h+'</tbody>';
-}
-
-function drawMonth(sum){
-  // Режим кварталов: строки с полем q>0 — квартальные агрегаты; иначе обычные месяцы
-  const qrows = sum.rows.filter(r=>r.q>0);
-  if(qrows.length){
-    const labels = [...new Set(qrows.map(r=>r.month))];   // «3 кв. · Сентябрь», «4 кв. · …»
-    const phId=$('#fPh').value;
-    const agg = lab => qrows.filter(r=>r.month===lab&&(!phId||r.pharmacy_id==phId))
-      .reduce((a,r)=>{a.plan+=r.plan_revenue;a.fact+=r.fact_revenue;a.fc+=r.forecast_revenue;return a},{plan:0,fact:0,fc:0});
-    const P = labels.map(l=>agg(l).plan/1e6), F = labels.map(l=>agg(l).fact/1e6), FC = labels.map(l=>agg(l).fc/1e6);
-    drawMonthChart(labels,P,F,FC);
+  if (!emps.length) {
+    $("#tblEmp").innerHTML = '<tbody><tr><td class="l mut">нет данных по факту — пришлите продажи через API</td></tr></tbody>';
     return;
   }
-  const pick = m => sum.rows.find(x=>x.month===m&&(!$('#fPh').value||x.pharmacy_id==$('#fPh').value))||{plan_revenue:0,fact_revenue:0,forecast_revenue:0};
-  drawMonthChart(MONTHS, MONTHS.map(m=>pick(m).plan_revenue/1e6), MONTHS.map(m=>pick(m).fact_revenue/1e6), MONTHS.map(m=>pick(m).forecast_revenue/1e6));
+  emps.forEach((e) => {
+    const ph = CAT.pharmacy.find((p) => p.id === e.pharmacy_id);
+    const __selM = typeof msGet !== "undefined" ? msGet() : [];
+    const __cur = ["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"][(/* @__PURE__ */ new Date()).getUTCMonth() - 8] || "Сентябрь";
+    const __m1 = __selM.length === 1 ? __selM[0] : __selM.includes(__cur) ? __cur : __selM[0] || __cur;
+    const midx = MONTHS.indexOf(__m1);
+    const planRow = CAT.plan.find((p) => p.pharmacy_id === e.pharmacy_id && p.month === MONTHS[midx]);
+    const ov = empPlanOverride(e.pharmacy_id, e.fio, MONTHS[midx]);
+    const effShare = ov && ov.share != null ? ov.share : e.share || 0;
+    const personal = ov && ov.revenue != null ? ov.revenue : planRow ? planRow.revenue * effShare : null;
+    const pc = personal ? e.revenue / personal * 100 : null;
+    const mt = sum.metric_targets ? sum.metric_targets[MONTHS[midx]] : null;
+    const pStm = personal != null && mt && mt.stm_share != null ? personal * mt.stm_share : null;
+    const pMkt = personal != null && mt && mt.marketing_share != null ? personal * mt.marketing_share : null;
+    const eStm = (e.stm || 0) + (e.ustm || 0);
+    h += `<tr${ov ? ' title="план из Excel-загрузки"' : ""}><td class="l stick">${e.fio}${ov ? ' <span style="font-size:9px" title="план из Excel">✎</span>' : ""}</td><td class="l"><span class="dot" style="background:${ph.color}"></span>${ph.name}</td><td class="num m-hide">${(effShare * 100).toFixed(0)}%</td><td class="num m-hide">${personal ? fmt(personal) : "—"}</td><td class="num">${fmt(e.revenue)}</td><td class="num ${pc != null ? pc >= 100 ? "pos" : "neg" : ""}">${pc != null ? pc.toFixed(1) + "%" : "—"}</td><td class="num m-hide">${fmt(e.margin)}</td><td class="num m-hide">${metricCell(eStm, pStm, pStm ? eStm / pStm * 100 : null, null, null)}</td><td class="num m-hide">${metricCell(e.marketing, pMkt, pMkt ? e.marketing / pMkt * 100 : null, null, null)}</td></tr>`;
+  });
+  $("#tblEmp").innerHTML = h + "</tbody>";
 }
-function drawMonthChart(labels,plan,fact,fc){
-  if(chM) chM.destroy();
-  chM = new Chart($('#chMonth'), {
-    type: 'bar',
-    data: {labels, datasets: [
-      {label:'План', data:plan, backgroundColor:'#dce7f5', borderRadius:5},
-      {label:'Факт', data:fact, backgroundColor:'#4169aa', borderRadius:5},
-      {label:'Прогноз', type:'line', data:fc, borderColor:'#f1974e', borderDash:[6,4], borderWidth:2, pointRadius:3, tension:.3}
-    ]},
+function drawMonth(sum) {
+  const qrows = sum.rows.filter((r) => r.q > 0);
+  if (qrows.length) {
+    const labels = [...new Set(qrows.map((r) => r.month))];
+    const phId = $("#fPh").value;
+    const agg = (lab) => qrows.filter((r) => r.month === lab && (!phId || r.pharmacy_id == phId)).reduce((a, r) => {
+      a.plan += r.plan_revenue;
+      a.fact += r.fact_revenue;
+      a.fc += r.forecast_revenue;
+      return a;
+    }, { plan: 0, fact: 0, fc: 0 });
+    const P = labels.map((l) => agg(l).plan / 1e6), F = labels.map((l) => agg(l).fact / 1e6), FC = labels.map((l) => agg(l).fc / 1e6);
+    drawMonthChart(labels, P, F, FC);
+    return;
+  }
+  const pick = (m) => sum.rows.find((x) => x.month === m && (!$("#fPh").value || x.pharmacy_id == $("#fPh").value)) || { plan_revenue: 0, fact_revenue: 0, forecast_revenue: 0 };
+  drawMonthChart(MONTHS, MONTHS.map((m) => pick(m).plan_revenue / 1e6), MONTHS.map((m) => pick(m).fact_revenue / 1e6), MONTHS.map((m) => pick(m).forecast_revenue / 1e6));
+}
+function drawMonthChart(labels, plan, fact, fc) {
+  if (chM) chM.destroy();
+  chM = new Chart($("#chMonth"), {
+    type: "bar",
+    data: { labels, datasets: [
+      { label: "План", data: plan, backgroundColor: "#dce7f5", borderRadius: 5 },
+      { label: "Факт", data: fact, backgroundColor: "#4169aa", borderRadius: 5 },
+      { label: "Прогноз", type: "line", data: fc, borderColor: "#f1974e", borderDash: [6, 4], borderWidth: 2, pointRadius: 3, tension: 0.3 }
+    ] },
     options: {
       maintainAspectRatio: false,
-      plugins: {legend:{labels:{boxWidth:10, font:{size:10}}}},
-      scales: {y:{ticks:{font:{size:10}}, grid:{color:'#eef2f7'}}, x:{ticks:{font:{size:10}}}}
+      plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
+      scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 10 } } } }
     }
   });
 }
-
-async function drawDay(){
-  const phId = $('#fPh').value;
-  const sel = (typeof msGet!=='undefined')? msGet() : [];
-  const month = sel.length===1? sel[0] : (sel[0]||'Сентябрь');
-  $('#chDayTitle').textContent = `Накопленный план/факт по дням (${month.toLowerCase()})`;
-  const q = new URLSearchParams(); if(phId) q.set('pharmacy_id',phId);
-  if(sel.length) q.set('months',sel.join(','));
-  const s = await api('/api/s.series?'+q);
-  if(!s.series || !s.series.length) return;
+async function drawDay() {
+  const phId = $("#fPh").value;
+  const sel = typeof msGet !== "undefined" ? msGet() : [];
+  const month = sel.length === 1 ? sel[0] : sel[0] || "Сентябрь";
+  $("#chDayTitle").textContent = `Накопленный план/факт по дням (${month.toLowerCase()})`;
+  const q = new URLSearchParams();
+  if (phId) q.set("pharmacy_id", phId);
+  if (sel.length) q.set("months", sel.join(","));
+  const s = await api("/api/s.series?" + q);
+  if (!s.series || !s.series.length) return;
   const nD = DAYS_IN[month];
-  const planRow = CAT.plan.find(p=>(!phId||p.pharmacy_id==phId)&&p.month===month);
-  const planTot = planRow? planRow.revenue : s.series.reduce((a,x)=>a+x.fact,0)*1.2;
-  const labels=[],cPlan=[],cFact=[];
-  let acc=0;
-  const byDay = Object.fromEntries(s.series.map(x=>[x.d.slice(8),x.fact]));
-  for(let d=1;d<=nD;d++){
+  const planRow = CAT.plan.find((p) => (!phId || p.pharmacy_id == phId) && p.month === month);
+  const planTot = planRow ? planRow.revenue : s.series.reduce((a, x) => a + x.fact, 0) * 1.2;
+  const labels = [], cPlan = [], cFact = [];
+  let acc = 0;
+  const byDay = {};
+  for (const x of s.series) byDay[x.d.slice(8)] = x.fact;
+  for (let d = 1; d <= nD; d++) {
     labels.push(String(d));
-    cPlan.push(+(planTot*d/nD/1e6).toFixed(3));
-    acc += (byDay[String(d).padStart(2,'0')]||0);
-    cFact.push(+(acc/1e6).toFixed(3));
+    cPlan.push(+(planTot * d / nD / 1e6).toFixed(3));
+    acc += byDay[String(d).padStart(2, "0")] || 0;
+    cFact.push(+(acc / 1e6).toFixed(3));
   }
-  if(chD) chD.destroy();
-  chD = new Chart($('#chDay'), {type:'line',data:{labels,datasets:[
-    {label:'План (накопл.)',data:cPlan,borderColor:'#8ea0bf',borderDash:[6,4],borderWidth:2,pointRadius:0},
-    {label:'Факт (накопл.)',data:cFact,borderColor:'#53a979',borderWidth:2.5,pointRadius:0,fill:true,backgroundColor:'rgba(109,196,123,.12)',tension:.25}
-  ]},options:{maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},
-    scales:{y:{ticks:{font:{size:10},callback:v=>v+' млн'},grid:{color:'#eef2f7'}},x:{ticks:{font:{size:9},maxTicksLimit:16}}}}});
+  if (chD) chD.destroy();
+  chD = new Chart($("#chDay"), { type: "line", data: { labels, datasets: [
+    { label: "План (накопл.)", data: cPlan, borderColor: "#8ea0bf", borderDash: [6, 4], borderWidth: 2, pointRadius: 0 },
+    { label: "Факт (накопл.)", data: cFact, borderColor: "#53a979", borderWidth: 2.5, pointRadius: 0, fill: true, backgroundColor: "rgba(109,196,123,.12)", tension: 0.25 }
+  ] }, options: {
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
+    scales: { y: { ticks: { font: { size: 10 }, callback: (v) => v + " млн" }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 9 }, maxTicksLimit: 16 } } }
+  } });
 }
-
-async function loadLog(){
-  const [r, info] = await Promise.all([api('/api/integration/log?limit=12'), api('/api/integration/info').catch(()=>null)]);
-  $('#log').innerHTML = (r.events||[]).map(e=>`<div class="row"><span class="d">${e.at}</span><span>${e.text}</span></div>`).join('') || '<div class="row mut">пока пусто</div>';
+async function loadLog() {
+  const [r, info] = await Promise.all([api("/api/integration/log?limit=12"), api("/api/integration/info").catch(() => null)]);
+  $("#log").innerHTML = (r.events || []).map((e) => `<div class="row"><span class="d">${e.at}</span><span>${e.text}</span></div>`).join("") || '<div class="row mut">пока пусто</div>';
   if (info && info.key) {
-    $('#intgKey').textContent = info.key;
-    const t = info.totals||{};
-    $('#intgStat').textContent = `продаж принято: ${t.raw||0} · привязано к сотрудникам: ${t.mapped||0} · ждут разметки: ${t.new||0}` + (info.last? ` · последний пакет: ${info.last.imported_at} (день ${info.last.d})` : '');
-    const um = info.unmapped||[];
-    $('#unmappedList').innerHTML = um.length
-      ? um.map(u=>`<div class="row"><span>«${u.name}»</span><span class="d">${u.ph} · ×${u.n}</span></div>`).join('')
-      : '<div class="row mut">всё привязано</div>';
+    $("#intgKey").textContent = info.key;
+    const t = info.totals || {};
+    $("#intgStat").textContent = `продаж принято: ${t.raw || 0} · привязано к сотрудникам: ${t.mapped || 0} · ждут разметки: ${t.new || 0}` + (info.last ? ` · последний пакет: ${info.last.imported_at} (день ${info.last.d})` : "");
+    const um = info.unmapped || [];
+    $("#unmappedList").innerHTML = um.length ? um.map((u) => `<div class="row"><span>«${u.name}»</span><span class="d">${u.ph} · ×${u.n}</span></div>`).join("") : '<div class="row mut">всё привязано</div>';
   }
-  $('#btnRemap').onclick = async () => {
-    const rr = await api('/api/integration/remap',{method:'POST'});
-    $('#remapMsg').textContent = rr.ok? `привязано: ${rr.fixed} из ${rr.checked}` : (rr.error||'ошибка');
-    if (rr.ok) { loadLog(); refresh(); }
+  $("#btnRemap").onclick = async () => {
+    const rr = await api("/api/integration/remap", { method: "POST" });
+    $("#remapMsg").textContent = rr.ok ? `привязано: ${rr.fixed} из ${rr.checked}` : rr.error || "ошибка";
+    if (rr.ok) {
+      loadLog();
+      refresh();
+    }
   };
 }
-
-function renderKpi(k){
+function renderKpi(k) {
   const pc = (fact, tgt, inv) => {
-    if (fact == null || tgt == null || !tgt) return '';
-    const p = fact/tgt*100;
-    const c = inv ? (p>=100?'neg':p>=85?'':'pos') : (p>=100?'pos':p>=85?'':'neg');
+    if (fact == null || tgt == null || !tgt) return "";
+    const p = fact / tgt * 100;
+    const c = inv ? p >= 100 ? "neg" : p >= 85 ? "" : "pos" : p >= 100 ? "pos" : p >= 85 ? "" : "neg";
     return `<span class="${c}">${p.toFixed(0)}%</span>`;
   };
   let h = '<thead><tr><th class="l stick">Месяц</th><th>Чеков/день</th><th>Ср.чек</th><th class="m-hide">Чеки 2+ поз.</th><th class="m-hide">Купонов (мес)</th></tr></thead><tbody>';
-  k.rows.sort((a,b)=>MONTHS.indexOf(a.month)-MONTHS.indexOf(b.month)).forEach(r=>{
-    const isFuture = MONTHS.indexOf(r.month) > MONTHS.indexOf(['Сентябрь','Октябрь','Ноябрь','Декабрь'][new Date().getUTCMonth()>=9 && new Date().getUTCFullYear()===2026 ? new Date().getUTCMonth()-9 : 99]);
-    const fcpd = isFuture? '—' : (r.fact_checks_per_day!=null? r.fact_checks_per_day : '—');
-    const fac = isFuture? '—' : (r.fact_avg_check!=null? fmt(r.fact_avg_check) : '—');
-    const pcpd = pc(r.fact_checks_per_day, r.target_checks_per_day, isFuture||!r.fact_days);
-    const pac = pc(r.fact_avg_check, r.target_avg_check, isFuture||!r.fact_days);
-    const pcp = r.target_coupons_per_week? `${r.fact_coupons} / ${Math.round(r.target_coupons_per_week*4.3)} ${pc(r.fact_coupons, r.target_coupons_per_week*4.3, !r.fact_coupons)}` : '—';
-    h += `<tr><td class="l stick">${r.month}</td>`+
-      `<td class="num">${fcpd} <span class="mut">/ ${(r.target_checks_per_day!=null?r.target_checks_per_day:'—')}</span> ${pcpd}</td>`+
-      `<td class="num">${fac} <span class="mut">/ ${r.target_avg_check?fmt(r.target_avg_check):'—'}</span> ${pac}</td>`+
-      `<td class="num m-hide mut">${r.target_multi_share!=null?('цель +'+Math.round(r.target_multi_share*100)+' п.п.'):'—'}</td>`+
-      `<td class="num m-hide">${pcp}</td></tr>`;
+  k.rows.sort((a, b) => MONTHS.indexOf(a.month) - MONTHS.indexOf(b.month)).forEach((r) => {
+    const isFuture = MONTHS.indexOf(r.month) > MONTHS.indexOf(["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"][(/* @__PURE__ */ new Date()).getUTCMonth() >= 9 && (/* @__PURE__ */ new Date()).getUTCFullYear() === 2026 ? (/* @__PURE__ */ new Date()).getUTCMonth() - 9 : 99]);
+    const fcpd = isFuture ? "—" : r.fact_checks_per_day != null ? r.fact_checks_per_day : "—";
+    const fac = isFuture ? "—" : r.fact_avg_check != null ? fmt(r.fact_avg_check) : "—";
+    const pcpd = pc(r.fact_checks_per_day, r.target_checks_per_day, isFuture || !r.fact_days);
+    const pac = pc(r.fact_avg_check, r.target_avg_check, isFuture || !r.fact_days);
+    const pcp = r.target_coupons_per_week ? `${r.fact_coupons} / ${Math.round(r.target_coupons_per_week * 4.3)} ${pc(r.fact_coupons, r.target_coupons_per_week * 4.3, !r.fact_coupons)}` : "—";
+    h += `<tr><td class="l stick">${r.month}</td><td class="num">${fcpd} <span class="mut">/ ${r.target_checks_per_day != null ? r.target_checks_per_day : "—"}</span> ${pcpd}</td><td class="num">${fac} <span class="mut">/ ${r.target_avg_check ? fmt(r.target_avg_check) : "—"}</span> ${pac}</td><td class="num m-hide mut">${r.target_multi_share != null ? "цель +" + Math.round(r.target_multi_share * 100) + " п.п." : "—"}</td><td class="num m-hide">${pcp}</td></tr>`;
   });
-  $('#tblKpi').innerHTML = h+'</tbody>';
+  $("#tblKpi").innerHTML = h + "</tbody>";
 }
-
-async function loadKpi(){ const k = await api('/api/kpi'); renderKpi(k); }
-
-async function loadTg(){
-  const s = await api('/api/tg/status');
-  $('#tgState').textContent = s.token ? (s.last_broadcast? `последняя рассылка: ${s.last_broadcast.slice(0,16).replace('T',' ')}` : 'бот подключён, рассылок ещё не было') : '⚠️ токен бота не задан';
+async function loadKpi() {
+  const k = await api("/api/kpi");
+  renderKpi(k);
+}
+async function loadTg() {
+  const s = await api("/api/tg/status");
+  $("#tgState").textContent = s.token ? s.last_broadcast ? `последняя рассылка: ${s.last_broadcast.slice(0, 16).replace("T", " ")}` : "бот подключён, рассылок ещё не было" : "⚠️ токен бота не задан";
   let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th>Доля</th><th class="l">Код привязки</th><th class="l">Статус</th></tr></thead><tbody>';
-  ;(s.employees||[]).forEach(e=>{
-    h += `<tr><td class="l stick">${e.fio}</td><td class="l">${e.ph}</td><td class="num">${(e.share*100).toFixed(0)}%</td>`+
-      `<td class="l"><code>${e.bound? '—' : e.code}</code></td>`+
-      `<td class="l">${e.bound? `<span class="ok-line">✓ ${e.username? '@'+e.username : 'привязан'}</span>` : '<span class="mut">ждёт /start</span>'}</td></tr>`;
+  ;
+  (s.employees || []).forEach((e) => {
+    h += `<tr><td class="l stick">${e.fio}</td><td class="l">${e.ph}</td><td class="num">${(e.share * 100).toFixed(0)}%</td><td class="l"><code>${e.bound ? "—" : e.code}</code></td><td class="l">${e.bound ? `<span class="ok-line">✓ ${e.username ? "@" + e.username : "привязан"}</span>` : '<span class="mut">ждёт /start</span>'}</td></tr>`;
   });
-  $('#tblTg').innerHTML = h+'</tbody>';
+  $("#tblTg").innerHTML = h + "</tbody>";
 }
-
-async function phOptions(sel){
-  CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o)});
+async function phOptions(sel) {
+  CAT.pharmacy.forEach((p) => {
+    const o = document.createElement("option");
+    o.value = p.id;
+    o.textContent = p.name;
+    sel.appendChild(o);
+  });
 }
-
-async function addSo(){
-  const today = new Date().toISOString().slice(0,10);
-  const body = {pharmacy_id:Number($('#soPh').value||1), d:today, product:$('#soProduct').value.trim(), qty:Number($('#soQty').value||1)};
-  if(!body.product){ $('#soMsg').innerHTML='<span class="err-line">укажите препарат</span>'; return; }
-  const r = await api('/api/stockout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  $('#soMsg').innerHTML = r.ok? '<span class="ok-line">отказ записан</span>' : `<span class="err-line">${r.error||'ошибка'}</span>`;
-  if(r.ok){ $('#soProduct').value=''; loadSoTop(); }
+async function addSo() {
+  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const body = { pharmacy_id: Number($("#soPh").value || 1), d: today, product: $("#soProduct").value.trim(), qty: Number($("#soQty").value || 1) };
+  if (!body.product) {
+    $("#soMsg").innerHTML = '<span class="err-line">укажите препарат</span>';
+    return;
+  }
+  const r = await api("/api/stockout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  $("#soMsg").innerHTML = r.ok ? '<span class="ok-line">отказ записан</span>' : `<span class="err-line">${r.error || "ошибка"}</span>`;
+  if (r.ok) {
+    $("#soProduct").value = "";
+    loadSoTop();
+  }
 }
-
-async function loadSoTop(){
-  const r = await api('/api/stockout/top?days=7');
-  $('#soTop').innerHTML = (r.top||[]).map(t=>`<div class="row"><span>${t.product}</span><span class="d">×${t.times} · ${t.qty} шт · ${t.pharmacies}</span></div>`).join('') || '<div class="row mut">пока пусто</div>';
+async function loadSoTop() {
+  const r = await api("/api/stockout/top?days=7");
+  $("#soTop").innerHTML = (r.top || []).map((t) => `<div class="row"><span>${t.product}</span><span class="d">×${t.times} · ${t.qty} шт · ${t.pharmacies}</span></div>`).join("") || '<div class="row mut">пока пусто</div>';
 }
-
-async function addCp(){
-  const today = new Date().toISOString().slice(0,10);
-  const body = {pharmacy_id:Number($('#cpPh').value||1), d:today, qty:Number($('#cpQty').value||1), campaign:$('#cpCampaign').value.trim()||'листовка'};
-  const r = await api('/api/coupon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  $('#cpMsg').innerHTML = r.ok? '<span class="ok-line">купоны записаны</span>' : `<span class="err-line">${r.error||'ошибка'}</span>`;
-  if(r.ok) loadKpi();
+async function addCp() {
+  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const body = { pharmacy_id: Number($("#cpPh").value || 1), d: today, qty: Number($("#cpQty").value || 1), campaign: $("#cpCampaign").value.trim() || "листовка" };
+  const r = await api("/api/coupon", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  $("#cpMsg").innerHTML = r.ok ? '<span class="ok-line">купоны записаны</span>' : `<span class="err-line">${r.error || "ошибка"}</span>`;
+  if (r.ok) loadKpi();
 }
-
-// ---------- Планы провизоров (Excel-override) ----------
-const _normS = s => String(s==null?'':s).toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim();
-function empPlanOverride(phId, fio, month){
-  return ((CAT&&CAT.empPlan)||[]).find(r=>r.pharmacy_id==phId && _normS(r.fio)===_normS(fio) && r.month===month) || null;
+const _normS = (s) => String(s == null ? "" : s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+function empPlanOverride(phId, fio, month) {
+  return (CAT && CAT.empPlan || []).find((r) => r.pharmacy_id == phId && _normS(r.fio) === _normS(fio) && r.month === month) || null;
 }
-const _numClean = v => {
-  if(v==null || v==='') return null;
-  if(typeof v==='number') return isFinite(v)? v : null;
-  const t = String(v).replace(/руб\.?/gi,'').replace(/[\s\u00a0₽]/g,'').replace(',','.');
+const _numClean = (v) => {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return isFinite(v) ? v : null;
+  const t = String(v).replace(/руб\.?/gi, "").replace(/[\s\u00a0₽]/g, "").replace(",", ".");
   const n = Number(t);
-  return isFinite(n)? n : null;
+  return isFinite(n) ? n : null;
 };
-function _monOf(s){
-  const t = _normS(s).slice(0,4);
-  return t.length>=3? (MONTHS.find(m=>m.toLowerCase().slice(0,4)===t) || MONTHS.find(m=>m.toLowerCase().slice(0,3)===t.slice(0,3))) || null : null;
+function _monOf(s) {
+  const t = _normS(s).slice(0, 4);
+  return t.length >= 3 ? MONTHS.find((m) => m.toLowerCase().slice(0, 4) === t) || MONTHS.find((m) => m.toLowerCase().slice(0, 3) === t.slice(0, 3)) || null : null;
 }
-function parsePlanXlsx(buf){
-  const wb = XLSX.read(buf, {type:'array'});
+function parsePlanXlsx(buf) {
+  const wb = XLSX.read(buf, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const aoa = XLSX.utils.sheet_to_json(ws, {header:1, defval:null, raw:true});
-  if(!aoa.length) return {rows:[], unmatched:[]};
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
+  if (!aoa.length) return { rows: [], unmatched: [] };
   const hdr = aoa[0].map(_normS);
-  const colFio = hdr.findIndex(h=>h==='фио'||h==='сотрудник'||h==='провизор');
-  if(colFio<0) throw new Error('в файле нет колонки ФИО');
-  const colPhId = hdr.findIndex(h=>h==='аптека id'||h==='аптекаid');
-  const colPh = colPhId>=0? colPhId : hdr.findIndex(h=>h==='аптека');
-  const colMonth = hdr.findIndex(h=>h==='месяц');
-  const colRev = hdr.findIndex(h=>h.startsWith('план'));
-  const colShare = hdr.findIndex(h=>h.startsWith('доля'));
+  const colFio = hdr.findIndex((h) => h === "фио" || h === "сотрудник" || h === "провизор");
+  if (colFio < 0) throw new Error("в файле нет колонки ФИО");
+  const colPhId = hdr.findIndex((h) => h === "аптека id" || h === "аптекаid");
+  const colPh = colPhId >= 0 ? colPhId : hdr.findIndex((h) => h === "аптека");
+  const colMonth = hdr.findIndex((h) => h === "месяц");
+  const colRev = hdr.findIndex((h) => h.startsWith("план"));
+  const colShare = hdr.findIndex((h) => h.startsWith("доля"));
   const monthCols = [];
-  if(colMonth<0) hdr.forEach((h,i)=>{ if(h && i!==colFio && i!==colPh && i!==colShare){ const m=_monOf(h); if(m && h.length<=9) monthCols.push({i, m}); } });
-  const resolvePh = raw => {
-    if(raw==null || raw==='') return null;
+  if (colMonth < 0) hdr.forEach((h, i) => {
+    if (h && i !== colFio && i !== colPh && i !== colShare) {
+      const m = _monOf(h);
+      if (m && h.length <= 9) monthCols.push({ i, m });
+    }
+  });
+  const resolvePh = (raw) => {
+    if (raw == null || raw === "") return null;
     const n = Number(String(raw).trim());
-    if(isFinite(n) && CAT.pharmacy.some(p=>p.id===n)) return n;
-    const s = _normS(raw).replace(/^аптека\s+/,'');
-    const p = CAT.pharmacy.find(p=>_normS(p.name)===s) || CAT.pharmacy.find(p=>s.includes(_normS(p.name)) || _normS(p.name).includes(s));
-    return p? p.id : null;
+    if (isFinite(n) && CAT.pharmacy.some((p2) => p2.id === n)) return n;
+    const s = _normS(raw).replace(/^аптека\s+/, "");
+    const p = CAT.pharmacy.find((p2) => _normS(p2.name) === s) || CAT.pharmacy.find((p2) => s.includes(_normS(p2.name)) || _normS(p2.name).includes(s));
+    return p ? p.id : null;
   };
   const rows = [], unmatched = [];
   const push = (phRaw, fioRaw, month, revRaw, shareRaw) => {
-    const fio = String(fioRaw==null?'':fioRaw).replace(/\s+/g,' ').trim();
-    if(!fio) return;
+    const fio = String(fioRaw == null ? "" : fioRaw).replace(/\s+/g, " ").trim();
+    if (!fio) return;
     const low = _normS(fio);
-    if(low.includes('итого') || low.includes('всего')) return;
+    if (low.includes("итого") || low.includes("всего")) return;
     const revenue = _numClean(revRaw);
     let share = _numClean(shareRaw);
-    if(share!=null && share>1) share = share/100;
-    if(revenue==null && share==null) return;
+    if (share != null && share > 1) share = share / 100;
+    if (revenue == null && share == null) return;
     const phId = resolvePh(phRaw);
-    const emp = phId!=null? CAT.employee.find(e=>e.pharmacy_id===phId && _normS(e.fio)===low) : null;
-    if(emp && month) rows.push({pharmacy_id:phId, fio:emp.fio, month, revenue, share});
-    else unmatched.push({pharmacy_raw:phRaw==null?'—':String(phRaw), fio_raw:fio, month:month||'—', revenue, share, reason: phId==null? 'аптека не опознана' : 'ФИО не найдено в справочнике'});
+    const emp = phId != null ? CAT.employee.find((e) => e.pharmacy_id === phId && _normS(e.fio) === low) : null;
+    if (emp && month) rows.push({ pharmacy_id: phId, fio: emp.fio, month, revenue, share });
+    else unmatched.push({ pharmacy_raw: phRaw == null ? "—" : String(phRaw), fio_raw: fio, month: month || "—", revenue, share, reason: phId == null ? "аптека не опознана" : "ФИО не найдено в справочнике" });
   };
-  for(let r=1;r<aoa.length;r++){
-    const line = aoa[r]||[];
-    const phRaw = colPh>=0? line[colPh] : null;
+  for (let r = 1; r < aoa.length; r++) {
+    const line = aoa[r] || [];
+    const phRaw = colPh >= 0 ? line[colPh] : null;
     const fioRaw = line[colFio];
-    const shareRaw = colShare>=0? line[colShare] : null;
-    if(colMonth>=0){
-      push(phRaw, fioRaw, _monOf(line[colMonth]), colRev>=0? line[colRev] : null, shareRaw);
+    const shareRaw = colShare >= 0 ? line[colShare] : null;
+    if (colMonth >= 0) {
+      push(phRaw, fioRaw, _monOf(line[colMonth]), colRev >= 0 ? line[colRev] : null, shareRaw);
     } else {
-      monthCols.forEach(mc=>push(phRaw, fioRaw, mc.m, line[mc.i], shareRaw));
+      monthCols.forEach((mc) => push(phRaw, fioRaw, mc.m, line[mc.i], shareRaw));
     }
   }
-  return {rows, unmatched};
+  return { rows, unmatched };
 }
 let _epParsed = null;
-function epRenderPreview(){
-  const t = $('#tblEpPrev');
-  if(!_epParsed || (!_epParsed.rows.length && !_epParsed.unmatched.length)){ t.innerHTML=''; return; }
+function epRenderPreview() {
+  const t = $("#tblEpPrev");
+  if (!_epParsed || !_epParsed.rows.length && !_epParsed.unmatched.length) {
+    t.innerHTML = "";
+    return;
+  }
   let h = '<thead><tr><th class="l">Аптека</th><th class="l stick">ФИО</th><th class="l">Месяц</th><th class="m-hide">План ТО</th><th class="m-hide">Доля</th><th>✓/⚠</th></tr></thead><tbody>';
-  _epParsed.rows.forEach(r=>{
-    const ph = CAT.pharmacy.find(p=>p.id===r.pharmacy_id);
-    h += `<tr><td class="l">${ph?ph.name:r.pharmacy_id}</td><td class="l stick">${_escHtml(r.fio)}</td><td class="l">${r.month}</td>`+
-      `<td class="num m-hide">${r.revenue!=null?fmt(r.revenue):'—'}</td><td class="num m-hide">${r.share!=null?Math.round(r.share*100)+'%':'—'}</td><td class="num ok-line">✓</td></tr>`;
+  _epParsed.rows.forEach((r) => {
+    const ph = CAT.pharmacy.find((p) => p.id === r.pharmacy_id);
+    h += `<tr><td class="l">${ph ? ph.name : r.pharmacy_id}</td><td class="l stick">${_escHtml(r.fio)}</td><td class="l">${r.month}</td><td class="num m-hide">${r.revenue != null ? fmt(r.revenue) : "—"}</td><td class="num m-hide">${r.share != null ? Math.round(r.share * 100) + "%" : "—"}</td><td class="num ok-line">✓</td></tr>`;
   });
-  _epParsed.unmatched.forEach(r=>{
-    h += `<tr title="${_escHtml(r.reason)}"><td class="l">${_escHtml(r.pharmacy_raw)}</td><td class="l stick">${_escHtml(r.fio_raw)}</td><td class="l">${_escHtml(r.month)}</td>`+
-      `<td class="num m-hide">${r.revenue!=null?fmt(r.revenue):'—'}</td><td class="num m-hide">${r.share!=null?Math.round(r.share*100)+'%':'—'}</td><td class="num err-line">⚠</td></tr>`;
+  _epParsed.unmatched.forEach((r) => {
+    h += `<tr title="${_escHtml(r.reason)}"><td class="l">${_escHtml(r.pharmacy_raw)}</td><td class="l stick">${_escHtml(r.fio_raw)}</td><td class="l">${_escHtml(r.month)}</td><td class="num m-hide">${r.revenue != null ? fmt(r.revenue) : "—"}</td><td class="num m-hide">${r.share != null ? Math.round(r.share * 100) + "%" : "—"}</td><td class="num err-line">⚠</td></tr>`;
   });
-  t.innerHTML = h+'</tbody>';
+  t.innerHTML = h + "</tbody>";
 }
-function epStatus(html){ $('#epMsg').innerHTML = html; }
-$('#epFile').onchange = async ev => {
+function epStatus(html) {
+  $("#epMsg").innerHTML = html;
+}
+$("#epFile").onchange = async (ev) => {
   const f = ev.target.files && ev.target.files[0];
-  if(!f) return;
-  try{
+  if (!f) return;
+  try {
     _epParsed = parsePlanXlsx(await f.arrayBuffer());
     epRenderPreview();
     const u = _epParsed.unmatched;
-    epStatus(`распознано строк: <b>${_epParsed.rows.length}</b>` + (u.length? ` · <span class="err-line">не распознано ФИО: ${_escHtml(u.map(x=>x.fio_raw).join(', '))}</span>` : '') + ' — нажмите «Применить»');
-  }catch(e){
-    _epParsed = null; $('#tblEpPrev').innerHTML = '';
-    epStatus(`<span class="err-line">${_escHtml(e.message||'не удалось прочитать файл')}</span>`);
+    epStatus(`распознано строк: <b>${_epParsed.rows.length}</b>` + (u.length ? ` · <span class="err-line">не распознано ФИО: ${_escHtml(u.map((x) => x.fio_raw).join(", "))}</span>` : "") + " — нажмите «Применить»");
+  } catch (e) {
+    _epParsed = null;
+    $("#tblEpPrev").innerHTML = "";
+    epStatus(`<span class="err-line">${_escHtml(e.message || "не удалось прочитать файл")}</span>`);
   }
 };
-$('#btnEpTpl').onclick = () => {
-  const emps = CAT.employee.filter(e=>e.share>0).slice(0,3);
-  const aoa = [['Аптека','ФИО','Месяц','План ТО ₽','Доля']];
-  emps.forEach(e=>{
-    const ph = CAT.pharmacy.find(p=>p.id===e.pharmacy_id);
-    const pr = CAT.plan.find(p=>p.pharmacy_id===e.pharmacy_id && p.month==='Октябрь');
-    aoa.push([ph? ph.name : 'аптека '+e.pharmacy_id, e.fio, 'Октябрь', pr? Math.round(pr.revenue*(e.share||0)) : 500000, 0.25]);
+$("#btnEpTpl").onclick = () => {
+  const emps = CAT.employee.filter((e) => e.share > 0).slice(0, 3);
+  const aoa = [["Аптека", "ФИО", "Месяц", "План ТО ₽", "Доля"]];
+  emps.forEach((e) => {
+    const ph = CAT.pharmacy.find((p) => p.id === e.pharmacy_id);
+    const pr = CAT.plan.find((p) => p.pharmacy_id === e.pharmacy_id && p.month === "Октябрь");
+    aoa.push([ph ? ph.name : "аптека " + e.pharmacy_id, e.fio, "Октябрь", pr ? Math.round(pr.revenue * (e.share || 0)) : 5e5, 0.25]);
   });
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols'] = [{wch:20},{wch:32},{wch:11},{wch:13},{wch:7}];
+  ws["!cols"] = [{ wch: 20 }, { wch: 32 }, { wch: 11 }, { wch: 13 }, { wch: 7 }];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Планы');
-  XLSX.writeFile(wb, 'шаблон_планы_провизоров.xlsx');
+  XLSX.utils.book_append_sheet(wb, ws, "Планы");
+  XLSX.writeFile(wb, "шаблон_планы_провизоров.xlsx");
 };
-$('#btnEpApply').onclick = async () => {
-  if(!_epParsed || !_epParsed.rows.length){ epStatus('<span class="err-line">сначала выберите файл — распознанных строк нет</span>'); return; }
-  $('#btnEpApply').disabled = true;
-  try{
-    const res = await api('/api/plan/employee',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:_epParsed.rows})});
-    if(res.error){ epStatus(`<span class="err-line">${_escHtml(res.error)}</span>`); return; }
-    CAT.empPlan = await api('/api/plan/employee');
+$("#btnEpApply").onclick = async () => {
+  if (!_epParsed || !_epParsed.rows.length) {
+    epStatus('<span class="err-line">сначала выберите файл — распознанных строк нет</span>');
+    return;
+  }
+  $("#btnEpApply").disabled = true;
+  try {
+    const res = await api("/api/plan/employee", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: _epParsed.rows }) });
+    if (res.error) {
+      epStatus(`<span class="err-line">${_escHtml(res.error)}</span>`);
+      return;
+    }
+    CAT.empPlan = await api("/api/plan/employee");
     await refresh();
-    const badNames = [..._epParsed.unmatched.map(x=>x.fio_raw), ...(res.unmatched||[]).map(x=>x.fio)].filter(Boolean);
-    epStatus(`<span class="ok-line">принято ${res.saved} строк${res.offline?' (сохранено локально)':''}</span>` + (badNames.length? ` · не распознано ФИО: ${_escHtml(badNames.join(', '))}` : ''));
-  } finally { $('#btnEpApply').disabled = false; }
+    const badNames = [..._epParsed.unmatched.map((x) => x.fio_raw), ...(res.unmatched || []).map((x) => x.fio)].filter(Boolean);
+    epStatus(`<span class="ok-line">принято ${res.saved} строк${res.offline ? " (сохранено локально)" : ""}</span>` + (badNames.length ? ` · не распознано ФИО: ${_escHtml(badNames.join(", "))}` : ""));
+  } finally {
+    $("#btnEpApply").disabled = false;
+  }
 };
-
-$('#btnSim').onclick = async () => {
-  const phId = Number($('#fPh').value || 1);
-  const emps = CAT.employee.filter(e=>e.pharmacy_id===phId);
-  const emp = emps[Math.floor(Math.random()*emps.length)];
-  const today = new Date().toISOString().slice(0,10);
-  const amount = Math.round(400+Math.random()*2600);
-  const body = {pharmacy_id:phId, sales:[{doc_id:'SIM-'+Date.now()%10000, d:today, employee_name:emp.fio, amount, margin:Math.round(amount*.24)}]};
-  const r = await api('/api/integration/sales',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  await loadLog(); await refresh();
-  $('#btnSim').textContent = `+${fmt(amount)}`;
-  setTimeout(()=>$('#btnSim').textContent='Тестовая продажа', 2500);
+$("#btnSim").onclick = async () => {
+  const phId = Number($("#fPh").value || 1);
+  const emps = CAT.employee.filter((e) => e.pharmacy_id === phId);
+  const emp = emps[Math.floor(Math.random() * emps.length)];
+  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const amount = Math.round(400 + Math.random() * 2600);
+  const body = { pharmacy_id: phId, sales: [{ doc_id: "SIM-" + Date.now() % 1e4, d: today, employee_name: emp.fio, amount, margin: Math.round(amount * 0.24) }] };
+  const r = await api("/api/integration/sales", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  await loadLog();
+  await refresh();
+  $("#btnSim").textContent = `+${fmt(amount)}`;
+  setTimeout(() => $("#btnSim").textContent = "Тестовая продажа", 2500);
 };
-
-async function refresh(){
-  const phId=$('#fPh').value;
-  const sel = (typeof msGet!=='undefined')? msGet() : [];
-  const qs = (typeof qGet!=='undefined')? qGet() : '';
-  const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId);
-  if(qs) q.set('quarter',qs);                      // выбранный квартал 1..4 — месяцы не мешаем
-  else if(sel.length) q.set('months',sel.join(','));
-  const mlab = qs? qs+' кв.' : (sel.length? sel.join(' + ') : 'весь период');
-  const sum = await api('/api/summary?'+q);
+async function refresh() {
+  const phId = $("#fPh").value;
+  const sel = typeof msGet !== "undefined" ? msGet() : [];
+  const qs = typeof qGet !== "undefined" ? qGet() : "";
+  const q = new URLSearchParams();
+  if (phId) q.set("pharmacy_id", phId);
+  if (qs) q.set("quarter", qs);
+  else if (sel.length) q.set("months", sel.join(","));
+  const mlab = qs ? qs + " кв." : sel.length ? sel.join(" + ") : "весь период";
+  const sum = await api("/api/summary?" + q);
   renderKpis(sum, phId, mlab);
   renderTable(sum);
   renderEmp(sum, phId);
@@ -941,204 +1032,321 @@ async function refresh(){
   await drawDay();
   await loadKpi();
 }
-
-// ---------- боковая панель: открытие/закрытие ----------
-function sblGo(anchorId){
+function sblGo(anchorId) {
   sblToggle(false);
-  mNav('dashboard');
+  mNav("dashboard");
   const el = document.getElementById(anchorId);
-  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-function sblSettings(btn){
+function sblSettings(btn) {
   sblToggle(false);
-  mNav('dashboard');
-  const s = document.getElementById('apiSettings');
-  const show = s.style.display === 'none';
-  s.style.display = show ? '' : 'none';
-  const b = document.getElementById('btnSettings');
-  if (b) b.textContent = show ? '✕ Скрыть настройки' : '⚙️ Настройки';
-  if (show){ loadTg(); s.scrollIntoView({ behavior:'smooth', block:'start' }); }
+  mNav("dashboard");
+  const s = document.getElementById("apiSettings");
+  const show = s.style.display === "none";
+  s.style.display = show ? "" : "none";
+  const b = document.getElementById("btnSettings");
+  if (b) b.textContent = show ? "✕ Скрыть настройки" : "⚙️ Настройки";
+  if (show) {
+    loadTg();
+    s.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
-function sblToggle(open){
-  document.body.classList.toggle('sbl-open', open);
+function sblToggle(open) {
+  document.body.classList.toggle("sbl-open", open);
 }
-
-// ---------- навигация модулей ----------
-let _mActive = 'dashboard';
-
-async function _loadModNav(){
+let _mActive = "dashboard";
+async function _loadModNav() {
   const ICONS = {
-    '🧾': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6-2.4-1.6z"/><path d="M9 8.2h6M9 12h6M9 15.2h3.6"/></svg>',
-    '📦': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 20.4 7.6v8.8L12 20.8 3.6 16.4V7.6z"/><path d="M3.6 7.6 12 12l8.4-4.4M12 12v8.8"/></svg>',
-    '🚚': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.8h11v9.4h-11zM13.8 10h3.9l3.5 3.4v2.8h-7.4"/><circle cx="7" cy="18" r="1.8"/><circle cx="16.6" cy="18" r="1.8"/></svg>'
+    "🧾": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6-2.4-1.6z"/><path d="M9 8.2h6M9 12h6M9 15.2h3.6"/></svg>',
+    "📦": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 20.4 7.6v8.8L12 20.8 3.6 16.4V7.6z"/><path d="M3.6 7.6 12 12l8.4-4.4M12 12v8.8"/></svg>',
+    "🚚": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.8h11v9.4h-11zM13.8 10h3.9l3.5 3.4v2.8h-7.4"/><circle cx="7" cy="18" r="1.8"/><circle cx="16.6" cy="18" r="1.8"/></svg>'
   };
   try {
-    const r = await fetch('/api/modules', { headers: { 'Authorization': 'Bearer ' + _TOK() } });
+    const r = await fetch("/api/modules", { headers: { "Authorization": "Bearer " + _TOK() } });
     if (!r.ok) return;
     const mods = await r.json();
     if (!mods || !mods.length) return;
-    const nav = document.getElementById('mnav');
+    const nav = document.getElementById("mnav");
     const grps = {};
-    mods.forEach(function(m){ var g = m.group || ''; if (!grps[g]) grps[g] = []; grps[g].push(m); });
-    var html = '';
-    Object.keys(grps).sort().forEach(function(g){
-      if (g) html += '<div class="sgrp">' + _escHtml(g) + '</div>';
-      grps[g].forEach(function(m){
-        html += '<button class="sbtn" id="mbtn-' + m.id + '" onclick="mNav(\'' + m.id + '\');sblToggle(false)"><span class="ic">' + (ICONS[m.icon] || m.icon || '') + '</span><span>' + _escHtml(m.title) + '</span></button>';
+    mods.forEach(function(m) {
+      var g = m.group || "";
+      if (!grps[g]) grps[g] = [];
+      grps[g].push(m);
+    });
+    var html = "";
+    Object.keys(grps).sort().forEach(function(g) {
+      if (g) html += '<div class="sgrp">' + _escHtml(g) + "</div>";
+      grps[g].forEach(function(m) {
+        html += '<button class="sbtn" id="mbtn-' + m.id + `" onclick="mNav('` + m.id + `');sblToggle(false)"><span class="ic">` + (ICONS[m.icon] || m.icon || "") + "</span><span>" + _escHtml(m.title) + "</span></button>";
       });
     });
-    nav.insertAdjacentHTML('beforeend', html);
-    nav.classList.add('visible');
-  } catch (_) {}
-}
-
-function mNav(id){
-  if (id === 'dashboard') {
-    document.getElementById('mframe').classList.remove('visible');
-    document.querySelectorAll('.mbtn').forEach(function(b){ b.classList.remove('active'); });
-    var db = document.getElementById('mbtn-dashboard');
-    if (db) db.classList.add('active');
-    document.getElementById('kpis').style.display = '';
-    var charts = document.querySelector('.grid.charts');
-    if (charts) charts.style.display = '';
-    document.querySelectorAll('.h2row').forEach(function(el){ el.style.display = ''; });
-    var tw = document.querySelector('.tbl-wrap');
-    if (tw) tw.style.display = '';
-    _mActive = 'dashboard'; sblToggle(false); return;
+    nav.insertAdjacentHTML("beforeend", html);
+    nav.classList.add("visible");
+  } catch (_) {
   }
-  document.getElementById('kpis').style.display = 'none';
-  document.querySelectorAll('.grid.charts').forEach(function(el){ el.style.display = 'none'; });
-  document.querySelectorAll('.h2row').forEach(function(el){ el.style.display = 'none'; });
-  var tblw = document.querySelector('.tbl-wrap');
-  if (tblw) tblw.style.display = 'none';
-  var fr = document.getElementById('mframe');
-  fr.src = '/m/' + id + '/';
-  fr.classList.add('visible');
-  document.querySelectorAll('.sbtn').forEach(function(b){ b.classList.remove('active'); });
-  var btn = document.getElementById('mbtn-' + id);
-  if (btn) btn.classList.add('active');
+}
+function mNav(id) {
+  if (id === "dashboard") {
+    document.getElementById("mframe").classList.remove("visible");
+    document.querySelectorAll(".mbtn").forEach(function(b) {
+      b.classList.remove("active");
+    });
+    var db = document.getElementById("mbtn-dashboard");
+    if (db) db.classList.add("active");
+    document.getElementById("kpis").style.display = "";
+    var charts = document.querySelector(".grid.charts");
+    if (charts) charts.style.display = "";
+    document.querySelectorAll(".h2row").forEach(function(el) {
+      el.style.display = "";
+    });
+    var tw = document.querySelector(".tbl-wrap");
+    if (tw) tw.style.display = "";
+    _mActive = "dashboard";
+    sblToggle(false);
+    return;
+  }
+  document.getElementById("kpis").style.display = "none";
+  document.querySelectorAll(".grid.charts").forEach(function(el) {
+    el.style.display = "none";
+  });
+  document.querySelectorAll(".h2row").forEach(function(el) {
+    el.style.display = "none";
+  });
+  var tblw = document.querySelector(".tbl-wrap");
+  if (tblw) tblw.style.display = "none";
+  var fr = document.getElementById("mframe");
+  fr.src = "/m/" + id + "/";
+  fr.classList.add("visible");
+  document.querySelectorAll(".sbtn").forEach(function(b) {
+    b.classList.remove("active");
+  });
+  var btn = document.getElementById("mbtn-" + id);
+  if (btn) btn.classList.add("active");
   _mActive = id;
   sblToggle(false);
 }
-
-function _escHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]); }); }
-
-// Фильтры — выпадающие списки в шапке (#fMonth, #fPh)
-
-// Полосы план/факт/прогноз в карточке метрики (стиль HEADO, цвета Пользы)
-function kbars(rows, always){
-  if((!rows || !rows.length) && !always) return '';
-  if(!rows || !rows.length) rows = [{l:'План', v:0, c:'#133367', t:'—'},{l:'Факт', v:0, c:'#53a979', t:'—'},{l:'Прогноз', v:0, c:'#4169aa', t:'—'}];
-  const max = Math.max(...rows.map(r=>r.v||0), 1);
-  return `<div class="kb">` + rows.map(r=>
-    `<div class="kb-row"><span class="kb-l">${r.l}</span>` +
-    `<span class="kb-track"><span class="kb-fill" style="width:${Math.max(0,Math.min(100,r.v/max*100))}%;background:${r.c}"></span></span>` +
-    `<span class="kb-v">${r.t}</span></div>`).join('') + `</div>`;
+function _escHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
 }
-function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s = pct>=100?`+${(pct-100).toFixed(1)}%`:`−${(100-pct).toFixed(1)}%`; return `<span class="b ${c}">${s} к плану</span>`; }
-
-// ---------- Мультиселект месяцев (Ctrl/клик) + режим кварталов ----------
-let msSel = ['Сентябрь'];            // выбранные месяцы; [] = все
-let qSel = '';                       // выбранный квартал: '' | '1'..'4'
-function msGet(){ return msSel; }
-function qGet(){ return qSel; }
-function msLabel(){
-  if(!msSel.length) return 'Все месяцы';
-  if(msSel.length===1) return msSel[0];
-  return msSel.length+' мес.';
+function kbars(rows, always) {
+  if ((!rows || !rows.length) && !always) return "";
+  if (!rows || !rows.length) rows = [{ l: "План", v: 0, c: "#133367", t: "—" }, { l: "Факт", v: 0, c: "#53a979", t: "—" }, { l: "Прогноз", v: 0, c: "#4169aa", t: "—" }];
+  const max = Math.max(...rows.map((r) => r.v || 0), 1);
+  return `<div class="kb">` + rows.map((r) => `<div class="kb-row"><span class="kb-l">${r.l}</span><span class="kb-track"><span class="kb-fill" style="width:${Math.max(0, Math.min(100, r.v / max * 100))}%;background:${r.c}"></span></span><span class="kb-v">${r.t}</span></div>`).join("") + `</div>`;
 }
-function msSync(){
-  const lbl = $('#msLabel'); if(lbl) lbl.textContent = msLabel();
-  document.querySelectorAll('#msPop .ms-opt').forEach(el=>{
+function deltaBadge(pct) {
+  if (pct == null) return "";
+  const c = cls(pct);
+  const s = pct >= 100 ? `+${(pct - 100).toFixed(1)}%` : `−${(100 - pct).toFixed(1)}%`;
+  return `<span class="b ${c}">${s} к плану</span>`;
+}
+let msSel = ["Сентябрь"];
+let qSel = "";
+function msGet() {
+  return msSel;
+}
+function qGet() {
+  return qSel;
+}
+function msLabel() {
+  if (!msSel.length) return "Все месяцы";
+  if (msSel.length === 1) return msSel[0];
+  return msSel.length + " мес.";
+}
+function msSync() {
+  const lbl = $("#msLabel");
+  if (lbl) lbl.textContent = msLabel();
+  document.querySelectorAll("#msPop .ms-opt").forEach((el) => {
     const v = el.dataset.v;
-    el.classList.toggle('on', msSel.includes(v));
-    el.setAttribute('aria-selected', msSel.includes(v)?'true':'false');
+    el.classList.toggle("on", msSel.includes(v));
+    el.setAttribute("aria-selected", msSel.includes(v) ? "true" : "false");
   });
-  const ql = $('#msQLabel'); if(ql) ql.textContent = qSel? qSel+' кв.' : 'Все кварталы';
-  document.querySelectorAll('#msQPop .ms-opt').forEach(el=>{
-    el.classList.toggle('on', el.dataset.v===qSel);
-    el.setAttribute('aria-selected', el.dataset.v===qSel?'true':'false');
+  const ql = $("#msQLabel");
+  if (ql) ql.textContent = qSel ? qSel + " кв." : "Все кварталы";
+  document.querySelectorAll("#msQPop .ms-opt").forEach((el) => {
+    el.classList.toggle("on", el.dataset.v === qSel);
+    el.setAttribute("aria-selected", el.dataset.v === qSel ? "true" : "false");
   });
-  const box = $('#msMonth'); if(box) box.classList.toggle('open', box.classList.contains('open'));
+  const box = $("#msMonth");
+  if (box) box.classList.toggle("open", box.classList.contains("open"));
 }
-function msApply(){ msSync(); refresh(); }
-function initMonthFilter(){
-  const box = $('#msMonth'), btn = $('#msBtn'), pop = $('#msPop');
-  if(!box || !btn || !pop) return;
-  btn.onclick = e=>{ e.stopPropagation(); const open = !box.classList.contains('open'); box.classList.toggle('open',open); btn.setAttribute('aria-expanded',open?'true':'false'); };
-  pop.addEventListener('click', e=>e.stopPropagation());
-  document.addEventListener('click', ()=>{ box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); });
-  pop.querySelectorAll('.ms-opt').forEach(el=>{
-    el.addEventListener('click', e=>{
+function msApply() {
+  msSync();
+  refresh();
+}
+function initMonthFilter() {
+  const box = $("#msMonth"), btn = $("#msBtn"), pop = $("#msPop");
+  if (!box || !btn || !pop) return;
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    const open = !box.classList.contains("open");
+    box.classList.toggle("open", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+  pop.addEventListener("click", (e) => e.stopPropagation());
+  document.addEventListener("click", () => {
+    box.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+  });
+  pop.querySelectorAll(".ms-opt").forEach((el) => {
+    el.addEventListener("click", (e) => {
       e.stopPropagation();
       const v = el.dataset.v;
-      if(!v){ msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); return; }  // «Все месяцы» → закрыть
-      if(e.ctrlKey || e.metaKey){                      // Ctrl-мультиселект — поп остаётся открытым
+      if (!v) {
+        msSel = [];
+        box.classList.remove("open");
+        btn.setAttribute("aria-expanded", "false");
+        msApply();
+        return;
+      }
+      if (e.ctrlKey || e.metaKey) {
         const i = msSel.indexOf(v);
-        if(i>=0) msSel.splice(i,1); else { msSel.push(v); msSel.sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b)); }
+        if (i >= 0) msSel.splice(i, 1);
+        else {
+          msSel.push(v);
+          msSel.sort((a, b) => MONTHS.indexOf(a) - MONTHS.indexOf(b));
+        }
       } else {
-        msSel = [v];                                   // обычный клик — одиночный выбор
-        box.classList.remove('open'); btn.setAttribute('aria-expanded','false');   // …и поп закрывается
+        msSel = [v];
+        box.classList.remove("open");
+        btn.setAttribute("aria-expanded", "false");
       }
       msApply();
     });
   });
-  const clr = $('#msClr'), all = $('#msAll');
-  if(clr) clr.onclick = e=>{ e.stopPropagation(); msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); };
-  if(all) all.onclick = e=>{ e.stopPropagation(); msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); };
-  const qbox = $('#msQuarter'), qbtn = $('#msQBtn'), qpop = $('#msQPop');
-  if(qbox && qbtn && qpop){
-    qbtn.onclick = e=>{ e.stopPropagation(); const open = !qbox.classList.contains('open'); qbox.classList.toggle('open',open); qbtn.setAttribute('aria-expanded',open?'true':'false'); };
-    qpop.addEventListener('click', e=>e.stopPropagation());
-    qpop.querySelectorAll('.ms-opt').forEach(el=>{
-      el.addEventListener('click', e=>{
+  const clr = $("#msClr"), all = $("#msAll");
+  if (clr) clr.onclick = (e) => {
+    e.stopPropagation();
+    msSel = [];
+    box.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+    msApply();
+  };
+  if (all) all.onclick = (e) => {
+    e.stopPropagation();
+    msSel = [];
+    box.classList.remove("open");
+    btn.setAttribute("aria-expanded", "false");
+    msApply();
+  };
+  const qbox = $("#msQuarter"), qbtn = $("#msQBtn"), qpop = $("#msQPop");
+  if (qbox && qbtn && qpop) {
+    qbtn.onclick = (e) => {
+      e.stopPropagation();
+      const open = !qbox.classList.contains("open");
+      qbox.classList.toggle("open", open);
+      qbtn.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+    qpop.addEventListener("click", (e) => e.stopPropagation());
+    qpop.querySelectorAll(".ms-opt").forEach((el) => {
+      el.addEventListener("click", (e) => {
         e.stopPropagation();
-        qSel = el.dataset.v||'';                     // '' = «Все кварталы» → обычный вид по месяцам
-        qbox.classList.remove('open'); qbtn.setAttribute('aria-expanded','false');
-        msSync(); refresh();
+        qSel = el.dataset.v || "";
+        qbox.classList.remove("open");
+        qbtn.setAttribute("aria-expanded", "false");
+        msSync();
+        refresh();
       });
     });
-    document.addEventListener('click', ()=>{ qbox.classList.remove('open'); qbtn.setAttribute('aria-expanded','false'); });
+    document.addEventListener("click", () => {
+      qbox.classList.remove("open");
+      qbtn.setAttribute("aria-expanded", "false");
+    });
   }
   msSync();
 }
-
-// Проверка доступа до загрузки данных: нет сессии — экран входа, данные не тянем
-(async function boot(){
-  const tok=_TOK();
-  if(!tok){ gateShow(); return; }
-  try{
-    const chk=await fetch('/api/catalog',{headers:{'Authorization':'Bearer '+tok}});
-    if(chk.status===401){ localStorage.removeItem('me_token'); gateShow(); return; }
-    if(chk.status===403){ gateShow('этот код не даёт доступ к общему дашборду'); return; }
-    if(!chk.ok){ gateShow('сервер недоступен'); return; }
-  }catch(_){ gateShow('сеть недоступна'); return; }
-  try{ await main(); }catch(e){ if(e && e.message!=='auth') throw e; }
+(async function boot() {
+  const tok = _TOK();
+  if (!tok) {
+    gateShow();
+    return;
+  }
+  try {
+    const chk = await fetch("/api/catalog", { headers: { "Authorization": "Bearer " + tok } });
+    if (chk.status === 401) {
+      localStorage.removeItem("me_token");
+      gateShow();
+      return;
+    }
+    if (chk.status === 403) {
+      gateShow("этот код не даёт доступ к общему дашборду");
+      return;
+    }
+    if (!chk.ok) {
+      gateShow("сервер недоступен");
+      return;
+    }
+  } catch (_) {
+    gateShow("сеть недоступна");
+    return;
+  }
+  try {
+    await main();
+  } catch (e) {
+    if (e && e.message !== "auth") throw e;
+  }
 })();
-async function main(){
-  CAT = await api('/api/catalog');
-  CAT.pharmacy.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;$('#fPh').appendChild(o)});
+async function main() {
+  CAT = await api("/api/catalog");
+  CAT.pharmacy.forEach((p) => {
+    const o = document.createElement("option");
+    o.value = p.id;
+    o.textContent = p.name;
+    $("#fPh").appendChild(o);
+  });
   initMonthFilter();
-  const sum = await api('/api/summary');
-  $('#fPh').onchange=()=>{ refresh(); loadOb(); };
+  const sum = await api("/api/summary");
+  $("#fPh").onchange = () => {
+    refresh();
+    loadOb();
+  };
   await refresh();
   await loadLog();
   await loadKpi();
   await loadOb();
-  phOptions($('#soPh')); phOptions($('#cpPh'));
+  phOptions($("#soPh"));
+  phOptions($("#cpPh"));
   await loadSoTop();
-  $('#btnSo').onclick=addSo; $('#btnCp').onclick=addCp; $('#btnSoTop').onclick=loadSoTop;
-  $('#btnTgCheck').onclick=async()=>{ const r=await api('/api/tg/check',{method:'POST'}); $('#tgMsg').textContent = r.ok? `проверено обновлений: ${r.scanned}, новых привязок: ${(r.bound||[]).length}` : (r.error||'ошибка'); if(r.ok) loadTg(); };
-  $('#btnTgSend').onclick=async()=>{ $('#btnTgSend').disabled=true; const r=await api('/api/tg/broadcast',{method:'POST'}); $('#btnTgSend').disabled=false; $('#tgMsg').innerHTML = r.error? `<span class="err-line">${r.error}</span>` : `отправлено: ${r.sent} · ошибок: ${r.failed} · не привязано: ${r.unbound}`; if(!r.error) loadTg(); };
-  $('#btnSettings').onclick=()=>{ const s=$('#apiSettings'); const show=s.style.display==='none'; s.style.display=show?'':'none'; $('#btnSettings').classList.toggle('is-open',show); $('#btnSettings span').textContent=show?'Скрыть настройки':'Настройки'; if(show){ loadTg(); s.scrollIntoView({behavior:'smooth',block:'start'}); } };
-  setInterval(loadLog, 15000);
+  $("#btnSo").onclick = addSo;
+  $("#btnCp").onclick = addCp;
+  $("#btnSoTop").onclick = loadSoTop;
+  $("#btnTgCheck").onclick = async () => {
+    const r = await api("/api/tg/check", { method: "POST" });
+    $("#tgMsg").textContent = r.ok ? `проверено обновлений: ${r.scanned}, новых привязок: ${(r.bound || []).length}` : r.error || "ошибка";
+    if (r.ok) loadTg();
+  };
+  $("#btnTgSend").onclick = async () => {
+    $("#btnTgSend").disabled = true;
+    const r = await api("/api/tg/broadcast", { method: "POST" });
+    $("#btnTgSend").disabled = false;
+    $("#tgMsg").innerHTML = r.error ? `<span class="err-line">${r.error}</span>` : `отправлено: ${r.sent} · ошибок: ${r.failed} · не привязано: ${r.unbound}`;
+    if (!r.error) loadTg();
+  };
+  $("#btnSettings").onclick = () => {
+    const s = $("#apiSettings");
+    const show = s.style.display === "none";
+    s.style.display = show ? "" : "none";
+    $("#btnSettings").classList.toggle("is-open", show);
+    $("#btnSettings span").textContent = show ? "Скрыть настройки" : "Настройки";
+    if (show) {
+      loadTg();
+      s.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+  setInterval(loadLog, 15e3);
   _loadModNav();
 }
-document.addEventListener('DOMContentLoaded',()=>{
-  const btn=document.getElementById('gGo'); const inp=document.getElementById('gCode');
-  if(btn) btn.onclick=gateLogin;
-  if(inp) inp.addEventListener('keydown',e=>{ if(e.key==='Enter') gateLogin(); });
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("gGo");
+  const inp = document.getElementById("gCode");
+  if (btn) btn.onclick = gateLogin;
+  if (inp) inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") gateLogin();
+  });
 });
+
 </script>
 </body>
 </html>
