@@ -5,6 +5,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#133367">
 <title>План «Звезда» · аптеки сен–дек 2026</title>
+<script>
+(function() {
+  "use strict";
+  function fail(msg) {
+    try {
+      var b = document.getElementById("compatBanner");
+      if (!b) {
+        b = document.createElement("div");
+        b.id = "compatBanner";
+        b.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b00020;color:#fff;font:12px/1.5 sans-serif;padding:8px 12px;white-space:pre-wrap";
+        (document.body || document.documentElement).appendChild(b);
+      }
+      b.textContent = String(msg).slice(0, 500);
+    } catch (e) {
+    }
+  }
+  window.__pzFail = fail;
+  window.addEventListener("error", function(ev) {
+    if (ev && ev.error) fail("Ошибка страницы: " + (ev.error.message || ev.error) + "\n" + (ev.error.stack || "").split("\n")[0]);
+  });
+  window.addEventListener("unhandledrejection", function(ev) {
+    fail("Ошибка сети/данных: " + (ev.reason && (ev.reason.message || ev.reason) || "неизвестно"));
+  });
+  if (!Object.assign) {
+    Object.assign = function(t) {
+      if (t == null) throw new TypeError("Cannot convert undefined or null to object");
+      for (var i = 1; i < arguments.length; i++) {
+        var src = arguments[i];
+        if (src == null) continue;
+        for (var k in src) if (Object.prototype.hasOwnProperty.call(src, k)) t[k] = src[k];
+      }
+      return t;
+    };
+  }
+  if (!Array.prototype.find) {
+    Object.defineProperty(Array.prototype, "find", {
+      value: function(fn) {
+        if (this == null) throw new TypeError("this is null");
+        var o = Object(this), len = o.length >>> 0;
+        for (var i = 0; i < len; i++) {
+          var v = o[i];
+          if (fn.call(arguments[1], v, i, o)) return v;
+        }
+      }
+    });
+  }
+  if (!Array.prototype.findIndex) {
+    Object.defineProperty(Array.prototype, "findIndex", {
+      value: function(fn) {
+        if (this == null) throw new TypeError("this is null");
+        var o = Object(this), len = o.length >>> 0;
+        for (var i = 0; i < len; i++) if (fn.call(arguments[1], o[i], i, o)) return i;
+        return -1;
+      }
+    });
+  }
+  if (!Array.prototype.includes) {
+    Object.defineProperty(Array.prototype, "includes", {
+      value: function(x) {
+        var o = Object(this);
+        for (var i = 0; i < o.length >>> 0; i++) if (o[i] === x || x !== x && o[i] !== o[i]) return true;
+        return false;
+      }
+    });
+  }
+  if (!String.prototype.padStart) {
+    Object.defineProperty(String.prototype, "padStart", {
+      value: function(n, s) {
+        var str = String(this);
+        s = s === void 0 ? " " : String(s);
+        while (str.length < n) str = s.slice(0, Math.max(0, n - str.length)) + str;
+        return str;
+      }
+    });
+  }
+  if (!String.prototype.padEnd) {
+    Object.defineProperty(String.prototype, "padEnd", {
+      value: function(n, s) {
+        var str = String(this);
+        s = s === void 0 ? " " : String(s);
+        while (str.length < n) str = str + s.slice(0, Math.max(0, n - str.length));
+        return str;
+      }
+    });
+  }
+  if (typeof window.ResizeObserver === "undefined") {
+    window.ResizeObserver = function(cb) {
+      this.observe = function() {
+        try {
+          cb([], this);
+        } catch (e) {
+        }
+      };
+      this.unobserve = function() {
+      };
+      this.disconnect = function() {
+      };
+    };
+  }
+  document.addEventListener("DOMContentLoaded", function() {
+    try {
+      var el = document.createElement("div");
+      el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
+      el.textContent = "сборка 2026-10-08 16:05 · es2015";
+      (document.body || document.documentElement).appendChild(el);
+      var cv = document.createElement("canvas");
+      var ok2d = !!(cv.getContext && cv.getContext("2d"));
+      if (!ok2d) fail("Браузер не поддерживает canvas — графики невозможны. Обновите браузер.");
+    } catch (e) {
+      fail("init: " + e.message);
+    }
+  });
+})();
+
+</script>
 <script src="chart.min.js"></script>
 <script src="xlsx.min.js"></script>
 <style>
@@ -393,180 +508,578 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
   </div>
 </div>
 <script>
-const MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-const DAYS_IN = { "Сентябрь": 30, "Октябрь": 31, "Ноябрь": 30, "Декабрь": 31 };
-const $ = (s) => document.querySelector(s);
-const fmtM = (v) => (v / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млн ₽";
-const fmt = (v) => Math.round(v).toLocaleString("ru-RU") + " ₽";
-const cls = (pct) => pct >= 100 ? "b-ok" : pct >= 90 ? "b-warn" : "b-bad";
-let CAT = null, chM = null, chD = null, chObR = null, chObM = null, chObN = null;
+var _this2 = this;
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+var __async = function __async(__this, __arguments, generator) {
+  return new Promise(function (resolve, reject) {
+    var fulfilled = function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var rejected = function rejected(value) {
+      try {
+        step(generator.throw(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var step = function step(x) {
+      return x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    };
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
+var MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+var DAYS_IN = {
+  "Сентябрь": 30,
+  "Октябрь": 31,
+  "Ноябрь": 30,
+  "Декабрь": 31
+};
+var $ = function $(s) {
+  return document.querySelector(s);
+};
+var fmtM = function fmtM(v) {
+  return (v / 1e6).toLocaleString("ru-RU", {
+    maximumFractionDigits: 2
+  }) + " млн ₽";
+};
+var fmt = function fmt(v) {
+  return Math.round(v).toLocaleString("ru-RU") + " ₽";
+};
+var cls = function cls(pct) {
+  return pct >= 100 ? "b-ok" : pct >= 90 ? "b-warn" : "b-bad";
+};
+var CAT = null,
+  chM = null,
+  chD = null,
+  chObR = null,
+  chObM = null,
+  chObN = null;
 function obPhName(id) {
-  const p = (CAT && CAT.pharmacy || []).find((p2) => p2.id == id);
+  var p = (CAT && CAT.pharmacy || []).find(function (p2) {
+    return p2.id == id;
+  });
   return p ? p.name : "Аптека " + id;
 }
-async function loadOb() {
-  const hide = () => {
-    $("#sec-ob").style.display = "none";
-    $("#chartsOb").style.display = "none";
-    $("#tblOb").closest(".card").style.display = "none";
-  };
-  let ob;
-  try {
-    ob = await api("/api/obeorot");
-  } catch (e) {
-    hide();
-    return;
-  }
-  const rows = ob.rows || [];
-  if (!rows.length) {
-    hide();
-    return;
-  }
-  const yms = [...new Set(rows.map((r) => r.ym))].sort();
-  const MN = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
-  const labels = yms.map((ym) => {
-    const [y, m] = ym.split("-");
-    return `${MN[Number(m) - 1]} ${y.slice(2)}`;
-  });
-  const phId = $("#fPh").value;
-  const shown = phId ? rows.filter((r) => String(r.pharmacy_id) === phId) : rows;
-  const phIds = [...new Set(shown.map((r) => r.pharmacy_id))].sort((a, b) => a - b);
-  const hasEcom = shown.some((r) => (r.channel || "retail") === "ecom");
-  const val = (pid, ym, k, ch) => {
-    const r = rows.find((x) => x.pharmacy_id == pid && x.ym === ym && (x.channel || "retail") === ch);
-    return r ? r[k] || 0 : 0;
-  };
-  const valT = (pid, ym, k) => val(pid, ym, k, "retail") + val(pid, ym, k, "ecom");
-  const palette = ["#4169aa", "#53a979", "#f1974e", "#9467bd", "#8ea0bf"];
-  const one = phIds.length === 1;
-  $("#cardObRev").style.display = one ? "none" : "";
-  $("#cardObMar").style.display = one ? "none" : "";
-  $("#hObNet").textContent = one ? obPhName(phIds[0]) + ": розница и Ecom по месяцам, млн ₽" : "Сеть: выручка (ТО) и ВД по месяцам, млн ₽";
-  const mkSeries = (k, div) => phIds.map((pid, i) => ({ label: obPhName(pid), data: yms.map((ym) => +(val(pid, ym, k) / div).toFixed(2)), backgroundColor: palette[i % palette.length], borderRadius: 4 }));
-  if (!one) {
-    if (chObR) chObR.destroy();
-    chObR = new Chart($("#chObRev"), { type: "bar", data: { labels, datasets: mkSeries("revenue", 1e6) }, options: { maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: false } } } } });
-    if (chObM) chObM.destroy();
-    chObM = new Chart($("#chObMar"), { type: "bar", data: { labels, datasets: mkSeries("margin", 1e6) }, options: { maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: false } } } } });
-  }
-  const net = (ym, k, ch) => phIds.reduce((a, pid) => a + val(pid, ym, k, ch), 0);
-  if (chObN) chObN.destroy();
-  chObN = new Chart($("#chObNet"), { type: "bar", data: { labels, datasets: [
-    { label: one ? obPhName(phIds[0]) + " · Розница" : "Розница · ТО", data: yms.map((ym) => +(net(ym, "revenue", "retail") / 1e6).toFixed(2)), backgroundColor: "#4169aa", borderRadius: 4 },
-    { label: one ? obPhName(phIds[0]) + " · Розница ВД" : "Розница · ВД", data: yms.map((ym) => +(net(ym, "margin", "retail") / 1e6).toFixed(2)), backgroundColor: "#53a979", borderRadius: 4 },
-    { label: one ? obPhName(phIds[0]) + " · Ecom" : "Ecom · ТО", data: yms.map((ym) => +(net(ym, "revenue", "ecom") / 1e6).toFixed(2)), backgroundColor: "#f1974e", borderRadius: 4 },
-    { label: one ? obPhName(phIds[0]) + " · Ecom ВД" : "Ecom · ВД", data: yms.map((ym) => +(net(ym, "margin", "ecom") / 1e6).toFixed(2)), backgroundColor: "#9467bd", borderRadius: 4 }
-  ] }, options: { maintainAspectRatio: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } }, scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: false } } } } });
-  const pc = (a, b) => b ? (a / b * 100).toFixed(1) + "%" : "—";
-  let h = '<thead><tr><th class="l stick">Аптека</th>' + yms.map((ym) => `<th class="num">${labels[yms.indexOf(ym)]}</th>`).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
-  const netRow = (label, agg, fmt2, pctOf) => {
-    if (!one) {
-      h += `<tr><td class="l stick"><b>${label}</b></td>` + agg.map((v, i) => `<td class="num"><b>${fmt2(v)}</b>${pctOf ? ` <span class="mut" style="font-size:10px">${pc(v, pctOf[i])}</span>` : ""}</td>`).join("") + `<td class="num"><b>${fmt2(agg.reduce((a, b) => a + b, 0))}</b></td></tr>`;
-    }
-  };
-  phIds.forEach((pid) => {
-    const vals = yms.map((ym) => valT(pid, ym, "revenue"));
-    h += `<tr><td class="l stick">${obPhName(pid)}</td>` + vals.map((v) => `<td class="num">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num"><b>${fmtM(vals.reduce((a, b) => a + b, 0))}</b></td></tr>`;
-    if (hasEcom) {
-      const ev = yms.map((ym) => val(pid, ym, "revenue", "ecom"));
-      h += `<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>` + ev.map((v) => `<td class="num mut" style="font-size:11px">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a, b) => a + b, 0))}</td></tr>`;
-    }
-  });
-  const tr = yms.map((ym) => rows.filter((r) => r.ym === ym).reduce((a, r) => a + r.revenue, 0));
-  netRow("Сеть", tr, (v) => v ? fmtM(v) : "—");
-  h += '</tbody><thead><tr><th class="l stick">ВД · аптека</th>' + yms.map((ym) => `<th class="num">${labels[yms.indexOf(ym)]}</th>`).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
-  phIds.forEach((pid) => {
-    const vals = yms.map((ym) => valT(pid, ym, "margin"));
-    h += `<tr><td class="l stick">${obPhName(pid)}</td>` + vals.map((v) => `<td class="num">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num"><b>${fmtM(vals.reduce((a, b) => a + b, 0))}</b></td></tr>`;
-    if (hasEcom) {
-      const ev = yms.map((ym) => val(pid, ym, "margin", "ecom"));
-      h += `<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>` + ev.map((v) => `<td class="num mut" style="font-size:11px">${v ? fmtM(v) : "—"}</td>`).join("") + `<td class="num mut" style="font-size:11px">${fmtM(ev.reduce((a, b) => a + b, 0))}</td></tr>`;
-    }
-  });
-  const tm = yms.map((ym) => rows.filter((r) => r.ym === ym).reduce((a, r) => a + r.margin, 0));
-  netRow("Сеть", tm, (v) => v ? fmtM(v) : "—", tr);
-  h += '</tbody><thead><tr><th class="l stick">Чеков · аптека</th>' + yms.map((ym) => `<th class="num">${labels[yms.indexOf(ym)]}</th>`).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
-  phIds.forEach((pid) => {
-    const vals = yms.map((ym) => val(pid, ym, "checks", "retail") + val(pid, ym, "checks", "ecom"));
-    h += `<tr><td class="l stick">${obPhName(pid)}</td>` + vals.map((v) => `<td class="num">${v ? v.toLocaleString("ru-RU") : "—"}</td>`).join("") + `<td class="num"><b>${vals.reduce((a, b) => a + b, 0).toLocaleString("ru-RU")}</b></td></tr>`;
-    if (hasEcom) {
-      const ev = yms.map((ym) => val(pid, ym, "checks", "ecom"));
-      h += `<tr><td class="l stick mut" style="font-size:11px;padding-left:14px">Ecom</td>` + ev.map((v) => `<td class="num mut" style="font-size:11px">${v ? v.toLocaleString("ru-RU") : "—"}</td>`).join("") + `<td class="num mut" style="font-size:11px">${ev.reduce((a, b) => a + b, 0).toLocaleString("ru-RU")}</td></tr>`;
-    }
-  });
-  const tc = yms.map((ym) => rows.filter((r) => r.ym === ym).reduce((a, r) => a + (r.checks || 0), 0));
-  netRow("Сеть", tc, (v) => v.toLocaleString("ru-RU"));
-  h += "</tbody>";
-  $("#tblOb").innerHTML = h;
+function loadOb() {
+  return __async(this, null, _regenerator().m(function _callee() {
+    var hide, ob, rows, yms, MN, labels, phId, shown, phIds, hasEcom, val, valT, palette, one, mkSeries, net, pc, h, netRow, tr, tm, tc, _t;
+    return _regenerator().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          hide = function hide() {
+            $("#sec-ob").style.display = "none";
+            $("#chartsOb").style.display = "none";
+            $("#tblOb").closest(".card").style.display = "none";
+          };
+          _context.p = 1;
+          _context.n = 2;
+          return api("/api/obeorot");
+        case 2:
+          ob = _context.v;
+          _context.n = 4;
+          break;
+        case 3:
+          _context.p = 3;
+          _t = _context.v;
+          hide();
+          return _context.a(2);
+        case 4:
+          rows = ob.rows || [];
+          if (rows.length) {
+            _context.n = 5;
+            break;
+          }
+          hide();
+          return _context.a(2);
+        case 5:
+          yms = _toConsumableArray(new Set(rows.map(function (r) {
+            return r.ym;
+          }))).sort();
+          MN = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+          labels = yms.map(function (ym) {
+            var _ym$split = ym.split("-"),
+              _ym$split2 = _slicedToArray(_ym$split, 2),
+              y = _ym$split2[0],
+              m = _ym$split2[1];
+            return "".concat(MN[Number(m) - 1], " ").concat(y.slice(2));
+          });
+          phId = $("#fPh").value;
+          shown = phId ? rows.filter(function (r) {
+            return String(r.pharmacy_id) === phId;
+          }) : rows;
+          phIds = _toConsumableArray(new Set(shown.map(function (r) {
+            return r.pharmacy_id;
+          }))).sort(function (a, b) {
+            return a - b;
+          });
+          hasEcom = shown.some(function (r) {
+            return (r.channel || "retail") === "ecom";
+          });
+          val = function val(pid, ym, k, ch) {
+            var r = rows.find(function (x) {
+              return x.pharmacy_id == pid && x.ym === ym && (x.channel || "retail") === ch;
+            });
+            return r ? r[k] || 0 : 0;
+          };
+          valT = function valT(pid, ym, k) {
+            return val(pid, ym, k, "retail") + val(pid, ym, k, "ecom");
+          };
+          palette = ["#4169aa", "#53a979", "#f1974e", "#9467bd", "#8ea0bf"];
+          one = phIds.length === 1;
+          $("#cardObRev").style.display = one ? "none" : "";
+          $("#cardObMar").style.display = one ? "none" : "";
+          $("#hObNet").textContent = one ? obPhName(phIds[0]) + ": розница и Ecom по месяцам, млн ₽" : "Сеть: выручка (ТО) и ВД по месяцам, млн ₽";
+          mkSeries = function mkSeries(k, div) {
+            return phIds.map(function (pid, i) {
+              return {
+                label: obPhName(pid),
+                data: yms.map(function (ym) {
+                  return +(val(pid, ym, k) / div).toFixed(2);
+                }),
+                backgroundColor: palette[i % palette.length],
+                borderRadius: 4
+              };
+            });
+          };
+          if (!one) {
+            if (chObR) chObR.destroy();
+            chObR = new Chart($("#chObRev"), {
+              type: "bar",
+              data: {
+                labels: labels,
+                datasets: mkSeries("revenue", 1e6)
+              },
+              options: {
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    labels: {
+                      boxWidth: 10,
+                      font: {
+                        size: 10
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    ticks: {
+                      font: {
+                        size: 10
+                      }
+                    },
+                    grid: {
+                      color: "#eef2f7"
+                    }
+                  },
+                  x: {
+                    ticks: {
+                      font: {
+                        size: 9
+                      },
+                      maxRotation: 0,
+                      autoSkip: false
+                    }
+                  }
+                }
+              }
+            });
+            if (chObM) chObM.destroy();
+            chObM = new Chart($("#chObMar"), {
+              type: "bar",
+              data: {
+                labels: labels,
+                datasets: mkSeries("margin", 1e6)
+              },
+              options: {
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    labels: {
+                      boxWidth: 10,
+                      font: {
+                        size: 10
+                      }
+                    }
+                  }
+                },
+                scales: {
+                  y: {
+                    ticks: {
+                      font: {
+                        size: 10
+                      }
+                    },
+                    grid: {
+                      color: "#eef2f7"
+                    }
+                  },
+                  x: {
+                    ticks: {
+                      font: {
+                        size: 9
+                      },
+                      maxRotation: 0,
+                      autoSkip: false
+                    }
+                  }
+                }
+              }
+            });
+          }
+          net = function net(ym, k, ch) {
+            return phIds.reduce(function (a, pid) {
+              return a + val(pid, ym, k, ch);
+            }, 0);
+          };
+          if (chObN) chObN.destroy();
+          chObN = new Chart($("#chObNet"), {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [{
+                label: one ? obPhName(phIds[0]) + " · Розница" : "Розница · ТО",
+                data: yms.map(function (ym) {
+                  return +(net(ym, "revenue", "retail") / 1e6).toFixed(2);
+                }),
+                backgroundColor: "#4169aa",
+                borderRadius: 4
+              }, {
+                label: one ? obPhName(phIds[0]) + " · Розница ВД" : "Розница · ВД",
+                data: yms.map(function (ym) {
+                  return +(net(ym, "margin", "retail") / 1e6).toFixed(2);
+                }),
+                backgroundColor: "#53a979",
+                borderRadius: 4
+              }, {
+                label: one ? obPhName(phIds[0]) + " · Ecom" : "Ecom · ТО",
+                data: yms.map(function (ym) {
+                  return +(net(ym, "revenue", "ecom") / 1e6).toFixed(2);
+                }),
+                backgroundColor: "#f1974e",
+                borderRadius: 4
+              }, {
+                label: one ? obPhName(phIds[0]) + " · Ecom ВД" : "Ecom · ВД",
+                data: yms.map(function (ym) {
+                  return +(net(ym, "margin", "ecom") / 1e6).toFixed(2);
+                }),
+                backgroundColor: "#9467bd",
+                borderRadius: 4
+              }]
+            },
+            options: {
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: {
+                    boxWidth: 10,
+                    font: {
+                      size: 10
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  ticks: {
+                    font: {
+                      size: 10
+                    }
+                  },
+                  grid: {
+                    color: "#eef2f7"
+                  }
+                },
+                x: {
+                  ticks: {
+                    font: {
+                      size: 10
+                    },
+                    maxRotation: 0,
+                    autoSkip: false
+                  }
+                }
+              }
+            }
+          });
+          pc = function pc(a, b) {
+            return b ? (a / b * 100).toFixed(1) + "%" : "—";
+          };
+          h = '<thead><tr><th class="l stick">Аптека</th>' + yms.map(function (ym) {
+            return "<th class=\"num\">".concat(labels[yms.indexOf(ym)], "</th>");
+          }).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
+          netRow = function netRow(label, agg, fmt2, pctOf) {
+            if (!one) {
+              h += "<tr><td class=\"l stick\"><b>".concat(label, "</b></td>") + agg.map(function (v, i) {
+                return "<td class=\"num\"><b>".concat(fmt2(v), "</b>").concat(pctOf ? " <span class=\"mut\" style=\"font-size:10px\">".concat(pc(v, pctOf[i]), "</span>") : "", "</td>");
+              }).join("") + "<td class=\"num\"><b>".concat(fmt2(agg.reduce(function (a, b) {
+                return a + b;
+              }, 0)), "</b></td></tr>");
+            }
+          };
+          phIds.forEach(function (pid) {
+            var vals = yms.map(function (ym) {
+              return valT(pid, ym, "revenue");
+            });
+            h += "<tr><td class=\"l stick\">".concat(obPhName(pid), "</td>") + vals.map(function (v) {
+              return "<td class=\"num\">".concat(v ? fmtM(v) : "—", "</td>");
+            }).join("") + "<td class=\"num\"><b>".concat(fmtM(vals.reduce(function (a, b) {
+              return a + b;
+            }, 0)), "</b></td></tr>");
+            if (hasEcom) {
+              var ev = yms.map(function (ym) {
+                return val(pid, ym, "revenue", "ecom");
+              });
+              h += "<tr><td class=\"l stick mut\" style=\"font-size:11px;padding-left:14px\">Ecom</td>" + ev.map(function (v) {
+                return "<td class=\"num mut\" style=\"font-size:11px\">".concat(v ? fmtM(v) : "—", "</td>");
+              }).join("") + "<td class=\"num mut\" style=\"font-size:11px\">".concat(fmtM(ev.reduce(function (a, b) {
+                return a + b;
+              }, 0)), "</td></tr>");
+            }
+          });
+          tr = yms.map(function (ym) {
+            return rows.filter(function (r) {
+              return r.ym === ym;
+            }).reduce(function (a, r) {
+              return a + r.revenue;
+            }, 0);
+          });
+          netRow("Сеть", tr, function (v) {
+            return v ? fmtM(v) : "—";
+          });
+          h += '</tbody><thead><tr><th class="l stick">ВД · аптека</th>' + yms.map(function (ym) {
+            return "<th class=\"num\">".concat(labels[yms.indexOf(ym)], "</th>");
+          }).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
+          phIds.forEach(function (pid) {
+            var vals = yms.map(function (ym) {
+              return valT(pid, ym, "margin");
+            });
+            h += "<tr><td class=\"l stick\">".concat(obPhName(pid), "</td>") + vals.map(function (v) {
+              return "<td class=\"num\">".concat(v ? fmtM(v) : "—", "</td>");
+            }).join("") + "<td class=\"num\"><b>".concat(fmtM(vals.reduce(function (a, b) {
+              return a + b;
+            }, 0)), "</b></td></tr>");
+            if (hasEcom) {
+              var ev = yms.map(function (ym) {
+                return val(pid, ym, "margin", "ecom");
+              });
+              h += "<tr><td class=\"l stick mut\" style=\"font-size:11px;padding-left:14px\">Ecom</td>" + ev.map(function (v) {
+                return "<td class=\"num mut\" style=\"font-size:11px\">".concat(v ? fmtM(v) : "—", "</td>");
+              }).join("") + "<td class=\"num mut\" style=\"font-size:11px\">".concat(fmtM(ev.reduce(function (a, b) {
+                return a + b;
+              }, 0)), "</td></tr>");
+            }
+          });
+          tm = yms.map(function (ym) {
+            return rows.filter(function (r) {
+              return r.ym === ym;
+            }).reduce(function (a, r) {
+              return a + r.margin;
+            }, 0);
+          });
+          netRow("Сеть", tm, function (v) {
+            return v ? fmtM(v) : "—";
+          }, tr);
+          h += '</tbody><thead><tr><th class="l stick">Чеков · аптека</th>' + yms.map(function (ym) {
+            return "<th class=\"num\">".concat(labels[yms.indexOf(ym)], "</th>");
+          }).join("") + '<th class="num">Итого</th></tr></thead><tbody>';
+          phIds.forEach(function (pid) {
+            var vals = yms.map(function (ym) {
+              return val(pid, ym, "checks", "retail") + val(pid, ym, "checks", "ecom");
+            });
+            h += "<tr><td class=\"l stick\">".concat(obPhName(pid), "</td>") + vals.map(function (v) {
+              return "<td class=\"num\">".concat(v ? v.toLocaleString("ru-RU") : "—", "</td>");
+            }).join("") + "<td class=\"num\"><b>".concat(vals.reduce(function (a, b) {
+              return a + b;
+            }, 0).toLocaleString("ru-RU"), "</b></td></tr>");
+            if (hasEcom) {
+              var ev = yms.map(function (ym) {
+                return val(pid, ym, "checks", "ecom");
+              });
+              h += "<tr><td class=\"l stick mut\" style=\"font-size:11px;padding-left:14px\">Ecom</td>" + ev.map(function (v) {
+                return "<td class=\"num mut\" style=\"font-size:11px\">".concat(v ? v.toLocaleString("ru-RU") : "—", "</td>");
+              }).join("") + "<td class=\"num mut\" style=\"font-size:11px\">".concat(ev.reduce(function (a, b) {
+                return a + b;
+              }, 0).toLocaleString("ru-RU"), "</td></tr>");
+            }
+          });
+          tc = yms.map(function (ym) {
+            return rows.filter(function (r) {
+              return r.ym === ym;
+            }).reduce(function (a, r) {
+              return a + (r.checks || 0);
+            }, 0);
+          });
+          netRow("Сеть", tc, function (v) {
+            return v.toLocaleString("ru-RU");
+          });
+          h += "</tbody>";
+          $("#tblOb").innerHTML = h;
+        case 6:
+          return _context.a(2);
+      }
+    }, _callee, null, [[1, 3]]);
+  }));
 }
-const _TOK = () => localStorage.getItem("me_token") || "";
-const _GATE = () => document.getElementById("gate");
+var _TOK = function _TOK() {
+  return localStorage.getItem("me_token") || "";
+};
+var _GATE = function _GATE() {
+  return document.getElementById("gate");
+};
 function gateShow(msg) {
-  const g = _GATE();
+  var g = _GATE();
   if (!g) return;
   if (msg) {
-    const e = g.querySelector("#gErr");
+    var e = g.querySelector("#gErr");
     e.textContent = msg;
     e.classList.add("show");
   }
   g.classList.add("show");
 }
 function gateHide() {
-  const g = _GATE();
+  var g = _GATE();
   if (g) g.classList.remove("show");
 }
 function _toLogin(msg) {
   localStorage.removeItem("me_token");
   gateShow(msg || "");
 }
-async function gateLogin() {
-  const code = (document.getElementById("gCode").value || "").trim().toUpperCase();
-  const err = document.getElementById("gErr");
-  if (!code) {
-    err.textContent = "введите код";
-    err.classList.add("show");
-    return;
-  }
-  try {
-    const r = await fetch("/api/me/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) {
-      err.textContent = d.error || "код не найден";
-      err.classList.add("show");
-      return;
-    }
-    localStorage.setItem("me_token", d.token);
-    location.reload();
-  } catch (_) {
-    err.textContent = "сеть недоступна";
-    err.classList.add("show");
-  }
+function gateLogin() {
+  return __async(this, null, _regenerator().m(function _callee2() {
+    var code, err, r, d, _t2;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.p = _context2.n) {
+        case 0:
+          code = (document.getElementById("gCode").value || "").trim().toUpperCase();
+          err = document.getElementById("gErr");
+          if (code) {
+            _context2.n = 1;
+            break;
+          }
+          err.textContent = "введите код";
+          err.classList.add("show");
+          return _context2.a(2);
+        case 1:
+          _context2.p = 1;
+          _context2.n = 2;
+          return fetch("/api/me/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              code: code
+            })
+          });
+        case 2:
+          r = _context2.v;
+          _context2.n = 3;
+          return r.json().catch(function () {
+            return {};
+          });
+        case 3:
+          d = _context2.v;
+          if (r.ok) {
+            _context2.n = 4;
+            break;
+          }
+          err.textContent = d.error || "код не найден";
+          err.classList.add("show");
+          return _context2.a(2);
+        case 4:
+          localStorage.setItem("me_token", d.token);
+          location.reload();
+          _context2.n = 6;
+          break;
+        case 5:
+          _context2.p = 5;
+          _t2 = _context2.v;
+          err.textContent = "сеть недоступна";
+          err.classList.add("show");
+        case 6:
+          return _context2.a(2);
+      }
+    }, _callee2, null, [[1, 5]]);
+  }));
 }
-async function api(path, opt = {}) {
-  const h = Object.assign({ "Authorization": "Bearer " + _TOK() }, opt.headers || {});
-  const r = await fetch(path, Object.assign({}, opt, { headers: h }));
-  if (r.status === 401 || r.status === 403) {
-    _toLogin("сессия истекла — войдите заново");
-    throw new Error("auth");
-  }
-  return r.json();
+function api(_0) {
+  return __async(this, arguments, function (path) {
+    var opt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    return _regenerator().m(function _callee3() {
+      var h, r;
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.n) {
+          case 0:
+            h = Object.assign({
+              "Authorization": "Bearer " + _TOK()
+            }, opt.headers || {});
+            _context3.n = 1;
+            return fetch(path, Object.assign({}, opt, {
+              headers: h
+            }));
+          case 1:
+            r = _context3.v;
+            if (!(r.status === 401 || r.status === 403)) {
+              _context3.n = 2;
+              break;
+            }
+            _toLogin("сессия истекла — войдите заново");
+            throw new Error("auth");
+          case 2:
+            return _context3.a(2, r.json());
+        }
+      }, _callee3);
+    })();
+  });
 }
 function kpi(t, v, s, badge, bcls) {
-  return `<div class="card kpi"><div class="t">${t}</div><div class="v num">${v}</div><div class="s">${s}</div>${badge ? `<span class="b ${bcls}">${badge}</span>` : ""}</div>`;
+  return "<div class=\"card kpi\"><div class=\"t\">".concat(t, "</div><div class=\"v num\">").concat(v, "</div><div class=\"s\">").concat(s, "</div>").concat(badge ? "<span class=\"b ".concat(bcls, "\">").concat(badge, "</span>") : "", "</div>");
 }
 function metricCell(fact, plan, pct, fcst, fpct) {
   if (!plan) return fact ? fmt(fact) : "—";
-  const c = pct == null ? "" : pct >= 100 ? "pos" : pct >= 90 ? "" : "neg";
-  const f = fpct == null ? "" : `<div class="mut" style="font-size:10px">прогноз ${fpct.toFixed(0)}%</div>`;
-  return `<div>${fmt(fact)} <span class="mut">/ ${fmt(plan)}</span></div><div class="${c}" style="font-size:11px">${pct != null ? pct.toFixed(1) + "%" : "—"}${fcst != null ? ` · ~${fmt(fcst)}` : ""}</div>${f}`;
+  var c = pct == null ? "" : pct >= 100 ? "pos" : pct >= 90 ? "" : "neg";
+  var f = fpct == null ? "" : "<div class=\"mut\" style=\"font-size:10px\">\u043F\u0440\u043E\u0433\u043D\u043E\u0437 ".concat(fpct.toFixed(0), "%</div>");
+  return "<div>".concat(fmt(fact), " <span class=\"mut\">/ ").concat(fmt(plan), "</span></div><div class=\"").concat(c, "\" style=\"font-size:11px\">").concat(pct != null ? pct.toFixed(1) + "%" : "—").concat(fcst != null ? " \xB7 ~".concat(fmt(fcst)) : "", "</div>").concat(f);
 }
 function kpiBig(title, factVal, subHtml, barsHtml) {
-  return `<div class="card kpi kpi-big"><div class="t">${title}</div><div class="v num">${factVal}</div>${subHtml || ""}${barsHtml || ""}</div>`;
+  return "<div class=\"card kpi kpi-big\"><div class=\"t\">".concat(title, "</div><div class=\"v num\">").concat(factVal, "</div>").concat(subHtml || "").concat(barsHtml || "", "</div>");
 }
 function renderKpis(sum, phId, month) {
-  const rows = sum.rows;
-  const t = { plan: 0, fact: 0, fvd: 0, pvd: 0, frc: 0, frcVd: 0, stm: 0, ustm: 0, mkt: 0, pstm: 0, pmkt: 0, fstm: 0, fmkt: 0 };
-  rows.forEach((r) => {
+  var rows = sum.rows;
+  var t = {
+    plan: 0,
+    fact: 0,
+    fvd: 0,
+    pvd: 0,
+    frc: 0,
+    frcVd: 0,
+    stm: 0,
+    ustm: 0,
+    mkt: 0,
+    pstm: 0,
+    pmkt: 0,
+    fstm: 0,
+    fmkt: 0
+  };
+  rows.forEach(function (r) {
     t.plan += r.plan_revenue;
     t.fact += r.fact_revenue;
     t.fvd += r.fact_margin;
@@ -581,71 +1094,107 @@ function renderKpis(sum, phId, month) {
     t.fstm += r.forecast_stm || 0;
     t.fmkt += r.forecast_marketing || 0;
   });
-  const pct = t.plan ? t.fact / t.plan * 100 : 0;
-  const fpct = t.plan ? t.frc / t.plan * 100 : 0;
-  const vdPct = t.pvd ? t.fvd / t.pvd * 100 : 0;
-  const stmSum = t.stm + t.ustm;
-  const stmShare = t.fact ? stmSum / t.fact * 100 : 0;
-  const mktShare = t.fact ? t.mkt / t.fact * 100 : 0;
-  const stmPct = t.pstm ? stmSum / t.pstm * 100 : null;
-  const mktPct = t.pmkt ? t.mkt / t.pmkt * 100 : null;
-  const stmFPct = t.pstm ? t.fstm / t.pstm * 100 : null;
-  const mktFPct = t.pmkt ? t.fmkt / t.pmkt * 100 : null;
-  const scope = phId ? CAT.pharmacy.find((p) => p.id == phId).name : "5 аптек";
-  const mlab = month || "весь период";
-  const sc = (f, n) => {
-    const x = n ? f / n : 0;
+  var pct = t.plan ? t.fact / t.plan * 100 : 0;
+  var fpct = t.plan ? t.frc / t.plan * 100 : 0;
+  var vdPct = t.pvd ? t.fvd / t.pvd * 100 : 0;
+  var stmSum = t.stm + t.ustm;
+  var stmShare = t.fact ? stmSum / t.fact * 100 : 0;
+  var mktShare = t.fact ? t.mkt / t.fact * 100 : 0;
+  var stmPct = t.pstm ? stmSum / t.pstm * 100 : null;
+  var mktPct = t.pmkt ? t.mkt / t.pmkt * 100 : null;
+  var stmFPct = t.pstm ? t.fstm / t.pstm * 100 : null;
+  var mktFPct = t.pmkt ? t.fmkt / t.pmkt * 100 : null;
+  var scope = phId ? CAT.pharmacy.find(function (p) {
+    return p.id == phId;
+  }).name : "5 аптек";
+  var mlab = month || "весь период";
+  var sc = function sc(f, n) {
+    var x = n ? f / n : 0;
     return Math.max(2, Math.min(100, x * 100));
   };
-  $("#kpis").innerHTML = kpiBig(
-    `Выручка · ${mlab}`,
-    fmtM(t.fact),
-    `<div class="s">${scope} · ВД: ${fmtM(t.fvd)} (${vdPct.toFixed(0)}% плана) ${deltaBadge(pct)}</div>`,
-    kbars([
-      { l: "План", v: sc(t.plan, t.plan), c: "#133367", t: fmtM(t.plan) },
-      { l: "Факт", v: sc(t.fact, t.plan), c: pct >= 100 ? "#53a979" : "#e5484d", t: `${fmtM(t.fact)} · ${pct.toFixed(0)}%` },
-      { l: "Прогноз", v: sc(t.frc, t.plan), c: "#4169aa", t: `${fmtM(t.frc)} · ${fpct.toFixed(0)}%` }
-    ], true)
-  ) + kpiBig(
-    `Маркетинг · ${mlab}`,
-    fmtM(t.mkt),
-    `<div class="s">${t.pmkt ? deltaBadge(mktPct) : `доля ${mktShare.toFixed(1)}% ТО`}</div>`,
-    kbars(t.pmkt ? [
-      { l: "План", v: sc(t.pmkt, t.pmkt), c: "#133367", t: fmtM(t.pmkt) },
-      { l: "Факт", v: sc(t.mkt, t.pmkt), c: mktPct >= 100 ? "#53a979" : "#e5484d", t: `${fmtM(t.mkt)} · ${mktPct.toFixed(0)}%` },
-      { l: "Прогноз", v: sc(t.fmkt, t.pmkt), c: "#4169aa", t: `${fmtM(t.fmkt)} · ${mktFPct.toFixed(0)}%` }
-    ] : null, true)
-  ) + kpiBig(
-    `СТМ · ${mlab}`,
-    fmtM(stmSum),
-    `<div class="s">${t.pstm ? `${deltaBadge(stmPct)} · доля ${stmShare.toFixed(1)}% ТО` : `доля ${stmShare.toFixed(1)}% ТО`}</div>`,
-    kbars(t.pstm ? [
-      { l: "План", v: sc(t.pstm, t.pstm), c: "#133367", t: fmtM(t.pstm) },
-      { l: "Факт", v: sc(stmSum, t.pstm), c: stmPct >= 100 ? "#53a979" : "#e5484d", t: `${fmtM(stmSum)} · ${stmPct.toFixed(0)}%` },
-      { l: "Прогноз", v: sc(t.fstm, t.pstm), c: "#4169aa", t: `${fmtM(t.fstm)} · ${stmFPct.toFixed(0)}%` }
-    ] : null, true)
-  );
+  $("#kpis").innerHTML = kpiBig("\u0412\u044B\u0440\u0443\u0447\u043A\u0430 \xB7 ".concat(mlab), fmtM(t.fact), "<div class=\"s\">".concat(scope, " \xB7 \u0412\u0414: ").concat(fmtM(t.fvd), " (").concat(vdPct.toFixed(0), "% \u043F\u043B\u0430\u043D\u0430) ").concat(deltaBadge(pct), "</div>"), kbars([{
+    l: "План",
+    v: sc(t.plan, t.plan),
+    c: "#133367",
+    t: fmtM(t.plan)
+  }, {
+    l: "Факт",
+    v: sc(t.fact, t.plan),
+    c: pct >= 100 ? "#53a979" : "#e5484d",
+    t: "".concat(fmtM(t.fact), " \xB7 ").concat(pct.toFixed(0), "%")
+  }, {
+    l: "Прогноз",
+    v: sc(t.frc, t.plan),
+    c: "#4169aa",
+    t: "".concat(fmtM(t.frc), " \xB7 ").concat(fpct.toFixed(0), "%")
+  }], true)) + kpiBig("\u041C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433 \xB7 ".concat(mlab), fmtM(t.mkt), "<div class=\"s\">".concat(t.pmkt ? deltaBadge(mktPct) : "\u0434\u043E\u043B\u044F ".concat(mktShare.toFixed(1), "% \u0422\u041E"), "</div>"), kbars(t.pmkt ? [{
+    l: "План",
+    v: sc(t.pmkt, t.pmkt),
+    c: "#133367",
+    t: fmtM(t.pmkt)
+  }, {
+    l: "Факт",
+    v: sc(t.mkt, t.pmkt),
+    c: mktPct >= 100 ? "#53a979" : "#e5484d",
+    t: "".concat(fmtM(t.mkt), " \xB7 ").concat(mktPct.toFixed(0), "%")
+  }, {
+    l: "Прогноз",
+    v: sc(t.fmkt, t.pmkt),
+    c: "#4169aa",
+    t: "".concat(fmtM(t.fmkt), " \xB7 ").concat(mktFPct.toFixed(0), "%")
+  }] : null, true)) + kpiBig("\u0421\u0422\u041C \xB7 ".concat(mlab), fmtM(stmSum), "<div class=\"s\">".concat(t.pstm ? "".concat(deltaBadge(stmPct), " \xB7 \u0434\u043E\u043B\u044F ").concat(stmShare.toFixed(1), "% \u0422\u041E") : "\u0434\u043E\u043B\u044F ".concat(stmShare.toFixed(1), "% \u0422\u041E"), "</div>"), kbars(t.pstm ? [{
+    l: "План",
+    v: sc(t.pstm, t.pstm),
+    c: "#133367",
+    t: fmtM(t.pstm)
+  }, {
+    l: "Факт",
+    v: sc(stmSum, t.pstm),
+    c: stmPct >= 100 ? "#53a979" : "#e5484d",
+    t: "".concat(fmtM(stmSum), " \xB7 ").concat(stmPct.toFixed(0), "%")
+  }, {
+    l: "Прогноз",
+    v: sc(t.fstm, t.pstm),
+    c: "#4169aa",
+    t: "".concat(fmtM(t.fstm), " \xB7 ").concat(stmFPct.toFixed(0), "%")
+  }] : null, true));
 }
 function renderTable(sum) {
-  const COLLAPSE_KEY = "pz.tbl.collapsed";
-  let collapsed;
+  var COLLAPSE_KEY = "pz.tbl.collapsed";
+  var collapsed;
   try {
     collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}");
   } catch (e) {
     collapsed = {};
   }
-  const phId = $("#fPh").value;
-  const groups = [];
-  CAT.pharmacy.forEach((p) => {
-    const rows = sum.rows.filter((r) => r.pharmacy_id === p.id);
-    if (rows.length) groups.push({ ph: p, rows });
+  var phId = $("#fPh").value;
+  var groups = [];
+  CAT.pharmacy.forEach(function (p) {
+    var rows = sum.rows.filter(function (r) {
+      return r.pharmacy_id === p.id;
+    });
+    if (rows.length) groups.push({
+      ph: p,
+      rows: rows
+    });
   });
-  const rest = sum.rows.filter((r) => !CAT.pharmacy.find((p) => p.id === r.pharmacy_id));
-  if (rest.length) groups.push({ ph: { id: 0, name: "Прочее", color: "#999" }, rows: rest });
-  let h = '<thead><tr><th class="l stick">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th class="m-hide">План ВД</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th><th class="m-hide">Чеков</th><th class="m-hide">Дней</th></tr></thead><tbody>';
-  groups.forEach((g) => {
-    const open = phId ? true : !collapsed[g.ph.id];
-    const agg = g.rows.reduce((a, r) => {
+  var rest = sum.rows.filter(function (r) {
+    return !CAT.pharmacy.find(function (p) {
+      return p.id === r.pharmacy_id;
+    });
+  });
+  if (rest.length) groups.push({
+    ph: {
+      id: 0,
+      name: "Прочее",
+      color: "#999"
+    },
+    rows: rest
+  });
+  var h = '<thead><tr><th class="l stick">Аптека</th><th class="l">Месяц</th><th>План ТО</th><th>Факт ТО</th><th>% вып.</th><th>Прогноз ТО</th><th>Прогноз %</th><th class="m-hide">План ВД</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th><th class="m-hide">Чеков</th><th class="m-hide">Дней</th></tr></thead><tbody>';
+  groups.forEach(function (g) {
+    var open = phId ? true : !collapsed[g.ph.id];
+    var agg = g.rows.reduce(function (a, r) {
       a.plan += r.plan_revenue;
       a.fact += r.fact_revenue;
       a.frc += r.forecast_revenue;
@@ -659,436 +1208,987 @@ function renderTable(sum) {
       a.fstm += r.forecast_stm || 0;
       a.fmkt += r.forecast_marketing || 0;
       return a;
-    }, { plan: 0, fact: 0, frc: 0, pm: 0, fm: 0, stm: 0, ustm: 0, mkt: 0, pstm: 0, pmktP: 0, fstm: 0, fmkt: 0 });
-    const apc = agg.plan ? agg.fact / agg.plan * 100 : 0;
-    const rowsHtml = g.rows.map((r) => {
-      const pc = r.fact_revenue / r.plan_revenue * 100;
-      const stmFact = (r.fact_stm || 0) + (r.fact_ustm || 0);
-      return `<tr class="sub"><td class="l stick"></td><td class="l">${r.month}</td><td class="num m-hide">${fmt(r.plan_revenue)}</td><td class="num">${fmt(r.fact_revenue)}</td><td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100, pc)}%;background:${pc >= 100 ? "var(--green)" : pc >= 90 ? "var(--gold)" : "var(--red)"}"></i></div>${pc.toFixed(1)}%</div></td><td class="num m-hide">${fmt(r.forecast_revenue)}</td><td class="num ${r.forecast_pct >= 100 ? "pos" : "neg"}">${r.forecast_pct}%</td><td class="num m-hide">${fmt(r.plan_margin)}</td><td class="num m-hide">${fmt(r.fact_margin)}</td><td class="num m-hide">${metricCell(stmFact, r.plan_stm, r.pct_stm, r.forecast_stm, r.forecast_pct_stm)}</td><td class="num m-hide">${metricCell(r.fact_marketing, r.plan_marketing, r.pct_marketing, r.forecast_marketing, r.forecast_pct_marketing)}</td><td class="num m-hide">${r.fact_checks || "—"}</td><td class="num mut m-hide">${r.fact_days}/${r.total_days}</td></tr>`;
+    }, {
+      plan: 0,
+      fact: 0,
+      frc: 0,
+      pm: 0,
+      fm: 0,
+      stm: 0,
+      ustm: 0,
+      mkt: 0,
+      pstm: 0,
+      pmktP: 0,
+      fstm: 0,
+      fmkt: 0
+    });
+    var apc = agg.plan ? agg.fact / agg.plan * 100 : 0;
+    var rowsHtml = g.rows.map(function (r) {
+      var pc = r.fact_revenue / r.plan_revenue * 100;
+      var stmFact = (r.fact_stm || 0) + (r.fact_ustm || 0);
+      return "<tr class=\"sub\"><td class=\"l stick\"></td><td class=\"l\">".concat(r.month, "</td><td class=\"num m-hide\">").concat(fmt(r.plan_revenue), "</td><td class=\"num\">").concat(fmt(r.fact_revenue), "</td><td class=\"num\"><div style=\"display:flex;align-items:center;gap:7px;justify-content:flex-end\"><div class=\"bar\"><i style=\"width:").concat(Math.min(100, pc), "%;background:").concat(pc >= 100 ? "var(--green)" : pc >= 90 ? "var(--gold)" : "var(--red)", "\"></i></div>").concat(pc.toFixed(1), "%</div></td><td class=\"num m-hide\">").concat(fmt(r.forecast_revenue), "</td><td class=\"num ").concat(r.forecast_pct >= 100 ? "pos" : "neg", "\">").concat(r.forecast_pct, "%</td><td class=\"num m-hide\">").concat(fmt(r.plan_margin), "</td><td class=\"num m-hide\">").concat(fmt(r.fact_margin), "</td><td class=\"num m-hide\">").concat(metricCell(stmFact, r.plan_stm, r.pct_stm, r.forecast_stm, r.forecast_pct_stm), "</td><td class=\"num m-hide\">").concat(metricCell(r.fact_marketing, r.plan_marketing, r.pct_marketing, r.forecast_marketing, r.forecast_pct_marketing), "</td><td class=\"num m-hide\">").concat(r.fact_checks || "—", "</td><td class=\"num mut m-hide\">").concat(r.fact_days, "/").concat(r.total_days, "</td></tr>");
     }).join("");
-    h += `<tr class="ph-row" data-ph="${g.ph.id}" style="cursor:pointer" title="Нажмите, чтобы ${open ? "свернуть" : "развернуть"}"><td class="l stick"><span class="dot" style="background:${g.ph.color}"></span>${g.ph.name} <span style="font-size:13px;color:var(--blue);font-weight:700">${open ? "▾" : "▸"}</span></td><td class="l mut">итого</td><td class="num m-hide">${fmt(agg.plan)}</td><td class="num">${fmt(agg.fact)}</td><td class="num"><div style="display:flex;align-items:center;gap:7px;justify-content:flex-end"><div class="bar"><i style="width:${Math.min(100, apc)}%;background:${apc >= 100 ? "var(--green)" : apc >= 90 ? "var(--gold)" : "var(--red)"}"></i></div>${apc.toFixed(1)}%</div></td><td class="num m-hide">${fmt(agg.frc)}</td><td class="num"></td><td class="num m-hide">${fmt(agg.pm)}</td><td class="num m-hide">${fmt(agg.fm)}</td><td class="num m-hide">${metricCell(agg.stm + agg.ustm, agg.pstm, agg.pstm ? (agg.stm + agg.ustm) / agg.pstm * 100 : null, agg.fstm, agg.pstm ? agg.fstm / agg.pstm * 100 : null)}</td><td class="num m-hide">${metricCell(agg.mkt, agg.pmktP, agg.pmktP ? agg.mkt / agg.pmktP * 100 : null, agg.fmkt, agg.pmktP ? agg.fmkt / agg.pmktP * 100 : null)}</td><td class="num m-hide"></td><td class="num mut m-hide"></td></tr>`;
+    h += "<tr class=\"ph-row\" data-ph=\"".concat(g.ph.id, "\" style=\"cursor:pointer\" title=\"\u041D\u0430\u0436\u043C\u0438\u0442\u0435, \u0447\u0442\u043E\u0431\u044B ").concat(open ? "свернуть" : "развернуть", "\"><td class=\"l stick\"><span class=\"dot\" style=\"background:").concat(g.ph.color, "\"></span>").concat(g.ph.name, " <span style=\"font-size:13px;color:var(--blue);font-weight:700\">").concat(open ? "▾" : "▸", "</span></td><td class=\"l mut\">\u0438\u0442\u043E\u0433\u043E</td><td class=\"num m-hide\">").concat(fmt(agg.plan), "</td><td class=\"num\">").concat(fmt(agg.fact), "</td><td class=\"num\"><div style=\"display:flex;align-items:center;gap:7px;justify-content:flex-end\"><div class=\"bar\"><i style=\"width:").concat(Math.min(100, apc), "%;background:").concat(apc >= 100 ? "var(--green)" : apc >= 90 ? "var(--gold)" : "var(--red)", "\"></i></div>").concat(apc.toFixed(1), "%</div></td><td class=\"num m-hide\">").concat(fmt(agg.frc), "</td><td class=\"num\"></td><td class=\"num m-hide\">").concat(fmt(agg.pm), "</td><td class=\"num m-hide\">").concat(fmt(agg.fm), "</td><td class=\"num m-hide\">").concat(metricCell(agg.stm + agg.ustm, agg.pstm, agg.pstm ? (agg.stm + agg.ustm) / agg.pstm * 100 : null, agg.fstm, agg.pstm ? agg.fstm / agg.pstm * 100 : null), "</td><td class=\"num m-hide\">").concat(metricCell(agg.mkt, agg.pmktP, agg.pmktP ? agg.mkt / agg.pmktP * 100 : null, agg.fmkt, agg.pmktP ? agg.fmkt / agg.pmktP * 100 : null), "</td><td class=\"num m-hide\"></td><td class=\"num mut m-hide\"></td></tr>");
     if (open) h += rowsHtml;
   });
   $("#tbl").innerHTML = h + "</tbody>";
   window.__lastSum = sum;
   if (!phId) {
-    $("#tbl").querySelectorAll("tr.ph-row").forEach((tr) => {
-      tr.addEventListener("click", () => {
-        const id = tr.dataset.ph;
+    $("#tbl").querySelectorAll("tr.ph-row").forEach(function (tr) {
+      tr.addEventListener("click", function () {
+        var id = tr.dataset.ph;
         collapsed[id] = !collapsed[id];
         try {
           localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed));
-        } catch (e) {
-        }
+        } catch (e) {}
         renderTable(window.__lastSum);
       });
     });
   }
 }
 function renderEmp(sum, phId) {
-  const emps = phId ? sum.employees.filter((e) => e.pharmacy_id == phId) : sum.employees;
-  let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th class="m-hide">Доля</th><th class="m-hide">Личный план (мес)</th><th>Факт ТО</th><th>% вып.</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th></tr></thead><tbody>';
+  var emps = phId ? sum.employees.filter(function (e) {
+    return e.pharmacy_id == phId;
+  }) : sum.employees;
+  var h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th class="m-hide">Доля</th><th class="m-hide">Личный план (мес)</th><th>Факт ТО</th><th>% вып.</th><th class="m-hide">Факт ВД</th><th class="m-hide">СТМ: факт/план</th><th class="m-hide">Маркетинг: факт/план</th></tr></thead><tbody>';
   if (!emps.length) {
     $("#tblEmp").innerHTML = '<tbody><tr><td class="l mut">нет данных по факту — пришлите продажи через API</td></tr></tbody>';
     return;
   }
-  emps.forEach((e) => {
-    const ph = CAT.pharmacy.find((p) => p.id === e.pharmacy_id);
-    const __selM = typeof msGet !== "undefined" ? msGet() : [];
-    const __cur = ["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"][(/* @__PURE__ */ new Date()).getUTCMonth() - 8] || "Сентябрь";
-    const __m1 = __selM.length === 1 ? __selM[0] : __selM.includes(__cur) ? __cur : __selM[0] || __cur;
-    const midx = MONTHS.indexOf(__m1);
-    const planRow = CAT.plan.find((p) => p.pharmacy_id === e.pharmacy_id && p.month === MONTHS[midx]);
-    const ov = empPlanOverride(e.pharmacy_id, e.fio, MONTHS[midx]);
-    const effShare = ov && ov.share != null ? ov.share : e.share || 0;
-    const personal = ov && ov.revenue != null ? ov.revenue : planRow ? planRow.revenue * effShare : null;
-    const pc = personal ? e.revenue / personal * 100 : null;
-    const mt = sum.metric_targets ? sum.metric_targets[MONTHS[midx]] : null;
-    const pStm = personal != null && mt && mt.stm_share != null ? personal * mt.stm_share : null;
-    const pMkt = personal != null && mt && mt.marketing_share != null ? personal * mt.marketing_share : null;
-    const eStm = (e.stm || 0) + (e.ustm || 0);
-    h += `<tr${ov ? ' title="план из Excel-загрузки"' : ""}><td class="l stick">${e.fio}${ov ? ' <span style="font-size:9px" title="план из Excel">✎</span>' : ""}</td><td class="l"><span class="dot" style="background:${ph.color}"></span>${ph.name}</td><td class="num m-hide">${(effShare * 100).toFixed(0)}%</td><td class="num m-hide">${personal ? fmt(personal) : "—"}</td><td class="num">${fmt(e.revenue)}</td><td class="num ${pc != null ? pc >= 100 ? "pos" : "neg" : ""}">${pc != null ? pc.toFixed(1) + "%" : "—"}</td><td class="num m-hide">${fmt(e.margin)}</td><td class="num m-hide">${metricCell(eStm, pStm, pStm ? eStm / pStm * 100 : null, null, null)}</td><td class="num m-hide">${metricCell(e.marketing, pMkt, pMkt ? e.marketing / pMkt * 100 : null, null, null)}</td></tr>`;
+  emps.forEach(function (e) {
+    var ph = CAT.pharmacy.find(function (p) {
+      return p.id === e.pharmacy_id;
+    });
+    var __selM = typeof msGet !== "undefined" ? msGet() : [];
+    var __cur = ["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"][(new Date()).getUTCMonth() - 8] || "Сентябрь";
+    var __m1 = __selM.length === 1 ? __selM[0] : __selM.includes(__cur) ? __cur : __selM[0] || __cur;
+    var midx = MONTHS.indexOf(__m1);
+    var planRow = CAT.plan.find(function (p) {
+      return p.pharmacy_id === e.pharmacy_id && p.month === MONTHS[midx];
+    });
+    var ov = empPlanOverride(e.pharmacy_id, e.fio, MONTHS[midx]);
+    var effShare = ov && ov.share != null ? ov.share : e.share || 0;
+    var personal = ov && ov.revenue != null ? ov.revenue : planRow ? planRow.revenue * effShare : null;
+    var pc = personal ? e.revenue / personal * 100 : null;
+    var mt = sum.metric_targets ? sum.metric_targets[MONTHS[midx]] : null;
+    var pStm = personal != null && mt && mt.stm_share != null ? personal * mt.stm_share : null;
+    var pMkt = personal != null && mt && mt.marketing_share != null ? personal * mt.marketing_share : null;
+    var eStm = (e.stm || 0) + (e.ustm || 0);
+    h += "<tr".concat(ov ? ' title="план из Excel-загрузки"' : "", "><td class=\"l stick\">").concat(e.fio).concat(ov ? ' <span style="font-size:9px" title="план из Excel">✎</span>' : "", "</td><td class=\"l\"><span class=\"dot\" style=\"background:").concat(ph.color, "\"></span>").concat(ph.name, "</td><td class=\"num m-hide\">").concat((effShare * 100).toFixed(0), "%</td><td class=\"num m-hide\">").concat(personal ? fmt(personal) : "—", "</td><td class=\"num\">").concat(fmt(e.revenue), "</td><td class=\"num ").concat(pc != null ? pc >= 100 ? "pos" : "neg" : "", "\">").concat(pc != null ? pc.toFixed(1) + "%" : "—", "</td><td class=\"num m-hide\">").concat(fmt(e.margin), "</td><td class=\"num m-hide\">").concat(metricCell(eStm, pStm, pStm ? eStm / pStm * 100 : null, null, null), "</td><td class=\"num m-hide\">").concat(metricCell(e.marketing, pMkt, pMkt ? e.marketing / pMkt * 100 : null, null, null), "</td></tr>");
   });
   $("#tblEmp").innerHTML = h + "</tbody>";
 }
 function drawMonth(sum) {
-  const qrows = sum.rows.filter((r) => r.q > 0);
+  var qrows = sum.rows.filter(function (r) {
+    return r.q > 0;
+  });
   if (qrows.length) {
-    const labels = [...new Set(qrows.map((r) => r.month))];
-    const phId = $("#fPh").value;
-    const agg = (lab) => qrows.filter((r) => r.month === lab && (!phId || r.pharmacy_id == phId)).reduce((a, r) => {
-      a.plan += r.plan_revenue;
-      a.fact += r.fact_revenue;
-      a.fc += r.forecast_revenue;
-      return a;
-    }, { plan: 0, fact: 0, fc: 0 });
-    const P = labels.map((l) => agg(l).plan / 1e6), F = labels.map((l) => agg(l).fact / 1e6), FC = labels.map((l) => agg(l).fc / 1e6);
+    var labels = _toConsumableArray(new Set(qrows.map(function (r) {
+      return r.month;
+    })));
+    var phId = $("#fPh").value;
+    var agg = function agg(lab) {
+      return qrows.filter(function (r) {
+        return r.month === lab && (!phId || r.pharmacy_id == phId);
+      }).reduce(function (a, r) {
+        a.plan += r.plan_revenue;
+        a.fact += r.fact_revenue;
+        a.fc += r.forecast_revenue;
+        return a;
+      }, {
+        plan: 0,
+        fact: 0,
+        fc: 0
+      });
+    };
+    var P = labels.map(function (l) {
+        return agg(l).plan / 1e6;
+      }),
+      F = labels.map(function (l) {
+        return agg(l).fact / 1e6;
+      }),
+      FC = labels.map(function (l) {
+        return agg(l).fc / 1e6;
+      });
     drawMonthChart(labels, P, F, FC);
     return;
   }
-  const pick = (m) => sum.rows.find((x) => x.month === m && (!$("#fPh").value || x.pharmacy_id == $("#fPh").value)) || { plan_revenue: 0, fact_revenue: 0, forecast_revenue: 0 };
-  drawMonthChart(MONTHS, MONTHS.map((m) => pick(m).plan_revenue / 1e6), MONTHS.map((m) => pick(m).fact_revenue / 1e6), MONTHS.map((m) => pick(m).forecast_revenue / 1e6));
+  var pick = function pick(m) {
+    return sum.rows.find(function (x) {
+      return x.month === m && (!$("#fPh").value || x.pharmacy_id == $("#fPh").value);
+    }) || {
+      plan_revenue: 0,
+      fact_revenue: 0,
+      forecast_revenue: 0
+    };
+  };
+  drawMonthChart(MONTHS, MONTHS.map(function (m) {
+    return pick(m).plan_revenue / 1e6;
+  }), MONTHS.map(function (m) {
+    return pick(m).fact_revenue / 1e6;
+  }), MONTHS.map(function (m) {
+    return pick(m).forecast_revenue / 1e6;
+  }));
 }
 function drawMonthChart(labels, plan, fact, fc) {
   if (chM) chM.destroy();
   chM = new Chart($("#chMonth"), {
     type: "bar",
-    data: { labels, datasets: [
-      { label: "План", data: plan, backgroundColor: "#dce7f5", borderRadius: 5 },
-      { label: "Факт", data: fact, backgroundColor: "#4169aa", borderRadius: 5 },
-      { label: "Прогноз", type: "line", data: fc, borderColor: "#f1974e", borderDash: [6, 4], borderWidth: 2, pointRadius: 3, tension: 0.3 }
-    ] },
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "План",
+        data: plan,
+        backgroundColor: "#dce7f5",
+        borderRadius: 5
+      }, {
+        label: "Факт",
+        data: fact,
+        backgroundColor: "#4169aa",
+        borderRadius: 5
+      }, {
+        label: "Прогноз",
+        type: "line",
+        data: fc,
+        borderColor: "#f1974e",
+        borderDash: [6, 4],
+        borderWidth: 2,
+        pointRadius: 3,
+        tension: 0.3
+      }]
+    },
     options: {
       maintainAspectRatio: false,
-      plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
-      scales: { y: { ticks: { font: { size: 10 } }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 10 } } } }
+      plugins: {
+        legend: {
+          labels: {
+            boxWidth: 10,
+            font: {
+              size: 10
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            font: {
+              size: 10
+            }
+          },
+          grid: {
+            color: "#eef2f7"
+          }
+        },
+        x: {
+          ticks: {
+            font: {
+              size: 10
+            }
+          }
+        }
+      }
     }
   });
 }
-async function drawDay() {
-  const phId = $("#fPh").value;
-  const sel = typeof msGet !== "undefined" ? msGet() : [];
-  const month = sel.length === 1 ? sel[0] : sel[0] || "Сентябрь";
-  $("#chDayTitle").textContent = `Накопленный план/факт по дням (${month.toLowerCase()})`;
-  const q = new URLSearchParams();
-  if (phId) q.set("pharmacy_id", phId);
-  if (sel.length) q.set("months", sel.join(","));
-  const s = await api("/api/s.series?" + q);
-  if (!s.series || !s.series.length) return;
-  const nD = DAYS_IN[month];
-  const planRow = CAT.plan.find((p) => (!phId || p.pharmacy_id == phId) && p.month === month);
-  const planTot = planRow ? planRow.revenue : s.series.reduce((a, x) => a + x.fact, 0) * 1.2;
-  const labels = [], cPlan = [], cFact = [];
-  let acc = 0;
-  const byDay = {};
-  for (const x of s.series) byDay[x.d.slice(8)] = x.fact;
-  for (let d = 1; d <= nD; d++) {
-    labels.push(String(d));
-    cPlan.push(+(planTot * d / nD / 1e6).toFixed(3));
-    acc += byDay[String(d).padStart(2, "0")] || 0;
-    cFact.push(+(acc / 1e6).toFixed(3));
-  }
-  if (chD) chD.destroy();
-  chD = new Chart($("#chDay"), { type: "line", data: { labels, datasets: [
-    { label: "План (накопл.)", data: cPlan, borderColor: "#8ea0bf", borderDash: [6, 4], borderWidth: 2, pointRadius: 0 },
-    { label: "Факт (накопл.)", data: cFact, borderColor: "#53a979", borderWidth: 2.5, pointRadius: 0, fill: true, backgroundColor: "rgba(109,196,123,.12)", tension: 0.25 }
-  ] }, options: {
-    maintainAspectRatio: false,
-    plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
-    scales: { y: { ticks: { font: { size: 10 }, callback: (v) => v + " млн" }, grid: { color: "#eef2f7" } }, x: { ticks: { font: { size: 9 }, maxTicksLimit: 16 } } }
-  } });
+function drawDay() {
+  return __async(this, null, _regenerator().m(function _callee4() {
+    var phId, sel, month, q, s, nD, planRow, planTot, labels, cPlan, cFact, acc, byDay, _iterator, _step, x, d;
+    return _regenerator().w(function (_context4) {
+      while (1) switch (_context4.n) {
+        case 0:
+          phId = $("#fPh").value;
+          sel = typeof msGet !== "undefined" ? msGet() : [];
+          month = sel.length === 1 ? sel[0] : sel[0] || "Сентябрь";
+          $("#chDayTitle").textContent = "\u041D\u0430\u043A\u043E\u043F\u043B\u0435\u043D\u043D\u044B\u0439 \u043F\u043B\u0430\u043D/\u0444\u0430\u043A\u0442 \u043F\u043E \u0434\u043D\u044F\u043C (".concat(month.toLowerCase(), ")");
+          q = new URLSearchParams();
+          if (phId) q.set("pharmacy_id", phId);
+          if (sel.length) q.set("months", sel.join(","));
+          _context4.n = 1;
+          return api("/api/s.series?" + q);
+        case 1:
+          s = _context4.v;
+          if (!(!s.series || !s.series.length)) {
+            _context4.n = 2;
+            break;
+          }
+          return _context4.a(2);
+        case 2:
+          nD = DAYS_IN[month];
+          planRow = CAT.plan.find(function (p) {
+            return (!phId || p.pharmacy_id == phId) && p.month === month;
+          });
+          planTot = planRow ? planRow.revenue : s.series.reduce(function (a, x) {
+            return a + x.fact;
+          }, 0) * 1.2;
+          labels = [], cPlan = [], cFact = [];
+          acc = 0;
+          byDay = {};
+          _iterator = _createForOfIteratorHelper(s.series);
+          try {
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              x = _step.value;
+              byDay[x.d.slice(8)] = x.fact;
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+          for (d = 1; d <= nD; d++) {
+            labels.push(String(d));
+            cPlan.push(+(planTot * d / nD / 1e6).toFixed(3));
+            acc += byDay[String(d).padStart(2, "0")] || 0;
+            cFact.push(+(acc / 1e6).toFixed(3));
+          }
+          if (chD) chD.destroy();
+          chD = new Chart($("#chDay"), {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [{
+                label: "План (накопл.)",
+                data: cPlan,
+                borderColor: "#8ea0bf",
+                borderDash: [6, 4],
+                borderWidth: 2,
+                pointRadius: 0
+              }, {
+                label: "Факт (накопл.)",
+                data: cFact,
+                borderColor: "#53a979",
+                borderWidth: 2.5,
+                pointRadius: 0,
+                fill: true,
+                backgroundColor: "rgba(109,196,123,.12)",
+                tension: 0.25
+              }]
+            },
+            options: {
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  labels: {
+                    boxWidth: 10,
+                    font: {
+                      size: 10
+                    }
+                  }
+                }
+              },
+              scales: {
+                y: {
+                  ticks: {
+                    font: {
+                      size: 10
+                    },
+                    callback: function callback(v) {
+                      return v + " млн";
+                    }
+                  },
+                  grid: {
+                    color: "#eef2f7"
+                  }
+                },
+                x: {
+                  ticks: {
+                    font: {
+                      size: 9
+                    },
+                    maxTicksLimit: 16
+                  }
+                }
+              }
+            }
+          });
+        case 3:
+          return _context4.a(2);
+      }
+    }, _callee4);
+  }));
 }
-async function loadLog() {
-  const [r, info] = await Promise.all([api("/api/integration/log?limit=12"), api("/api/integration/info").catch(() => null)]);
-  $("#log").innerHTML = (r.events || []).map((e) => `<div class="row"><span class="d">${e.at}</span><span>${e.text}</span></div>`).join("") || '<div class="row mut">пока пусто</div>';
-  if (info && info.key) {
-    $("#intgKey").textContent = info.key;
-    const t = info.totals || {};
-    $("#intgStat").textContent = `продаж принято: ${t.raw || 0} · привязано к сотрудникам: ${t.mapped || 0} · ждут разметки: ${t.new || 0}` + (info.last ? ` · последний пакет: ${info.last.imported_at} (день ${info.last.d})` : "");
-    const um = info.unmapped || [];
-    $("#unmappedList").innerHTML = um.length ? um.map((u) => `<div class="row"><span>«${u.name}»</span><span class="d">${u.ph} · ×${u.n}</span></div>`).join("") : '<div class="row mut">всё привязано</div>';
-  }
-  $("#btnRemap").onclick = async () => {
-    const rr = await api("/api/integration/remap", { method: "POST" });
-    $("#remapMsg").textContent = rr.ok ? `привязано: ${rr.fixed} из ${rr.checked}` : rr.error || "ошибка";
-    if (rr.ok) {
-      loadLog();
-      refresh();
-    }
-  };
+function loadLog() {
+  return __async(this, null, _regenerator().m(function _callee6() {
+    var _this = this;
+    var _yield$Promise$all, _yield$Promise$all2, r, info, t, um;
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.n) {
+        case 0:
+          _context6.n = 1;
+          return Promise.all([api("/api/integration/log?limit=12"), api("/api/integration/info").catch(function () {
+            return null;
+          })]);
+        case 1:
+          _yield$Promise$all = _context6.v;
+          _yield$Promise$all2 = _slicedToArray(_yield$Promise$all, 2);
+          r = _yield$Promise$all2[0];
+          info = _yield$Promise$all2[1];
+          $("#log").innerHTML = (r.events || []).map(function (e) {
+            return "<div class=\"row\"><span class=\"d\">".concat(e.at, "</span><span>").concat(e.text, "</span></div>");
+          }).join("") || '<div class="row mut">пока пусто</div>';
+          if (info && info.key) {
+            $("#intgKey").textContent = info.key;
+            t = info.totals || {};
+            $("#intgStat").textContent = "\u043F\u0440\u043E\u0434\u0430\u0436 \u043F\u0440\u0438\u043D\u044F\u0442\u043E: ".concat(t.raw || 0, " \xB7 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D\u043E \u043A \u0441\u043E\u0442\u0440\u0443\u0434\u043D\u0438\u043A\u0430\u043C: ").concat(t.mapped || 0, " \xB7 \u0436\u0434\u0443\u0442 \u0440\u0430\u0437\u043C\u0435\u0442\u043A\u0438: ").concat(t.new || 0) + (info.last ? " \xB7 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0438\u0439 \u043F\u0430\u043A\u0435\u0442: ".concat(info.last.imported_at, " (\u0434\u0435\u043D\u044C ").concat(info.last.d, ")") : "");
+            um = info.unmapped || [];
+            $("#unmappedList").innerHTML = um.length ? um.map(function (u) {
+              return "<div class=\"row\"><span>\xAB".concat(u.name, "\xBB</span><span class=\"d\">").concat(u.ph, " \xB7 \xD7").concat(u.n, "</span></div>");
+            }).join("") : '<div class="row mut">всё привязано</div>';
+          }
+          $("#btnRemap").onclick = function () {
+            return __async(_this, null, _regenerator().m(function _callee5() {
+              var rr;
+              return _regenerator().w(function (_context5) {
+                while (1) switch (_context5.n) {
+                  case 0:
+                    _context5.n = 1;
+                    return api("/api/integration/remap", {
+                      method: "POST"
+                    });
+                  case 1:
+                    rr = _context5.v;
+                    $("#remapMsg").textContent = rr.ok ? "\u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D\u043E: ".concat(rr.fixed, " \u0438\u0437 ").concat(rr.checked) : rr.error || "ошибка";
+                    if (rr.ok) {
+                      loadLog();
+                      refresh();
+                    }
+                  case 2:
+                    return _context5.a(2);
+                }
+              }, _callee5);
+            }));
+          };
+        case 2:
+          return _context6.a(2);
+      }
+    }, _callee6);
+  }));
 }
 function renderKpi(k) {
-  const pc = (fact, tgt, inv) => {
+  var pc = function pc(fact, tgt, inv) {
     if (fact == null || tgt == null || !tgt) return "";
-    const p = fact / tgt * 100;
-    const c = inv ? p >= 100 ? "neg" : p >= 85 ? "" : "pos" : p >= 100 ? "pos" : p >= 85 ? "" : "neg";
-    return `<span class="${c}">${p.toFixed(0)}%</span>`;
+    var p = fact / tgt * 100;
+    var c = inv ? p >= 100 ? "neg" : p >= 85 ? "" : "pos" : p >= 100 ? "pos" : p >= 85 ? "" : "neg";
+    return "<span class=\"".concat(c, "\">").concat(p.toFixed(0), "%</span>");
   };
-  let h = '<thead><tr><th class="l stick">Месяц</th><th>Чеков/день</th><th>Ср.чек</th><th class="m-hide">Чеки 2+ поз.</th><th class="m-hide">Купонов (мес)</th></tr></thead><tbody>';
-  k.rows.sort((a, b) => MONTHS.indexOf(a.month) - MONTHS.indexOf(b.month)).forEach((r) => {
-    const isFuture = MONTHS.indexOf(r.month) > MONTHS.indexOf(["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"][(/* @__PURE__ */ new Date()).getUTCMonth() >= 9 && (/* @__PURE__ */ new Date()).getUTCFullYear() === 2026 ? (/* @__PURE__ */ new Date()).getUTCMonth() - 9 : 99]);
-    const fcpd = isFuture ? "—" : r.fact_checks_per_day != null ? r.fact_checks_per_day : "—";
-    const fac = isFuture ? "—" : r.fact_avg_check != null ? fmt(r.fact_avg_check) : "—";
-    const pcpd = pc(r.fact_checks_per_day, r.target_checks_per_day, isFuture || !r.fact_days);
-    const pac = pc(r.fact_avg_check, r.target_avg_check, isFuture || !r.fact_days);
-    const pcp = r.target_coupons_per_week ? `${r.fact_coupons} / ${Math.round(r.target_coupons_per_week * 4.3)} ${pc(r.fact_coupons, r.target_coupons_per_week * 4.3, !r.fact_coupons)}` : "—";
-    h += `<tr><td class="l stick">${r.month}</td><td class="num">${fcpd} <span class="mut">/ ${r.target_checks_per_day != null ? r.target_checks_per_day : "—"}</span> ${pcpd}</td><td class="num">${fac} <span class="mut">/ ${r.target_avg_check ? fmt(r.target_avg_check) : "—"}</span> ${pac}</td><td class="num m-hide mut">${r.target_multi_share != null ? "цель +" + Math.round(r.target_multi_share * 100) + " п.п." : "—"}</td><td class="num m-hide">${pcp}</td></tr>`;
+  var h = '<thead><tr><th class="l stick">Месяц</th><th>Чеков/день</th><th>Ср.чек</th><th class="m-hide">Чеки 2+ поз.</th><th class="m-hide">Купонов (мес)</th></tr></thead><tbody>';
+  k.rows.sort(function (a, b) {
+    return MONTHS.indexOf(a.month) - MONTHS.indexOf(b.month);
+  }).forEach(function (r) {
+    var isFuture = MONTHS.indexOf(r.month) > MONTHS.indexOf(["Сентябрь", "Октябрь", "Ноябрь", "Декабрь"][(new Date()).getUTCMonth() >= 9 && (new Date()).getUTCFullYear() === 2026 ? (new Date()).getUTCMonth() - 9 : 99]);
+    var fcpd = isFuture ? "—" : r.fact_checks_per_day != null ? r.fact_checks_per_day : "—";
+    var fac = isFuture ? "—" : r.fact_avg_check != null ? fmt(r.fact_avg_check) : "—";
+    var pcpd = pc(r.fact_checks_per_day, r.target_checks_per_day, isFuture || !r.fact_days);
+    var pac = pc(r.fact_avg_check, r.target_avg_check, isFuture || !r.fact_days);
+    var pcp = r.target_coupons_per_week ? "".concat(r.fact_coupons, " / ").concat(Math.round(r.target_coupons_per_week * 4.3), " ").concat(pc(r.fact_coupons, r.target_coupons_per_week * 4.3, !r.fact_coupons)) : "—";
+    h += "<tr><td class=\"l stick\">".concat(r.month, "</td><td class=\"num\">").concat(fcpd, " <span class=\"mut\">/ ").concat(r.target_checks_per_day != null ? r.target_checks_per_day : "—", "</span> ").concat(pcpd, "</td><td class=\"num\">").concat(fac, " <span class=\"mut\">/ ").concat(r.target_avg_check ? fmt(r.target_avg_check) : "—", "</span> ").concat(pac, "</td><td class=\"num m-hide mut\">").concat(r.target_multi_share != null ? "цель +" + Math.round(r.target_multi_share * 100) + " п.п." : "—", "</td><td class=\"num m-hide\">").concat(pcp, "</td></tr>");
   });
   $("#tblKpi").innerHTML = h + "</tbody>";
 }
-async function loadKpi() {
-  const k = await api("/api/kpi");
-  renderKpi(k);
+function loadKpi() {
+  return __async(this, null, _regenerator().m(function _callee7() {
+    var k;
+    return _regenerator().w(function (_context7) {
+      while (1) switch (_context7.n) {
+        case 0:
+          _context7.n = 1;
+          return api("/api/kpi");
+        case 1:
+          k = _context7.v;
+          renderKpi(k);
+        case 2:
+          return _context7.a(2);
+      }
+    }, _callee7);
+  }));
 }
-async function loadTg() {
-  const s = await api("/api/tg/status");
-  $("#tgState").textContent = s.token ? s.last_broadcast ? `последняя рассылка: ${s.last_broadcast.slice(0, 16).replace("T", " ")}` : "бот подключён, рассылок ещё не было" : "⚠️ токен бота не задан";
-  let h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th>Доля</th><th class="l">Код привязки</th><th class="l">Статус</th></tr></thead><tbody>';
-  ;
-  (s.employees || []).forEach((e) => {
-    h += `<tr><td class="l stick">${e.fio}</td><td class="l">${e.ph}</td><td class="num">${(e.share * 100).toFixed(0)}%</td><td class="l"><code>${e.bound ? "—" : e.code}</code></td><td class="l">${e.bound ? `<span class="ok-line">✓ ${e.username ? "@" + e.username : "привязан"}</span>` : '<span class="mut">ждёт /start</span>'}</td></tr>`;
-  });
-  $("#tblTg").innerHTML = h + "</tbody>";
+function loadTg() {
+  return __async(this, null, _regenerator().m(function _callee8() {
+    var s, h;
+    return _regenerator().w(function (_context8) {
+      while (1) switch (_context8.n) {
+        case 0:
+          _context8.n = 1;
+          return api("/api/tg/status");
+        case 1:
+          s = _context8.v;
+          $("#tgState").textContent = s.token ? s.last_broadcast ? "\u043F\u043E\u0441\u043B\u0435\u0434\u043D\u044F\u044F \u0440\u0430\u0441\u0441\u044B\u043B\u043A\u0430: ".concat(s.last_broadcast.slice(0, 16).replace("T", " ")) : "бот подключён, рассылок ещё не было" : "⚠️ токен бота не задан";
+          h = '<thead><tr><th class="l stick">Сотрудник</th><th class="l">Аптека</th><th>Доля</th><th class="l">Код привязки</th><th class="l">Статус</th></tr></thead><tbody>';
+          ;
+          (s.employees || []).forEach(function (e) {
+            h += "<tr><td class=\"l stick\">".concat(e.fio, "</td><td class=\"l\">").concat(e.ph, "</td><td class=\"num\">").concat((e.share * 100).toFixed(0), "%</td><td class=\"l\"><code>").concat(e.bound ? "—" : e.code, "</code></td><td class=\"l\">").concat(e.bound ? "<span class=\"ok-line\">\u2713 ".concat(e.username ? "@" + e.username : "привязан", "</span>") : '<span class="mut">ждёт /start</span>', "</td></tr>");
+          });
+          $("#tblTg").innerHTML = h + "</tbody>";
+        case 2:
+          return _context8.a(2);
+      }
+    }, _callee8);
+  }));
 }
-async function phOptions(sel) {
-  CAT.pharmacy.forEach((p) => {
-    const o = document.createElement("option");
-    o.value = p.id;
-    o.textContent = p.name;
-    sel.appendChild(o);
-  });
+function phOptions(sel) {
+  return __async(this, null, _regenerator().m(function _callee9() {
+    return _regenerator().w(function (_context9) {
+      while (1) switch (_context9.n) {
+        case 0:
+          CAT.pharmacy.forEach(function (p) {
+            var o = document.createElement("option");
+            o.value = p.id;
+            o.textContent = p.name;
+            sel.appendChild(o);
+          });
+        case 1:
+          return _context9.a(2);
+      }
+    }, _callee9);
+  }));
 }
-async function addSo() {
-  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-  const body = { pharmacy_id: Number($("#soPh").value || 1), d: today, product: $("#soProduct").value.trim(), qty: Number($("#soQty").value || 1) };
-  if (!body.product) {
-    $("#soMsg").innerHTML = '<span class="err-line">укажите препарат</span>';
-    return;
-  }
-  const r = await api("/api/stockout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  $("#soMsg").innerHTML = r.ok ? '<span class="ok-line">отказ записан</span>' : `<span class="err-line">${r.error || "ошибка"}</span>`;
-  if (r.ok) {
-    $("#soProduct").value = "";
-    loadSoTop();
-  }
+function addSo() {
+  return __async(this, null, _regenerator().m(function _callee0() {
+    var today, body, r;
+    return _regenerator().w(function (_context0) {
+      while (1) switch (_context0.n) {
+        case 0:
+          today = (new Date()).toISOString().slice(0, 10);
+          body = {
+            pharmacy_id: Number($("#soPh").value || 1),
+            d: today,
+            product: $("#soProduct").value.trim(),
+            qty: Number($("#soQty").value || 1)
+          };
+          if (body.product) {
+            _context0.n = 1;
+            break;
+          }
+          $("#soMsg").innerHTML = '<span class="err-line">укажите препарат</span>';
+          return _context0.a(2);
+        case 1:
+          _context0.n = 2;
+          return api("/api/stockout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+          });
+        case 2:
+          r = _context0.v;
+          $("#soMsg").innerHTML = r.ok ? '<span class="ok-line">отказ записан</span>' : "<span class=\"err-line\">".concat(r.error || "ошибка", "</span>");
+          if (r.ok) {
+            $("#soProduct").value = "";
+            loadSoTop();
+          }
+        case 3:
+          return _context0.a(2);
+      }
+    }, _callee0);
+  }));
 }
-async function loadSoTop() {
-  const r = await api("/api/stockout/top?days=7");
-  $("#soTop").innerHTML = (r.top || []).map((t) => `<div class="row"><span>${t.product}</span><span class="d">×${t.times} · ${t.qty} шт · ${t.pharmacies}</span></div>`).join("") || '<div class="row mut">пока пусто</div>';
+function loadSoTop() {
+  return __async(this, null, _regenerator().m(function _callee1() {
+    var r;
+    return _regenerator().w(function (_context1) {
+      while (1) switch (_context1.n) {
+        case 0:
+          _context1.n = 1;
+          return api("/api/stockout/top?days=7");
+        case 1:
+          r = _context1.v;
+          $("#soTop").innerHTML = (r.top || []).map(function (t) {
+            return "<div class=\"row\"><span>".concat(t.product, "</span><span class=\"d\">\xD7").concat(t.times, " \xB7 ").concat(t.qty, " \u0448\u0442 \xB7 ").concat(t.pharmacies, "</span></div>");
+          }).join("") || '<div class="row mut">пока пусто</div>';
+        case 2:
+          return _context1.a(2);
+      }
+    }, _callee1);
+  }));
 }
-async function addCp() {
-  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-  const body = { pharmacy_id: Number($("#cpPh").value || 1), d: today, qty: Number($("#cpQty").value || 1), campaign: $("#cpCampaign").value.trim() || "листовка" };
-  const r = await api("/api/coupon", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  $("#cpMsg").innerHTML = r.ok ? '<span class="ok-line">купоны записаны</span>' : `<span class="err-line">${r.error || "ошибка"}</span>`;
-  if (r.ok) loadKpi();
+function addCp() {
+  return __async(this, null, _regenerator().m(function _callee10() {
+    var today, body, r;
+    return _regenerator().w(function (_context10) {
+      while (1) switch (_context10.n) {
+        case 0:
+          today = (new Date()).toISOString().slice(0, 10);
+          body = {
+            pharmacy_id: Number($("#cpPh").value || 1),
+            d: today,
+            qty: Number($("#cpQty").value || 1),
+            campaign: $("#cpCampaign").value.trim() || "листовка"
+          };
+          _context10.n = 1;
+          return api("/api/coupon", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+          });
+        case 1:
+          r = _context10.v;
+          $("#cpMsg").innerHTML = r.ok ? '<span class="ok-line">купоны записаны</span>' : "<span class=\"err-line\">".concat(r.error || "ошибка", "</span>");
+          if (r.ok) loadKpi();
+        case 2:
+          return _context10.a(2);
+      }
+    }, _callee10);
+  }));
 }
-const _normS = (s) => String(s == null ? "" : s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+var _normS = function _normS(s) {
+  return String(s == null ? "" : s).toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+};
 function empPlanOverride(phId, fio, month) {
-  return (CAT && CAT.empPlan || []).find((r) => r.pharmacy_id == phId && _normS(r.fio) === _normS(fio) && r.month === month) || null;
+  return (CAT && CAT.empPlan || []).find(function (r) {
+    return r.pharmacy_id == phId && _normS(r.fio) === _normS(fio) && r.month === month;
+  }) || null;
 }
-const _numClean = (v) => {
+var _numClean = function _numClean(v) {
   if (v == null || v === "") return null;
   if (typeof v === "number") return isFinite(v) ? v : null;
-  const t = String(v).replace(/руб\.?/gi, "").replace(/[\s\u00a0₽]/g, "").replace(",", ".");
-  const n = Number(t);
+  var t = String(v).replace(/руб\.?/gi, "").replace(/[\s\u00a0₽]/g, "").replace(",", ".");
+  var n = Number(t);
   return isFinite(n) ? n : null;
 };
 function _monOf(s) {
-  const t = _normS(s).slice(0, 4);
-  return t.length >= 3 ? MONTHS.find((m) => m.toLowerCase().slice(0, 4) === t) || MONTHS.find((m) => m.toLowerCase().slice(0, 3) === t.slice(0, 3)) || null : null;
+  var t = _normS(s).slice(0, 4);
+  return t.length >= 3 ? MONTHS.find(function (m) {
+    return m.toLowerCase().slice(0, 4) === t;
+  }) || MONTHS.find(function (m) {
+    return m.toLowerCase().slice(0, 3) === t.slice(0, 3);
+  }) || null : null;
 }
 function parsePlanXlsx(buf) {
-  const wb = XLSX.read(buf, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true });
-  if (!aoa.length) return { rows: [], unmatched: [] };
-  const hdr = aoa[0].map(_normS);
-  const colFio = hdr.findIndex((h) => h === "фио" || h === "сотрудник" || h === "провизор");
+  var wb = XLSX.read(buf, {
+    type: "array"
+  });
+  var ws = wb.Sheets[wb.SheetNames[0]];
+  var aoa = XLSX.utils.sheet_to_json(ws, {
+    header: 1,
+    defval: null,
+    raw: true
+  });
+  if (!aoa.length) return {
+    rows: [],
+    unmatched: []
+  };
+  var hdr = aoa[0].map(_normS);
+  var colFio = hdr.findIndex(function (h) {
+    return h === "фио" || h === "сотрудник" || h === "провизор";
+  });
   if (colFio < 0) throw new Error("в файле нет колонки ФИО");
-  const colPhId = hdr.findIndex((h) => h === "аптека id" || h === "аптекаid");
-  const colPh = colPhId >= 0 ? colPhId : hdr.findIndex((h) => h === "аптека");
-  const colMonth = hdr.findIndex((h) => h === "месяц");
-  const colRev = hdr.findIndex((h) => h.startsWith("план"));
-  const colShare = hdr.findIndex((h) => h.startsWith("доля"));
-  const monthCols = [];
-  if (colMonth < 0) hdr.forEach((h, i) => {
+  var colPhId = hdr.findIndex(function (h) {
+    return h === "аптека id" || h === "аптекаid";
+  });
+  var colPh = colPhId >= 0 ? colPhId : hdr.findIndex(function (h) {
+    return h === "аптека";
+  });
+  var colMonth = hdr.findIndex(function (h) {
+    return h === "месяц";
+  });
+  var colRev = hdr.findIndex(function (h) {
+    return h.startsWith("план");
+  });
+  var colShare = hdr.findIndex(function (h) {
+    return h.startsWith("доля");
+  });
+  var monthCols = [];
+  if (colMonth < 0) hdr.forEach(function (h, i) {
     if (h && i !== colFio && i !== colPh && i !== colShare) {
-      const m = _monOf(h);
-      if (m && h.length <= 9) monthCols.push({ i, m });
+      var m = _monOf(h);
+      if (m && h.length <= 9) monthCols.push({
+        i: i,
+        m: m
+      });
     }
   });
-  const resolvePh = (raw) => {
+  var resolvePh = function resolvePh(raw) {
     if (raw == null || raw === "") return null;
-    const n = Number(String(raw).trim());
-    if (isFinite(n) && CAT.pharmacy.some((p2) => p2.id === n)) return n;
-    const s = _normS(raw).replace(/^аптека\s+/, "");
-    const p = CAT.pharmacy.find((p2) => _normS(p2.name) === s) || CAT.pharmacy.find((p2) => s.includes(_normS(p2.name)) || _normS(p2.name).includes(s));
+    var n = Number(String(raw).trim());
+    if (isFinite(n) && CAT.pharmacy.some(function (p2) {
+      return p2.id === n;
+    })) return n;
+    var s = _normS(raw).replace(/^аптека\s+/, "");
+    var p = CAT.pharmacy.find(function (p2) {
+      return _normS(p2.name) === s;
+    }) || CAT.pharmacy.find(function (p2) {
+      return s.includes(_normS(p2.name)) || _normS(p2.name).includes(s);
+    });
     return p ? p.id : null;
   };
-  const rows = [], unmatched = [];
-  const push = (phRaw, fioRaw, month, revRaw, shareRaw) => {
-    const fio = String(fioRaw == null ? "" : fioRaw).replace(/\s+/g, " ").trim();
+  var rows = [],
+    unmatched = [];
+  var push = function push(phRaw, fioRaw, month, revRaw, shareRaw) {
+    var fio = String(fioRaw == null ? "" : fioRaw).replace(/\s+/g, " ").trim();
     if (!fio) return;
-    const low = _normS(fio);
+    var low = _normS(fio);
     if (low.includes("итого") || low.includes("всего")) return;
-    const revenue = _numClean(revRaw);
-    let share = _numClean(shareRaw);
+    var revenue = _numClean(revRaw);
+    var share = _numClean(shareRaw);
     if (share != null && share > 1) share = share / 100;
     if (revenue == null && share == null) return;
-    const phId = resolvePh(phRaw);
-    const emp = phId != null ? CAT.employee.find((e) => e.pharmacy_id === phId && _normS(e.fio) === low) : null;
-    if (emp && month) rows.push({ pharmacy_id: phId, fio: emp.fio, month, revenue, share });
-    else unmatched.push({ pharmacy_raw: phRaw == null ? "—" : String(phRaw), fio_raw: fio, month: month || "—", revenue, share, reason: phId == null ? "аптека не опознана" : "ФИО не найдено в справочнике" });
+    var phId = resolvePh(phRaw);
+    var emp = phId != null ? CAT.employee.find(function (e) {
+      return e.pharmacy_id === phId && _normS(e.fio) === low;
+    }) : null;
+    if (emp && month) rows.push({
+      pharmacy_id: phId,
+      fio: emp.fio,
+      month: month,
+      revenue: revenue,
+      share: share
+    });else unmatched.push({
+      pharmacy_raw: phRaw == null ? "—" : String(phRaw),
+      fio_raw: fio,
+      month: month || "—",
+      revenue: revenue,
+      share: share,
+      reason: phId == null ? "аптека не опознана" : "ФИО не найдено в справочнике"
+    });
   };
-  for (let r = 1; r < aoa.length; r++) {
-    const line = aoa[r] || [];
-    const phRaw = colPh >= 0 ? line[colPh] : null;
-    const fioRaw = line[colFio];
-    const shareRaw = colShare >= 0 ? line[colShare] : null;
+  var _loop = function _loop() {
+    var line = aoa[r] || [];
+    var phRaw = colPh >= 0 ? line[colPh] : null;
+    var fioRaw = line[colFio];
+    var shareRaw = colShare >= 0 ? line[colShare] : null;
     if (colMonth >= 0) {
       push(phRaw, fioRaw, _monOf(line[colMonth]), colRev >= 0 ? line[colRev] : null, shareRaw);
     } else {
-      monthCols.forEach((mc) => push(phRaw, fioRaw, mc.m, line[mc.i], shareRaw));
+      monthCols.forEach(function (mc) {
+        return push(phRaw, fioRaw, mc.m, line[mc.i], shareRaw);
+      });
     }
+  };
+  for (var r = 1; r < aoa.length; r++) {
+    _loop();
   }
-  return { rows, unmatched };
+  return {
+    rows: rows,
+    unmatched: unmatched
+  };
 }
-let _epParsed = null;
+var _epParsed = null;
 function epRenderPreview() {
-  const t = $("#tblEpPrev");
+  var t = $("#tblEpPrev");
   if (!_epParsed || !_epParsed.rows.length && !_epParsed.unmatched.length) {
     t.innerHTML = "";
     return;
   }
-  let h = '<thead><tr><th class="l">Аптека</th><th class="l stick">ФИО</th><th class="l">Месяц</th><th class="m-hide">План ТО</th><th class="m-hide">Доля</th><th>✓/⚠</th></tr></thead><tbody>';
-  _epParsed.rows.forEach((r) => {
-    const ph = CAT.pharmacy.find((p) => p.id === r.pharmacy_id);
-    h += `<tr><td class="l">${ph ? ph.name : r.pharmacy_id}</td><td class="l stick">${_escHtml(r.fio)}</td><td class="l">${r.month}</td><td class="num m-hide">${r.revenue != null ? fmt(r.revenue) : "—"}</td><td class="num m-hide">${r.share != null ? Math.round(r.share * 100) + "%" : "—"}</td><td class="num ok-line">✓</td></tr>`;
+  var h = '<thead><tr><th class="l">Аптека</th><th class="l stick">ФИО</th><th class="l">Месяц</th><th class="m-hide">План ТО</th><th class="m-hide">Доля</th><th>✓/⚠</th></tr></thead><tbody>';
+  _epParsed.rows.forEach(function (r) {
+    var ph = CAT.pharmacy.find(function (p) {
+      return p.id === r.pharmacy_id;
+    });
+    h += "<tr><td class=\"l\">".concat(ph ? ph.name : r.pharmacy_id, "</td><td class=\"l stick\">").concat(_escHtml(r.fio), "</td><td class=\"l\">").concat(r.month, "</td><td class=\"num m-hide\">").concat(r.revenue != null ? fmt(r.revenue) : "—", "</td><td class=\"num m-hide\">").concat(r.share != null ? Math.round(r.share * 100) + "%" : "—", "</td><td class=\"num ok-line\">\u2713</td></tr>");
   });
-  _epParsed.unmatched.forEach((r) => {
-    h += `<tr title="${_escHtml(r.reason)}"><td class="l">${_escHtml(r.pharmacy_raw)}</td><td class="l stick">${_escHtml(r.fio_raw)}</td><td class="l">${_escHtml(r.month)}</td><td class="num m-hide">${r.revenue != null ? fmt(r.revenue) : "—"}</td><td class="num m-hide">${r.share != null ? Math.round(r.share * 100) + "%" : "—"}</td><td class="num err-line">⚠</td></tr>`;
+  _epParsed.unmatched.forEach(function (r) {
+    h += "<tr title=\"".concat(_escHtml(r.reason), "\"><td class=\"l\">").concat(_escHtml(r.pharmacy_raw), "</td><td class=\"l stick\">").concat(_escHtml(r.fio_raw), "</td><td class=\"l\">").concat(_escHtml(r.month), "</td><td class=\"num m-hide\">").concat(r.revenue != null ? fmt(r.revenue) : "—", "</td><td class=\"num m-hide\">").concat(r.share != null ? Math.round(r.share * 100) + "%" : "—", "</td><td class=\"num err-line\">\u26A0</td></tr>");
   });
   t.innerHTML = h + "</tbody>";
 }
 function epStatus(html) {
   $("#epMsg").innerHTML = html;
 }
-$("#epFile").onchange = async (ev) => {
-  const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  try {
-    _epParsed = parsePlanXlsx(await f.arrayBuffer());
-    epRenderPreview();
-    const u = _epParsed.unmatched;
-    epStatus(`распознано строк: <b>${_epParsed.rows.length}</b>` + (u.length ? ` · <span class="err-line">не распознано ФИО: ${_escHtml(u.map((x) => x.fio_raw).join(", "))}</span>` : "") + " — нажмите «Применить»");
-  } catch (e) {
-    _epParsed = null;
-    $("#tblEpPrev").innerHTML = "";
-    epStatus(`<span class="err-line">${_escHtml(e.message || "не удалось прочитать файл")}</span>`);
-  }
+$("#epFile").onchange = function (ev) {
+  return __async(_this2, null, _regenerator().m(function _callee11() {
+    var f, u, _t3, _t4;
+    return _regenerator().w(function (_context11) {
+      while (1) switch (_context11.p = _context11.n) {
+        case 0:
+          f = ev.target.files && ev.target.files[0];
+          if (f) {
+            _context11.n = 1;
+            break;
+          }
+          return _context11.a(2);
+        case 1:
+          _context11.p = 1;
+          _t3 = parsePlanXlsx;
+          _context11.n = 2;
+          return f.arrayBuffer();
+        case 2:
+          _epParsed = _t3(_context11.v);
+          epRenderPreview();
+          u = _epParsed.unmatched;
+          epStatus("\u0440\u0430\u0441\u043F\u043E\u0437\u043D\u0430\u043D\u043E \u0441\u0442\u0440\u043E\u043A: <b>".concat(_epParsed.rows.length, "</b>") + (u.length ? " \xB7 <span class=\"err-line\">\u043D\u0435 \u0440\u0430\u0441\u043F\u043E\u0437\u043D\u0430\u043D\u043E \u0424\u0418\u041E: ".concat(_escHtml(u.map(function (x) {
+            return x.fio_raw;
+          }).join(", ")), "</span>") : "") + " — нажмите «Применить»");
+          _context11.n = 4;
+          break;
+        case 3:
+          _context11.p = 3;
+          _t4 = _context11.v;
+          _epParsed = null;
+          $("#tblEpPrev").innerHTML = "";
+          epStatus("<span class=\"err-line\">".concat(_escHtml(_t4.message || "не удалось прочитать файл"), "</span>"));
+        case 4:
+          return _context11.a(2);
+      }
+    }, _callee11, null, [[1, 3]]);
+  }));
 };
-$("#btnEpTpl").onclick = () => {
-  const emps = CAT.employee.filter((e) => e.share > 0).slice(0, 3);
-  const aoa = [["Аптека", "ФИО", "Месяц", "План ТО ₽", "Доля"]];
-  emps.forEach((e) => {
-    const ph = CAT.pharmacy.find((p) => p.id === e.pharmacy_id);
-    const pr = CAT.plan.find((p) => p.pharmacy_id === e.pharmacy_id && p.month === "Октябрь");
+$("#btnEpTpl").onclick = function () {
+  var emps = CAT.employee.filter(function (e) {
+    return e.share > 0;
+  }).slice(0, 3);
+  var aoa = [["Аптека", "ФИО", "Месяц", "План ТО ₽", "Доля"]];
+  emps.forEach(function (e) {
+    var ph = CAT.pharmacy.find(function (p) {
+      return p.id === e.pharmacy_id;
+    });
+    var pr = CAT.plan.find(function (p) {
+      return p.pharmacy_id === e.pharmacy_id && p.month === "Октябрь";
+    });
     aoa.push([ph ? ph.name : "аптека " + e.pharmacy_id, e.fio, "Октябрь", pr ? Math.round(pr.revenue * (e.share || 0)) : 5e5, 0.25]);
   });
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws["!cols"] = [{ wch: 20 }, { wch: 32 }, { wch: 11 }, { wch: 13 }, { wch: 7 }];
-  const wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{
+    wch: 20
+  }, {
+    wch: 32
+  }, {
+    wch: 11
+  }, {
+    wch: 13
+  }, {
+    wch: 7
+  }];
+  var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Планы");
   XLSX.writeFile(wb, "шаблон_планы_провизоров.xlsx");
 };
-$("#btnEpApply").onclick = async () => {
-  if (!_epParsed || !_epParsed.rows.length) {
-    epStatus('<span class="err-line">сначала выберите файл — распознанных строк нет</span>');
-    return;
-  }
-  $("#btnEpApply").disabled = true;
-  try {
-    const res = await api("/api/plan/employee", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: _epParsed.rows }) });
-    if (res.error) {
-      epStatus(`<span class="err-line">${_escHtml(res.error)}</span>`);
-      return;
-    }
-    CAT.empPlan = await api("/api/plan/employee");
-    await refresh();
-    const badNames = [..._epParsed.unmatched.map((x) => x.fio_raw), ...(res.unmatched || []).map((x) => x.fio)].filter(Boolean);
-    epStatus(`<span class="ok-line">принято ${res.saved} строк${res.offline ? " (сохранено локально)" : ""}</span>` + (badNames.length ? ` · не распознано ФИО: ${_escHtml(badNames.join(", "))}` : ""));
-  } finally {
-    $("#btnEpApply").disabled = false;
-  }
+$("#btnEpApply").onclick = function () {
+  return __async(_this2, null, _regenerator().m(function _callee12() {
+    var res, badNames;
+    return _regenerator().w(function (_context12) {
+      while (1) switch (_context12.p = _context12.n) {
+        case 0:
+          if (!(!_epParsed || !_epParsed.rows.length)) {
+            _context12.n = 1;
+            break;
+          }
+          epStatus('<span class="err-line">сначала выберите файл — распознанных строк нет</span>');
+          return _context12.a(2);
+        case 1:
+          $("#btnEpApply").disabled = true;
+          _context12.p = 2;
+          _context12.n = 3;
+          return api("/api/plan/employee", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              items: _epParsed.rows
+            })
+          });
+        case 3:
+          res = _context12.v;
+          if (!res.error) {
+            _context12.n = 4;
+            break;
+          }
+          epStatus("<span class=\"err-line\">".concat(_escHtml(res.error), "</span>"));
+          return _context12.a(2);
+        case 4:
+          _context12.n = 5;
+          return api("/api/plan/employee");
+        case 5:
+          CAT.empPlan = _context12.v;
+          _context12.n = 6;
+          return refresh();
+        case 6:
+          badNames = [].concat(_toConsumableArray(_epParsed.unmatched.map(function (x) {
+            return x.fio_raw;
+          })), _toConsumableArray((res.unmatched || []).map(function (x) {
+            return x.fio;
+          }))).filter(Boolean);
+          epStatus("<span class=\"ok-line\">\u043F\u0440\u0438\u043D\u044F\u0442\u043E ".concat(res.saved, " \u0441\u0442\u0440\u043E\u043A").concat(res.offline ? " (сохранено локально)" : "", "</span>") + (badNames.length ? " \xB7 \u043D\u0435 \u0440\u0430\u0441\u043F\u043E\u0437\u043D\u0430\u043D\u043E \u0424\u0418\u041E: ".concat(_escHtml(badNames.join(", "))) : ""));
+        case 7:
+          _context12.p = 7;
+          $("#btnEpApply").disabled = false;
+          return _context12.f(7);
+        case 8:
+          return _context12.a(2);
+      }
+    }, _callee12, null, [[2,, 7, 8]]);
+  }));
 };
-$("#btnSim").onclick = async () => {
-  const phId = Number($("#fPh").value || 1);
-  const emps = CAT.employee.filter((e) => e.pharmacy_id === phId);
-  const emp = emps[Math.floor(Math.random() * emps.length)];
-  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-  const amount = Math.round(400 + Math.random() * 2600);
-  const body = { pharmacy_id: phId, sales: [{ doc_id: "SIM-" + Date.now() % 1e4, d: today, employee_name: emp.fio, amount, margin: Math.round(amount * 0.24) }] };
-  const r = await api("/api/integration/sales", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  await loadLog();
-  await refresh();
-  $("#btnSim").textContent = `+${fmt(amount)}`;
-  setTimeout(() => $("#btnSim").textContent = "Тестовая продажа", 2500);
+$("#btnSim").onclick = function () {
+  return __async(_this2, null, _regenerator().m(function _callee13() {
+    var phId, emps, emp, today, amount, body, r;
+    return _regenerator().w(function (_context13) {
+      while (1) switch (_context13.n) {
+        case 0:
+          phId = Number($("#fPh").value || 1);
+          emps = CAT.employee.filter(function (e) {
+            return e.pharmacy_id === phId;
+          });
+          emp = emps[Math.floor(Math.random() * emps.length)];
+          today = (new Date()).toISOString().slice(0, 10);
+          amount = Math.round(400 + Math.random() * 2600);
+          body = {
+            pharmacy_id: phId,
+            sales: [{
+              doc_id: "SIM-" + Date.now() % 1e4,
+              d: today,
+              employee_name: emp.fio,
+              amount: amount,
+              margin: Math.round(amount * 0.24)
+            }]
+          };
+          _context13.n = 1;
+          return api("/api/integration/sales", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+          });
+        case 1:
+          r = _context13.v;
+          _context13.n = 2;
+          return loadLog();
+        case 2:
+          _context13.n = 3;
+          return refresh();
+        case 3:
+          $("#btnSim").textContent = "+".concat(fmt(amount));
+          setTimeout(function () {
+            return $("#btnSim").textContent = "Тестовая продажа";
+          }, 2500);
+        case 4:
+          return _context13.a(2);
+      }
+    }, _callee13);
+  }));
 };
-async function refresh() {
-  const phId = $("#fPh").value;
-  const sel = typeof msGet !== "undefined" ? msGet() : [];
-  const qs = typeof qGet !== "undefined" ? qGet() : "";
-  const q = new URLSearchParams();
-  if (phId) q.set("pharmacy_id", phId);
-  if (qs) q.set("quarter", qs);
-  else if (sel.length) q.set("months", sel.join(","));
-  const mlab = qs ? qs + " кв." : sel.length ? sel.join(" + ") : "весь период";
-  const sum = await api("/api/summary?" + q);
-  renderKpis(sum, phId, mlab);
-  renderTable(sum);
-  renderEmp(sum, phId);
-  drawMonth(sum);
-  await drawDay();
-  await loadKpi();
+function refresh() {
+  return __async(this, null, _regenerator().m(function _callee14() {
+    var phId, sel, qs, q, mlab, sum;
+    return _regenerator().w(function (_context14) {
+      while (1) switch (_context14.n) {
+        case 0:
+          phId = $("#fPh").value;
+          sel = typeof msGet !== "undefined" ? msGet() : [];
+          qs = typeof qGet !== "undefined" ? qGet() : "";
+          q = new URLSearchParams();
+          if (phId) q.set("pharmacy_id", phId);
+          if (qs) q.set("quarter", qs);else if (sel.length) q.set("months", sel.join(","));
+          mlab = qs ? qs + " кв." : sel.length ? sel.join(" + ") : "весь период";
+          _context14.n = 1;
+          return api("/api/summary?" + q);
+        case 1:
+          sum = _context14.v;
+          renderKpis(sum, phId, mlab);
+          renderTable(sum);
+          renderEmp(sum, phId);
+          drawMonth(sum);
+          _context14.n = 2;
+          return drawDay();
+        case 2:
+          _context14.n = 3;
+          return loadKpi();
+        case 3:
+          return _context14.a(2);
+      }
+    }, _callee14);
+  }));
 }
 function sblGo(anchorId) {
   sblToggle(false);
   mNav("dashboard");
-  const el = document.getElementById(anchorId);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  var el = document.getElementById(anchorId);
+  if (el) el.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
 function sblSettings(btn) {
   sblToggle(false);
   mNav("dashboard");
-  const s = document.getElementById("apiSettings");
-  const show = s.style.display === "none";
+  var s = document.getElementById("apiSettings");
+  var show = s.style.display === "none";
   s.style.display = show ? "" : "none";
-  const b = document.getElementById("btnSettings");
+  var b = document.getElementById("btnSettings");
   if (b) b.textContent = show ? "✕ Скрыть настройки" : "⚙️ Настройки";
   if (show) {
     loadTg();
-    s.scrollIntoView({ behavior: "smooth", block: "start" });
+    s.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
   }
 }
 function sblToggle(open) {
   document.body.classList.toggle("sbl-open", open);
 }
-let _mActive = "dashboard";
-async function _loadModNav() {
-  const ICONS = {
-    "🧾": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6-2.4-1.6z"/><path d="M9 8.2h6M9 12h6M9 15.2h3.6"/></svg>',
-    "📦": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 20.4 7.6v8.8L12 20.8 3.6 16.4V7.6z"/><path d="M3.6 7.6 12 12l8.4-4.4M12 12v8.8"/></svg>',
-    "🚚": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.8h11v9.4h-11zM13.8 10h3.9l3.5 3.4v2.8h-7.4"/><circle cx="7" cy="18" r="1.8"/><circle cx="16.6" cy="18" r="1.8"/></svg>'
-  };
-  try {
-    const r = await fetch("/api/modules", { headers: { "Authorization": "Bearer " + _TOK() } });
-    if (!r.ok) return;
-    const mods = await r.json();
-    if (!mods || !mods.length) return;
-    const nav = document.getElementById("mnav");
-    const grps = {};
-    mods.forEach(function(m) {
-      var g = m.group || "";
-      if (!grps[g]) grps[g] = [];
-      grps[g].push(m);
-    });
-    var html = "";
-    Object.keys(grps).sort().forEach(function(g) {
-      if (g) html += '<div class="sgrp">' + _escHtml(g) + "</div>";
-      grps[g].forEach(function(m) {
-        html += '<button class="sbtn" id="mbtn-' + m.id + `" onclick="mNav('` + m.id + `');sblToggle(false)"><span class="ic">` + (ICONS[m.icon] || m.icon || "") + "</span><span>" + _escHtml(m.title) + "</span></button>";
-      });
-    });
-    nav.insertAdjacentHTML("beforeend", html);
-    nav.classList.add("visible");
-  } catch (_) {
-  }
+var _mActive = "dashboard";
+function _loadModNav() {
+  return __async(this, null, _regenerator().m(function _callee15() {
+    var ICONS, r, mods, nav, grps, html, _t5;
+    return _regenerator().w(function (_context15) {
+      while (1) switch (_context15.p = _context15.n) {
+        case 0:
+          ICONS = {
+            "🧾": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5h12v17l-2.4-1.6-2.4 1.6-2.4-1.6-2.4 1.6-2.4-1.6z"/><path d="M9 8.2h6M9 12h6M9 15.2h3.6"/></svg>',
+            "📦": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 20.4 7.6v8.8L12 20.8 3.6 16.4V7.6z"/><path d="M3.6 7.6 12 12l8.4-4.4M12 12v8.8"/></svg>',
+            "🚚": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.8 6.8h11v9.4h-11zM13.8 10h3.9l3.5 3.4v2.8h-7.4"/><circle cx="7" cy="18" r="1.8"/><circle cx="16.6" cy="18" r="1.8"/></svg>'
+          };
+          _context15.p = 1;
+          _context15.n = 2;
+          return fetch("/api/modules", {
+            headers: {
+              "Authorization": "Bearer " + _TOK()
+            }
+          });
+        case 2:
+          r = _context15.v;
+          if (r.ok) {
+            _context15.n = 3;
+            break;
+          }
+          return _context15.a(2);
+        case 3:
+          _context15.n = 4;
+          return r.json();
+        case 4:
+          mods = _context15.v;
+          if (!(!mods || !mods.length)) {
+            _context15.n = 5;
+            break;
+          }
+          return _context15.a(2);
+        case 5:
+          nav = document.getElementById("mnav");
+          grps = {};
+          mods.forEach(function (m) {
+            var g = m.group || "";
+            if (!grps[g]) grps[g] = [];
+            grps[g].push(m);
+          });
+          html = "";
+          Object.keys(grps).sort().forEach(function (g) {
+            if (g) html += '<div class="sgrp">' + _escHtml(g) + "</div>";
+            grps[g].forEach(function (m) {
+              html += '<button class="sbtn" id="mbtn-' + m.id + "\" onclick=\"mNav('" + m.id + "');sblToggle(false)\"><span class=\"ic\">" + (ICONS[m.icon] || m.icon || "") + "</span><span>" + _escHtml(m.title) + "</span></button>";
+            });
+          });
+          nav.insertAdjacentHTML("beforeend", html);
+          nav.classList.add("visible");
+          _context15.n = 7;
+          break;
+        case 6:
+          _context15.p = 6;
+          _t5 = _context15.v;
+        case 7:
+          return _context15.a(2);
+      }
+    }, _callee15, null, [[1, 6]]);
+  }));
 }
 function mNav(id) {
   if (id === "dashboard") {
     document.getElementById("mframe").classList.remove("visible");
-    document.querySelectorAll(".mbtn").forEach(function(b) {
+    document.querySelectorAll(".mbtn").forEach(function (b) {
       b.classList.remove("active");
     });
     var db = document.getElementById("mbtn-dashboard");
@@ -1096,7 +2196,7 @@ function mNav(id) {
     document.getElementById("kpis").style.display = "";
     var charts = document.querySelector(".grid.charts");
     if (charts) charts.style.display = "";
-    document.querySelectorAll(".h2row").forEach(function(el) {
+    document.querySelectorAll(".h2row").forEach(function (el) {
       el.style.display = "";
     });
     var tw = document.querySelector(".tbl-wrap");
@@ -1106,10 +2206,10 @@ function mNav(id) {
     return;
   }
   document.getElementById("kpis").style.display = "none";
-  document.querySelectorAll(".grid.charts").forEach(function(el) {
+  document.querySelectorAll(".grid.charts").forEach(function (el) {
     el.style.display = "none";
   });
-  document.querySelectorAll(".h2row").forEach(function(el) {
+  document.querySelectorAll(".h2row").forEach(function (el) {
     el.style.display = "none";
   });
   var tblw = document.querySelector(".tbl-wrap");
@@ -1117,7 +2217,7 @@ function mNav(id) {
   var fr = document.getElementById("mframe");
   fr.src = "/m/" + id + "/";
   fr.classList.add("visible");
-  document.querySelectorAll(".sbtn").forEach(function(b) {
+  document.querySelectorAll(".sbtn").forEach(function (b) {
     b.classList.remove("active");
   });
   var btn = document.getElementById("mbtn-" + id);
@@ -1126,24 +2226,49 @@ function mNav(id) {
   sblToggle(false);
 }
 function _escHtml(s) {
-  return String(s).replace(/[&<>"']/g, function(c) {
-    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[c];
   });
 }
 function kbars(rows, always) {
   if ((!rows || !rows.length) && !always) return "";
-  if (!rows || !rows.length) rows = [{ l: "План", v: 0, c: "#133367", t: "—" }, { l: "Факт", v: 0, c: "#53a979", t: "—" }, { l: "Прогноз", v: 0, c: "#4169aa", t: "—" }];
-  const max = Math.max(...rows.map((r) => r.v || 0), 1);
-  return `<div class="kb">` + rows.map((r) => `<div class="kb-row"><span class="kb-l">${r.l}</span><span class="kb-track"><span class="kb-fill" style="width:${Math.max(0, Math.min(100, r.v / max * 100))}%;background:${r.c}"></span></span><span class="kb-v">${r.t}</span></div>`).join("") + `</div>`;
+  if (!rows || !rows.length) rows = [{
+    l: "План",
+    v: 0,
+    c: "#133367",
+    t: "—"
+  }, {
+    l: "Факт",
+    v: 0,
+    c: "#53a979",
+    t: "—"
+  }, {
+    l: "Прогноз",
+    v: 0,
+    c: "#4169aa",
+    t: "—"
+  }];
+  var max = Math.max.apply(Math, _toConsumableArray(rows.map(function (r) {
+    return r.v || 0;
+  })).concat([1]));
+  return "<div class=\"kb\">" + rows.map(function (r) {
+    return "<div class=\"kb-row\"><span class=\"kb-l\">".concat(r.l, "</span><span class=\"kb-track\"><span class=\"kb-fill\" style=\"width:").concat(Math.max(0, Math.min(100, r.v / max * 100)), "%;background:").concat(r.c, "\"></span></span><span class=\"kb-v\">").concat(r.t, "</span></div>");
+  }).join("") + "</div>";
 }
 function deltaBadge(pct) {
   if (pct == null) return "";
-  const c = cls(pct);
-  const s = pct >= 100 ? `+${(pct - 100).toFixed(1)}%` : `−${(100 - pct).toFixed(1)}%`;
-  return `<span class="b ${c}">${s} к плану</span>`;
+  var c = cls(pct);
+  var s = pct >= 100 ? "+".concat((pct - 100).toFixed(1), "%") : "\u2212".concat((100 - pct).toFixed(1), "%");
+  return "<span class=\"b ".concat(c, "\">").concat(s, " \u043A \u043F\u043B\u0430\u043D\u0443</span>");
 }
-let msSel = ["Сентябрь"];
-let qSel = "";
+var msSel = ["Сентябрь"];
+var qSel = "";
 function msGet() {
   return msSel;
 }
@@ -1156,20 +2281,20 @@ function msLabel() {
   return msSel.length + " мес.";
 }
 function msSync() {
-  const lbl = $("#msLabel");
+  var lbl = $("#msLabel");
   if (lbl) lbl.textContent = msLabel();
-  document.querySelectorAll("#msPop .ms-opt").forEach((el) => {
-    const v = el.dataset.v;
+  document.querySelectorAll("#msPop .ms-opt").forEach(function (el) {
+    var v = el.dataset.v;
     el.classList.toggle("on", msSel.includes(v));
     el.setAttribute("aria-selected", msSel.includes(v) ? "true" : "false");
   });
-  const ql = $("#msQLabel");
+  var ql = $("#msQLabel");
   if (ql) ql.textContent = qSel ? qSel + " кв." : "Все кварталы";
-  document.querySelectorAll("#msQPop .ms-opt").forEach((el) => {
+  document.querySelectorAll("#msQPop .ms-opt").forEach(function (el) {
     el.classList.toggle("on", el.dataset.v === qSel);
     el.setAttribute("aria-selected", el.dataset.v === qSel ? "true" : "false");
   });
-  const box = $("#msMonth");
+  var box = $("#msMonth");
   if (box) box.classList.toggle("open", box.classList.contains("open"));
 }
 function msApply() {
@@ -1177,23 +2302,27 @@ function msApply() {
   refresh();
 }
 function initMonthFilter() {
-  const box = $("#msMonth"), btn = $("#msBtn"), pop = $("#msPop");
+  var box = $("#msMonth"),
+    btn = $("#msBtn"),
+    pop = $("#msPop");
   if (!box || !btn || !pop) return;
-  btn.onclick = (e) => {
+  btn.onclick = function (e) {
     e.stopPropagation();
-    const open = !box.classList.contains("open");
+    var open = !box.classList.contains("open");
     box.classList.toggle("open", open);
     btn.setAttribute("aria-expanded", open ? "true" : "false");
   };
-  pop.addEventListener("click", (e) => e.stopPropagation());
-  document.addEventListener("click", () => {
+  pop.addEventListener("click", function (e) {
+    return e.stopPropagation();
+  });
+  document.addEventListener("click", function () {
     box.classList.remove("open");
     btn.setAttribute("aria-expanded", "false");
   });
-  pop.querySelectorAll(".ms-opt").forEach((el) => {
-    el.addEventListener("click", (e) => {
+  pop.querySelectorAll(".ms-opt").forEach(function (el) {
+    el.addEventListener("click", function (e) {
       e.stopPropagation();
-      const v = el.dataset.v;
+      var v = el.dataset.v;
       if (!v) {
         msSel = [];
         box.classList.remove("open");
@@ -1202,11 +2331,12 @@ function initMonthFilter() {
         return;
       }
       if (e.ctrlKey || e.metaKey) {
-        const i = msSel.indexOf(v);
-        if (i >= 0) msSel.splice(i, 1);
-        else {
+        var i = msSel.indexOf(v);
+        if (i >= 0) msSel.splice(i, 1);else {
           msSel.push(v);
-          msSel.sort((a, b) => MONTHS.indexOf(a) - MONTHS.indexOf(b));
+          msSel.sort(function (a, b) {
+            return MONTHS.indexOf(a) - MONTHS.indexOf(b);
+          });
         }
       } else {
         msSel = [v];
@@ -1216,32 +2346,37 @@ function initMonthFilter() {
       msApply();
     });
   });
-  const clr = $("#msClr"), all = $("#msAll");
-  if (clr) clr.onclick = (e) => {
+  var clr = $("#msClr"),
+    all = $("#msAll");
+  if (clr) clr.onclick = function (e) {
     e.stopPropagation();
     msSel = [];
     box.classList.remove("open");
     btn.setAttribute("aria-expanded", "false");
     msApply();
   };
-  if (all) all.onclick = (e) => {
+  if (all) all.onclick = function (e) {
     e.stopPropagation();
     msSel = [];
     box.classList.remove("open");
     btn.setAttribute("aria-expanded", "false");
     msApply();
   };
-  const qbox = $("#msQuarter"), qbtn = $("#msQBtn"), qpop = $("#msQPop");
+  var qbox = $("#msQuarter"),
+    qbtn = $("#msQBtn"),
+    qpop = $("#msQPop");
   if (qbox && qbtn && qpop) {
-    qbtn.onclick = (e) => {
+    qbtn.onclick = function (e) {
       e.stopPropagation();
-      const open = !qbox.classList.contains("open");
+      var open = !qbox.classList.contains("open");
       qbox.classList.toggle("open", open);
       qbtn.setAttribute("aria-expanded", open ? "true" : "false");
     };
-    qpop.addEventListener("click", (e) => e.stopPropagation());
-    qpop.querySelectorAll(".ms-opt").forEach((el) => {
-      el.addEventListener("click", (e) => {
+    qpop.addEventListener("click", function (e) {
+      return e.stopPropagation();
+    });
+    qpop.querySelectorAll(".ms-opt").forEach(function (el) {
+      el.addEventListener("click", function (e) {
         e.stopPropagation();
         qSel = el.dataset.v || "";
         qbox.classList.remove("open");
@@ -1250,103 +2385,204 @@ function initMonthFilter() {
         refresh();
       });
     });
-    document.addEventListener("click", () => {
+    document.addEventListener("click", function () {
       qbox.classList.remove("open");
       qbtn.setAttribute("aria-expanded", "false");
     });
   }
   msSync();
 }
-(async function boot() {
-  const tok = _TOK();
-  if (!tok) {
-    gateShow();
-    return;
-  }
-  try {
-    const chk = await fetch("/api/catalog", { headers: { "Authorization": "Bearer " + tok } });
-    if (chk.status === 401) {
-      localStorage.removeItem("me_token");
-      gateShow();
-      return;
-    }
-    if (chk.status === 403) {
-      gateShow("этот код не даёт доступ к общему дашборду");
-      return;
-    }
-    if (!chk.ok) {
-      gateShow("сервер недоступен");
-      return;
-    }
-  } catch (_) {
-    gateShow("сеть недоступна");
-    return;
-  }
-  try {
-    await main();
-  } catch (e) {
-    if (e && e.message !== "auth") throw e;
-  }
+(function boot() {
+  return __async(this, null, _regenerator().m(function _callee16() {
+    var tok, chk, _t6, _t7;
+    return _regenerator().w(function (_context16) {
+      while (1) switch (_context16.p = _context16.n) {
+        case 0:
+          tok = _TOK();
+          if (tok) {
+            _context16.n = 1;
+            break;
+          }
+          gateShow();
+          return _context16.a(2);
+        case 1:
+          _context16.p = 1;
+          _context16.n = 2;
+          return fetch("/api/catalog", {
+            headers: {
+              "Authorization": "Bearer " + tok
+            }
+          });
+        case 2:
+          chk = _context16.v;
+          if (!(chk.status === 401)) {
+            _context16.n = 3;
+            break;
+          }
+          localStorage.removeItem("me_token");
+          gateShow();
+          return _context16.a(2);
+        case 3:
+          if (!(chk.status === 403)) {
+            _context16.n = 4;
+            break;
+          }
+          gateShow("этот код не даёт доступ к общему дашборду");
+          return _context16.a(2);
+        case 4:
+          if (chk.ok) {
+            _context16.n = 5;
+            break;
+          }
+          gateShow("сервер недоступен");
+          return _context16.a(2);
+        case 5:
+          _context16.n = 7;
+          break;
+        case 6:
+          _context16.p = 6;
+          _t6 = _context16.v;
+          gateShow("сеть недоступна");
+          return _context16.a(2);
+        case 7:
+          _context16.p = 7;
+          _context16.n = 8;
+          return main();
+        case 8:
+          _context16.n = 10;
+          break;
+        case 9:
+          _context16.p = 9;
+          _t7 = _context16.v;
+          if (!(_t7 && _t7.message !== "auth")) {
+            _context16.n = 10;
+            break;
+          }
+          throw _t7;
+        case 10:
+          return _context16.a(2);
+      }
+    }, _callee16, null, [[7, 9], [1, 6]]);
+  }));
 })();
-async function main() {
-  CAT = await api("/api/catalog");
-  CAT.pharmacy.forEach((p) => {
-    const o = document.createElement("option");
-    o.value = p.id;
-    o.textContent = p.name;
-    $("#fPh").appendChild(o);
-  });
-  initMonthFilter();
-  const sum = await api("/api/summary");
-  $("#fPh").onchange = () => {
-    refresh();
-    loadOb();
-  };
-  await refresh();
-  await loadLog();
-  await loadKpi();
-  await loadOb();
-  phOptions($("#soPh"));
-  phOptions($("#cpPh"));
-  await loadSoTop();
-  $("#btnSo").onclick = addSo;
-  $("#btnCp").onclick = addCp;
-  $("#btnSoTop").onclick = loadSoTop;
-  $("#btnTgCheck").onclick = async () => {
-    const r = await api("/api/tg/check", { method: "POST" });
-    $("#tgMsg").textContent = r.ok ? `проверено обновлений: ${r.scanned}, новых привязок: ${(r.bound || []).length}` : r.error || "ошибка";
-    if (r.ok) loadTg();
-  };
-  $("#btnTgSend").onclick = async () => {
-    $("#btnTgSend").disabled = true;
-    const r = await api("/api/tg/broadcast", { method: "POST" });
-    $("#btnTgSend").disabled = false;
-    $("#tgMsg").innerHTML = r.error ? `<span class="err-line">${r.error}</span>` : `отправлено: ${r.sent} · ошибок: ${r.failed} · не привязано: ${r.unbound}`;
-    if (!r.error) loadTg();
-  };
-  $("#btnSettings").onclick = () => {
-    const s = $("#apiSettings");
-    const show = s.style.display === "none";
-    s.style.display = show ? "" : "none";
-    $("#btnSettings").classList.toggle("is-open", show);
-    $("#btnSettings span").textContent = show ? "Скрыть настройки" : "Настройки";
-    if (show) {
-      loadTg();
-      s.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-  setInterval(loadLog, 15e3);
-  _loadModNav();
+function main() {
+  return __async(this, null, _regenerator().m(function _callee19() {
+    var _this3 = this;
+    var sum;
+    return _regenerator().w(function (_context19) {
+      while (1) switch (_context19.n) {
+        case 0:
+          _context19.n = 1;
+          return api("/api/catalog");
+        case 1:
+          CAT = _context19.v;
+          CAT.pharmacy.forEach(function (p) {
+            var o = document.createElement("option");
+            o.value = p.id;
+            o.textContent = p.name;
+            $("#fPh").appendChild(o);
+          });
+          initMonthFilter();
+          _context19.n = 2;
+          return api("/api/summary");
+        case 2:
+          sum = _context19.v;
+          $("#fPh").onchange = function () {
+            refresh();
+            loadOb();
+          };
+          _context19.n = 3;
+          return refresh();
+        case 3:
+          _context19.n = 4;
+          return loadLog();
+        case 4:
+          _context19.n = 5;
+          return loadKpi();
+        case 5:
+          _context19.n = 6;
+          return loadOb();
+        case 6:
+          phOptions($("#soPh"));
+          phOptions($("#cpPh"));
+          _context19.n = 7;
+          return loadSoTop();
+        case 7:
+          $("#btnSo").onclick = addSo;
+          $("#btnCp").onclick = addCp;
+          $("#btnSoTop").onclick = loadSoTop;
+          $("#btnTgCheck").onclick = function () {
+            return __async(_this3, null, _regenerator().m(function _callee17() {
+              var r;
+              return _regenerator().w(function (_context17) {
+                while (1) switch (_context17.n) {
+                  case 0:
+                    _context17.n = 1;
+                    return api("/api/tg/check", {
+                      method: "POST"
+                    });
+                  case 1:
+                    r = _context17.v;
+                    $("#tgMsg").textContent = r.ok ? "\u043F\u0440\u043E\u0432\u0435\u0440\u0435\u043D\u043E \u043E\u0431\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u0439: ".concat(r.scanned, ", \u043D\u043E\u0432\u044B\u0445 \u043F\u0440\u0438\u0432\u044F\u0437\u043E\u043A: ").concat((r.bound || []).length) : r.error || "ошибка";
+                    if (r.ok) loadTg();
+                  case 2:
+                    return _context17.a(2);
+                }
+              }, _callee17);
+            }));
+          };
+          $("#btnTgSend").onclick = function () {
+            return __async(_this3, null, _regenerator().m(function _callee18() {
+              var r;
+              return _regenerator().w(function (_context18) {
+                while (1) switch (_context18.n) {
+                  case 0:
+                    $("#btnTgSend").disabled = true;
+                    _context18.n = 1;
+                    return api("/api/tg/broadcast", {
+                      method: "POST"
+                    });
+                  case 1:
+                    r = _context18.v;
+                    $("#btnTgSend").disabled = false;
+                    $("#tgMsg").innerHTML = r.error ? "<span class=\"err-line\">".concat(r.error, "</span>") : "\u043E\u0442\u043F\u0440\u0430\u0432\u043B\u0435\u043D\u043E: ".concat(r.sent, " \xB7 \u043E\u0448\u0438\u0431\u043E\u043A: ").concat(r.failed, " \xB7 \u043D\u0435 \u043F\u0440\u0438\u0432\u044F\u0437\u0430\u043D\u043E: ").concat(r.unbound);
+                    if (!r.error) loadTg();
+                  case 2:
+                    return _context18.a(2);
+                }
+              }, _callee18);
+            }));
+          };
+          $("#btnSettings").onclick = function () {
+            var s = $("#apiSettings");
+            var show = s.style.display === "none";
+            s.style.display = show ? "" : "none";
+            $("#btnSettings").classList.toggle("is-open", show);
+            $("#btnSettings span").textContent = show ? "Скрыть настройки" : "Настройки";
+            if (show) {
+              loadTg();
+              s.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
+            }
+          };
+          setInterval(loadLog, 15e3);
+          _loadModNav();
+        case 8:
+          return _context19.a(2);
+      }
+    }, _callee19);
+  }));
 }
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("gGo");
-  const inp = document.getElementById("gCode");
+document.addEventListener("DOMContentLoaded", function () {
+  var btn = document.getElementById("gGo");
+  var inp = document.getElementById("gCode");
   if (btn) btn.onclick = gateLogin;
-  if (inp) inp.addEventListener("keydown", (e) => {
+  if (inp) inp.addEventListener("keydown", function (e) {
     if (e.key === "Enter") gateLogin();
   });
 });
-
 </script>
 </body>
 </html>
