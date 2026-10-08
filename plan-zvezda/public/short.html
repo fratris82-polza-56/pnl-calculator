@@ -5,6 +5,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#133367">
 <title>План-Звезда · кратко</title>
+<script>
+(function() {
+  "use strict";
+  function fail(msg) {
+    try {
+      var b = document.getElementById("compatBanner");
+      if (!b) {
+        b = document.createElement("div");
+        b.id = "compatBanner";
+        b.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#b00020;color:#fff;font:12px/1.5 sans-serif;padding:8px 12px;white-space:pre-wrap";
+        (document.body || document.documentElement).appendChild(b);
+      }
+      b.textContent = String(msg).slice(0, 500);
+    } catch (e) {
+    }
+  }
+  window.__pzFail = fail;
+  window.addEventListener("error", function(ev) {
+    if (ev && ev.error) fail("Ошибка страницы: " + (ev.error.message || ev.error) + "\n" + (ev.error.stack || "").split("\n")[0]);
+  });
+  window.addEventListener("unhandledrejection", function(ev) {
+    fail("Ошибка сети/данных: " + (ev.reason && (ev.reason.message || ev.reason) || "неизвестно"));
+  });
+  if (!Object.assign) {
+    Object.assign = function(t) {
+      if (t == null) throw new TypeError("Cannot convert undefined or null to object");
+      for (var i = 1; i < arguments.length; i++) {
+        var src = arguments[i];
+        if (src == null) continue;
+        for (var k in src) if (Object.prototype.hasOwnProperty.call(src, k)) t[k] = src[k];
+      }
+      return t;
+    };
+  }
+  if (!Array.prototype.find) {
+    Object.defineProperty(Array.prototype, "find", {
+      value: function(fn) {
+        if (this == null) throw new TypeError("this is null");
+        var o = Object(this), len = o.length >>> 0;
+        for (var i = 0; i < len; i++) {
+          var v = o[i];
+          if (fn.call(arguments[1], v, i, o)) return v;
+        }
+      }
+    });
+  }
+  if (!Array.prototype.findIndex) {
+    Object.defineProperty(Array.prototype, "findIndex", {
+      value: function(fn) {
+        if (this == null) throw new TypeError("this is null");
+        var o = Object(this), len = o.length >>> 0;
+        for (var i = 0; i < len; i++) if (fn.call(arguments[1], o[i], i, o)) return i;
+        return -1;
+      }
+    });
+  }
+  if (!Array.prototype.includes) {
+    Object.defineProperty(Array.prototype, "includes", {
+      value: function(x) {
+        var o = Object(this);
+        for (var i = 0; i < o.length >>> 0; i++) if (o[i] === x || x !== x && o[i] !== o[i]) return true;
+        return false;
+      }
+    });
+  }
+  if (!String.prototype.padStart) {
+    Object.defineProperty(String.prototype, "padStart", {
+      value: function(n, s) {
+        var str = String(this);
+        s = s === void 0 ? " " : String(s);
+        while (str.length < n) str = s.slice(0, Math.max(0, n - str.length)) + str;
+        return str;
+      }
+    });
+  }
+  if (!String.prototype.padEnd) {
+    Object.defineProperty(String.prototype, "padEnd", {
+      value: function(n, s) {
+        var str = String(this);
+        s = s === void 0 ? " " : String(s);
+        while (str.length < n) str = str + s.slice(0, Math.max(0, n - str.length));
+        return str;
+      }
+    });
+  }
+  if (typeof window.ResizeObserver === "undefined") {
+    window.ResizeObserver = function(cb) {
+      this.observe = function() {
+        try {
+          cb([], this);
+        } catch (e) {
+        }
+      };
+      this.unobserve = function() {
+      };
+      this.disconnect = function() {
+      };
+    };
+  }
+  document.addEventListener("DOMContentLoaded", function() {
+    try {
+      var el = document.createElement("div");
+      el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
+      el.textContent = "сборка 2026-10-08 16:05 · es2015";
+      (document.body || document.documentElement).appendChild(el);
+      var cv = document.createElement("canvas");
+      var ok2d = !!(cv.getContext && cv.getContext("2d"));
+      if (!ok2d) fail("Браузер не поддерживает canvas — графики невозможны. Обновите браузер.");
+    } catch (e) {
+      fail("init: " + e.message);
+    }
+  });
+})();
+
+</script>
 <script src="chart.min.js"></script>
 <style>
 :root{
@@ -124,336 +239,549 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
   </div>
 </div>
 
-<script>
-'use strict';
-// ===== краткий дашборд: текущий месяц, одна аптека, личный план =====
-const MONTHS = {'2026-09':'Сентябрь','2026-10':'Октябрь','2026-11':'Ноябрь','2026-12':'Декабрь'};
-const MONTH_KEY = {}; // имя месяца в API → ключ
-for (const [k,v] of Object.entries(MONTHS)) MONTH_KEY[v] = k;
-const DAYS_IN = {'2026-09':30,'2026-10':31,'2026-11':30,'2026-12':31};
-const fmtRub = v => Math.round(v).toLocaleString('ru-RU') + ' ₽';
-const fmtML = v => (v/1e6).toLocaleString('ru-RU',{maximumFractionDigits:2}) + ' млн ₽';
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const toneCls = p => p >= 97 ? 'c-ok' : (p >= 85 ? 'c-warn' : 'c-bad');
-const toneCol = p => p >= 97 ? 'var(--green)' : (p >= 85 ? 'var(--orange)' : 'var(--red)');
-
-let catalog = [], sum = null, series = [], kpiRows = [];
-let phId = +(localStorage.getItem('sz_ph') || 1);
-let empId = localStorage.getItem('sz_emp') || '';
-let empPlan = []; // Excel-override личных планов (из /api/catalog.empPlan)
-function epOverride(pharmacy_id, fio, month){
-  const n = s => String(s||'').toLowerCase().replace(/ё/g,'е').replace(/\s+/g,' ').trim();
-  return empPlan.find(r=>r.pharmacy_id==pharmacy_id && n(r.fio)===n(fio) && r.month===month) || null;
+<script>'use strict';
+function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+var MONTHS = {
+  '2026-09': 'Сентябрь',
+  '2026-10': 'Октябрь',
+  '2026-11': 'Ноябрь',
+  '2026-12': 'Декабрь'
+};
+var MONTH_KEY = {};
+for (var _i = 0, _Object$entries = Object.entries(MONTHS); _i < _Object$entries.length; _i++) {
+  var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
+    k = _Object$entries$_i[0],
+    v = _Object$entries$_i[1];
+  MONTH_KEY[v] = k;
 }
-
-function currentMonthKey(){
-  const now = new Date();
-  const k = `2026-${String(now.getUTCMonth()+1).padStart(2,'0')}`;
+var DAYS_IN = {
+  '2026-09': 30,
+  '2026-10': 31,
+  '2026-11': 30,
+  '2026-12': 31
+};
+var fmtRub = function fmtRub(v) {
+  return Math.round(v).toLocaleString('ru-RU') + ' ₽';
+};
+var fmtML = function fmtML(v) {
+  return (v / 1e6).toLocaleString('ru-RU', {
+    maximumFractionDigits: 2
+  }) + ' млн ₽';
+};
+var esc = function esc(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[c];
+  });
+};
+var toneCls = function toneCls(p) {
+  return p >= 97 ? 'c-ok' : p >= 85 ? 'c-warn' : 'c-bad';
+};
+var toneCol = function toneCol(p) {
+  return p >= 97 ? 'var(--green)' : p >= 85 ? 'var(--orange)' : 'var(--red)';
+};
+var catalog = [],
+  sum = null,
+  series = [],
+  kpiRows = [];
+var phId = +(localStorage.getItem('sz_ph') || 1);
+var empId = localStorage.getItem('sz_emp') || '';
+var empPlan = [];
+function epOverride(pharmacy_id, fio, month) {
+  var n = function n(s) {
+    return String(s || '').toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
+  };
+  return empPlan.find(function (r) {
+    return r.pharmacy_id == pharmacy_id && n(r.fio) === n(fio) && r.month === month;
+  }) || null;
+}
+function currentMonthKey() {
+  var now = new Date();
+  var k = "2026-".concat(String(now.getUTCMonth() + 1).padStart(2, '0'));
   return MONTHS[k] ? k : null;
 }
-// row.month приходит словом («Октябрь») — нормализуем в ключ
-function rowKey(row){ return MONTH_KEY[row.month] || row.month; }
-function showError(t){
-  const e = document.getElementById('err');
-  e.textContent = t; e.style.display = 'block';
+function rowKey(row) {
+  return MONTH_KEY[row.month] || row.month;
 }
-
-async function jget(url){
-  const tok = localStorage.getItem('me_token') || '';
-  const r = await fetch(url, { headers: tok ? { 'Authorization': 'Bearer ' + tok } : {} });
-  if (r.status === 401 || r.status === 403){ localStorage.removeItem('me_token'); location.href='/me.html'; throw new Error('auth'); }
-  if (!r.ok) throw new Error(`${url} → HTTP ${r.status}`);
-  return r.json();
+function showError(t) {
+  var e = document.getElementById('err');
+  e.textContent = t;
+  e.style.display = 'block';
 }
-
-async function loadAll(){
-  try{
-    const _cat = await jget('/api/catalog');
-    catalog = _cat.pharmacy || [];
-    empPlan = _cat.empPlan || [];
-    if (!catalog.find(p => p.id === phId)) phId = catalog[0]?.id || 1;
-    await loadPh();
-  }catch(e){ showError('Не удалось загрузить данные: ' + e.message); }
+function jget(_x) {
+  return _jget.apply(this, arguments);
 }
-
-async function loadPh(){
-  localStorage.setItem('sz_ph', phId);
-  localStorage.setItem('sz_emp', empId);
-  const mk = currentMonthKey();
-  const mname = mk ? MONTHS[mk] : null;   // API принимает имя месяца
-  const qs = `pharmacy_id=${phId}` + (mname ? `&month=${encodeURIComponent(mname)}` : '');
-  const [s, ser, k] = await Promise.all([
-    jget(`/api/summary?${qs}`),
-    jget(`/api/s.series?${qs}`),
-    jget('/api/kpi?pharmacy_id=' + phId).catch(() => ({rows: []}))
-  ]);
-  sum = s; series = ser.series || []; kpiRows = k.rows || [];
-  render();
+function _jget() {
+  _jget = _asyncToGenerator(_regenerator().m(function _callee2(url) {
+    var tok, r;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.n) {
+        case 0:
+          tok = localStorage.getItem('me_token') || '';
+          _context2.n = 1;
+          return fetch(url, {
+            headers: tok ? {
+              'Authorization': 'Bearer ' + tok
+            } : {}
+          });
+        case 1:
+          r = _context2.v;
+          if (!(r.status === 401 || r.status === 403)) {
+            _context2.n = 2;
+            break;
+          }
+          localStorage.removeItem('me_token');
+          location.href = '/me.html';
+          throw new Error('auth');
+        case 2:
+          if (r.ok) {
+            _context2.n = 3;
+            break;
+          }
+          throw new Error("".concat(url, " \u2192 HTTP ").concat(r.status));
+        case 3:
+          return _context2.a(2, r.json());
+      }
+    }, _callee2);
+  }));
+  return _jget.apply(this, arguments);
 }
-
-function monthRow(){
-  const cur = currentMonthKey();
-  const norm = r => rowKey(r);
-  return (sum.rows || []).find(r => norm(r) === cur) ||
-         // нет плана на текущий месяц (напр., декабрь ещё не заполнен) — берём последний с фактом
-         (sum.rows || []).filter(r => norm(r) < cur).sort((a,b) => norm(b).localeCompare(norm(a)))[0] ||
-         (sum.rows || [])[0] || null;
+function loadAll() {
+  return _loadAll.apply(this, arguments);
 }
-
-function dayBase(row){
-  const cur = currentMonthKey();
+function _loadAll() {
+  _loadAll = _asyncToGenerator(_regenerator().m(function _callee3() {
+    var _catalog$, _cat, _t;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          _context3.p = 0;
+          _context3.n = 1;
+          return jget('/api/catalog');
+        case 1:
+          _cat = _context3.v;
+          catalog = _cat.pharmacy || [];
+          empPlan = _cat.empPlan || [];
+          if (!catalog.find(function (p) {
+            return p.id === phId;
+          })) phId = ((_catalog$ = catalog[0]) === null || _catalog$ === void 0 ? void 0 : _catalog$.id) || 1;
+          _context3.n = 2;
+          return loadPh();
+        case 2:
+          _context3.n = 4;
+          break;
+        case 3:
+          _context3.p = 3;
+          _t = _context3.v;
+          showError('Не удалось загрузить данные: ' + _t.message);
+        case 4:
+          return _context3.a(2);
+      }
+    }, _callee3, null, [[0, 3]]);
+  }));
+  return _loadAll.apply(this, arguments);
+}
+function loadPh() {
+  return _loadPh2.apply(this, arguments);
+}
+function _loadPh2() {
+  _loadPh2 = _asyncToGenerator(_regenerator().m(function _callee4() {
+    var mk, mname, qs, _yield$Promise$all, _yield$Promise$all2, s, ser, k;
+    return _regenerator().w(function (_context4) {
+      while (1) switch (_context4.n) {
+        case 0:
+          localStorage.setItem('sz_ph', phId);
+          localStorage.setItem('sz_emp', empId);
+          mk = currentMonthKey();
+          mname = mk ? MONTHS[mk] : null;
+          qs = "pharmacy_id=".concat(phId) + (mname ? "&month=".concat(encodeURIComponent(mname)) : '');
+          _context4.n = 1;
+          return Promise.all([jget("/api/summary?".concat(qs)), jget("/api/s.series?".concat(qs)), jget('/api/kpi?pharmacy_id=' + phId).catch(function () {
+            return {
+              rows: []
+            };
+          })]);
+        case 1:
+          _yield$Promise$all = _context4.v;
+          _yield$Promise$all2 = _slicedToArray(_yield$Promise$all, 3);
+          s = _yield$Promise$all2[0];
+          ser = _yield$Promise$all2[1];
+          k = _yield$Promise$all2[2];
+          sum = s;
+          series = ser.series || [];
+          kpiRows = k.rows || [];
+          render();
+        case 2:
+          return _context4.a(2);
+      }
+    }, _callee4);
+  }));
+  return _loadPh2.apply(this, arguments);
+}
+function monthRow() {
+  var cur = currentMonthKey();
+  var norm = function norm(r) {
+    return rowKey(r);
+  };
+  return (sum.rows || []).find(function (r) {
+    return norm(r) === cur;
+  }) || (sum.rows || []).filter(function (r) {
+    return norm(r) < cur;
+  }).sort(function (a, b) {
+    return norm(b).localeCompare(norm(a));
+  })[0] || (sum.rows || [])[0] || null;
+}
+function dayBase(row) {
+  var cur = currentMonthKey();
   if (rowKey(row) === cur) return Math.max(new Date().getUTCDate(), 1);
   return Math.max(row.fact_days || 0, 1);
 }
-
-function render(){
-  const row = monthRow();
-  if (!row){ showError('По этой аптеке нет плана.'); return; }
-  // сотрудники уже отфильтрованы сервером по месяцу; в персональном
-  // режиме метрики героя считаем по выбранному человеку
-  const empsAll = (sum.employees || []).slice().sort((a,b) => b.revenue - a.revenue);
-  const emp = empId ? (empsAll.find(e => String(e.employee_id) === empId) || null) : null;
-  const db = dayBase(row);
-  const isCur = rowKey(row) === currentMonthKey();
-  const daysLeft = isCur ? Math.max(DAYS_IN[rowKey(row)] - new Date().getUTCDate(), 0) : 0;
-
-  // персональные метрики: факт сотрудника за текущий месяц против
-  // личного плана (план аптеки × доля)
-  const _ovE = emp ? epOverride(emp.pharmacy_id, emp.fio, row.month) : null;
-  const _shrE = emp ? ((_ovE && _ovE.share!=null) ? _ovE.share : emp.share) : 0;
-  const plan   = emp ? ((_ovE && _ovE.revenue!=null) ? _ovE.revenue : row.plan_revenue * _shrE) : row.plan_revenue;
-  const fact   = emp ? emp.revenue : row.fact_revenue;
-  const margin = emp ? emp.margin  : row.fact_margin;
-  const planM  = emp ? row.plan_margin * _shrE : row.plan_margin;
-  const fctPct = plan ? fact / plan * 100 : 0;
-  const fcVal  = fact / db * DAYS_IN[rowKey(row)];
-  const fcPct  = plan ? fcVal / plan * 100 : 0;
-  const mPct   = planM ? margin / planM * 100 : 0;
-  // средний чек: факт месяца / число чеков (личные чекы — у сотрудника);
-  // план/цель — из KPI выбранного месяца
-  const kr     = kpiRows.find(r => r.month === MONTHS[rowKey(row)]) || {};
-  const checks = emp ? (emp.checks || 0) : row.fact_checks;
-  const avgCheck = checks ? fact / checks : null;
-  const avgTarget = kr.target_avg_check || null;
-  const planChecks = avgTarget ? Math.round(plan / avgTarget) : null;
-  // наценка = маржа / себестоимость (выручка − маржа); при нуле факта — 0
-  const mkPct  = fact > 0 && fact > margin ? margin / (fact - margin) * 100 : 0;
-  // маржа в % от выручки
-  const mgPct  = fact > 0 ? margin / fact * 100 : 0;
-  // СТМ (СТМ+УСТМ — одна метрика): личный факт сотрудника либо по аптеке за месяц
-  const stmVal = emp ? ((emp.stm||0)+(emp.ustm||0)) : ((row.fact_stm||0)+(row.fact_ustm||0));
-  const stmPct = fact > 0 ? stmVal / fact * 100 : 0;
-  // План/факт/%/прогноз СТМ: план ₽ из /api/summary (план ТО × доля), личный — доля × план аптеки
-  const _shrK = emp ? (emp.share || 0) : 1;
-  const stmPlan = row.plan_stm != null ? row.plan_stm * _shrK : null;
-  const stmFc = row.forecast_stm != null ? row.forecast_stm * _shrK : null;
-  // Маркетинг: та же схема план/факт/%/прогноз, что у СТМ
-  const mktVal = emp ? (emp.marketing || 0) : (row.fact_marketing || 0);
-  const mktPlan = row.plan_marketing != null ? row.plan_marketing * _shrK : null;
-  const mktFc = row.forecast_marketing != null ? row.forecast_marketing * _shrK : null;
-
-  document.getElementById('asOf').textContent =
-    `${emp ? 'Лично: ' + emp.fio + ' · ' : ''}${MONTHS[rowKey(row)]}`;
+function render() {
+  var row = monthRow();
+  if (!row) {
+    showError('По этой аптеке нет плана.');
+    return;
+  }
+  var empsAll = (sum.employees || []).slice().sort(function (a, b) {
+    return b.revenue - a.revenue;
+  });
+  var emp = empId ? empsAll.find(function (e) {
+    return String(e.employee_id) === empId;
+  }) || null : null;
+  var db = dayBase(row);
+  var isCur = rowKey(row) === currentMonthKey();
+  var daysLeft = isCur ? Math.max(DAYS_IN[rowKey(row)] - new Date().getUTCDate(), 0) : 0;
+  var _ovE = emp ? epOverride(emp.pharmacy_id, emp.fio, row.month) : null;
+  var _shrE = emp ? _ovE && _ovE.share != null ? _ovE.share : emp.share : 0;
+  var plan = emp ? _ovE && _ovE.revenue != null ? _ovE.revenue : row.plan_revenue * _shrE : row.plan_revenue;
+  var fact = emp ? emp.revenue : row.fact_revenue;
+  var margin = emp ? emp.margin : row.fact_margin;
+  var planM = emp ? row.plan_margin * _shrE : row.plan_margin;
+  var fctPct = plan ? fact / plan * 100 : 0;
+  var fcVal = fact / db * DAYS_IN[rowKey(row)];
+  var fcPct = plan ? fcVal / plan * 100 : 0;
+  var mPct = planM ? margin / planM * 100 : 0;
+  var kr = kpiRows.find(function (r) {
+    return r.month === MONTHS[rowKey(row)];
+  }) || {};
+  var checks = emp ? emp.checks || 0 : row.fact_checks;
+  var avgCheck = checks ? fact / checks : null;
+  var avgTarget = kr.target_avg_check || null;
+  var planChecks = avgTarget ? Math.round(plan / avgTarget) : null;
+  var mkPct = fact > 0 && fact > margin ? margin / (fact - margin) * 100 : 0;
+  var mgPct = fact > 0 ? margin / fact * 100 : 0;
+  var stmVal = emp ? (emp.stm || 0) + (emp.ustm || 0) : (row.fact_stm || 0) + (row.fact_ustm || 0);
+  var stmPct = fact > 0 ? stmVal / fact * 100 : 0;
+  var _shrK = emp ? emp.share || 0 : 1;
+  var stmPlan = row.plan_stm != null ? row.plan_stm * _shrK : null;
+  var stmFc = row.forecast_stm != null ? row.forecast_stm * _shrK : null;
+  var mktVal = emp ? emp.marketing || 0 : row.fact_marketing || 0;
+  var mktPlan = row.plan_marketing != null ? row.plan_marketing * _shrK : null;
+  var mktFc = row.forecast_marketing != null ? row.forecast_marketing * _shrK : null;
+  document.getElementById('asOf').textContent = "".concat(emp ? 'Лично: ' + emp.fio + ' · ' : '').concat(MONTHS[rowKey(row)]);
   document.getElementById('footDate').textContent = 'по ' + sum.asOf;
-
-  document.getElementById('hero').innerHTML = `
-    <div class="ttl"><span>${esc(emp ? 'Личный план' : 'План месяца')} · ${MONTHS[rowKey(row)]}</span>
-      <span class="days">${isCur ? 'осталось ' + daysLeft + ' дн.' : 'месяц закрыт'}</span></div>
-    <div class="pct">${Math.round(fctPct)}<small> %</small></div>
-    <div class="bar">
-      <div class="fill" style="width:${Math.min(fctPct,100)}%;background:${toneCol(fcPct)}"></div>
-      ${fcPct > 0.5 ? `<div class="tick" style="left:${Math.min(fcPct,100)}%" title="прогноз"></div>` : ''}
-    </div>
-    <div class="bar-legend"><span>собрано ${fmtRub(fact)}</span><span>план ${fmtRub(plan)}</span></div>
-    <div class="rows">
-      <div><div class="t">Прогноз месяца</div>
-        <div class="v">${fmtML(fcVal)} <span>· ${Math.round(fcPct)}% плана</span></div></div>
-      <div><div class="t">Средний чек</div>
-        <div class="v">${avgCheck == null ? '—' : fmtRub(avgCheck)}${avgCheck == null || !avgTarget ? '' : ` <span>· цель ${fmtRub(avgTarget)}</span>`}${!checks ? '' : ` <span>· чеков ${checks}${planChecks ? '/' + planChecks : ''}</span>`}</div></div>
-      <div><div class="t">Наценка</div>
-        <div class="v">${Math.round(mkPct)}% <span>· маржа ${Math.round(mgPct)}%</span></div></div>
-      <div><div class="t">СТМ</div>
-        <div class="v">${fmtRub(stmVal)}${stmPlan != null ? ` <span>· план ${fmtRub(stmPlan)} · ${(stmVal / stmPlan * 100).toFixed(1).replace('.',',')}%</span>` : (stmVal ? ` <span>· ${stmPct.toFixed(1).replace('.',',')}% ТО</span>` : '')}${stmFc != null ? ` <span>· прогноз ${fmtRub(stmFc)}</span>` : ''}</div></div>
-      <div><div class="t">Маркетинг</div>
-        <div class="v">${fmtRub(mktVal)}${mktPlan != null ? ` <span>· план ${fmtRub(mktPlan)} · ${(mktVal / mktPlan * 100).toFixed(1).replace('.',',')}%</span>` : ''}${mktFc != null ? ` <span>· прогноз ${fmtRub(mktFc)}</span>` : ''}</div></div>
-    </div>
-    <div class="chip ${toneCls(fcPct)}">${db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' :
-      'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения')}</div>`;
-  // маржа
-  document.getElementById('mVals').textContent =
-    `${fmtRub(margin)} из ${fmtRub(planM)}`;
-  const mf = document.getElementById('mFill');
-  mf.style.width = Math.min(mPct,100) + '%';
+  document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>".concat(esc(emp ? 'Личный план' : 'План месяца'), " \xB7 ").concat(MONTHS[rowKey(row)], "</span>\n      <span class=\"days\">").concat(isCur ? 'осталось ' + daysLeft + ' дн.' : 'месяц закрыт', "</span></div>\n    <div class=\"pct\">").concat(Math.round(fctPct), "<small> %</small></div>\n    <div class=\"bar\">\n      <div class=\"fill\" style=\"width:").concat(Math.min(fctPct, 100), "%;background:").concat(toneCol(fcPct), "\"></div>\n      ").concat(fcPct > 0.5 ? "<div class=\"tick\" style=\"left:".concat(Math.min(fcPct, 100), "%\" title=\"\u043F\u0440\u043E\u0433\u043D\u043E\u0437\"></div>") : '', "\n    </div>\n    <div class=\"bar-legend\"><span>\u0441\u043E\u0431\u0440\u0430\u043D\u043E ").concat(fmtRub(fact), "</span><span>\u043F\u043B\u0430\u043D ").concat(fmtRub(plan), "</span></div>\n    <div class=\"rows\">\n      <div><div class=\"t\">\u041F\u0440\u043E\u0433\u043D\u043E\u0437 \u043C\u0435\u0441\u044F\u0446\u0430</div>\n        <div class=\"v\">").concat(fmtML(fcVal), " <span>\xB7 ").concat(Math.round(fcPct), "% \u043F\u043B\u0430\u043D\u0430</span></div></div>\n      <div><div class=\"t\">\u0421\u0440\u0435\u0434\u043D\u0438\u0439 \u0447\u0435\u043A</div>\n        <div class=\"v\">").concat(avgCheck == null ? '—' : fmtRub(avgCheck)).concat(avgCheck == null || !avgTarget ? '' : " <span>\xB7 \u0446\u0435\u043B\u044C ".concat(fmtRub(avgTarget), "</span>")).concat(!checks ? '' : " <span>\xB7 \u0447\u0435\u043A\u043E\u0432 ".concat(checks).concat(planChecks ? '/' + planChecks : '', "</span>"), "</div></div>\n      <div><div class=\"t\">\u041D\u0430\u0446\u0435\u043D\u043A\u0430</div>\n        <div class=\"v\">").concat(Math.round(mkPct), "% <span>\xB7 \u043C\u0430\u0440\u0436\u0430 ").concat(Math.round(mgPct), "%</span></div></div>\n      <div><div class=\"t\">\u0421\u0422\u041C</div>\n        <div class=\"v\">").concat(fmtRub(stmVal)).concat(stmPlan != null ? " <span>\xB7 \u043F\u043B\u0430\u043D ".concat(fmtRub(stmPlan), " \xB7 ").concat((stmVal / stmPlan * 100).toFixed(1).replace('.', ','), "%</span>") : stmVal ? " <span>\xB7 ".concat(stmPct.toFixed(1).replace('.', ','), "% \u0422\u041E</span>") : '').concat(stmFc != null ? " <span>\xB7 \u043F\u0440\u043E\u0433\u043D\u043E\u0437 ".concat(fmtRub(stmFc), "</span>") : '', "</div></div>\n      <div><div class=\"t\">\u041C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433</div>\n        <div class=\"v\">").concat(fmtRub(mktVal)).concat(mktPlan != null ? " <span>\xB7 \u043F\u043B\u0430\u043D ".concat(fmtRub(mktPlan), " \xB7 ").concat((mktVal / mktPlan * 100).toFixed(1).replace('.', ','), "%</span>") : '').concat(mktFc != null ? " <span>\xB7 \u043F\u0440\u043E\u0433\u043D\u043E\u0437 ".concat(fmtRub(mktFc), "</span>") : '', "</div></div>\n    </div>\n    <div class=\"chip ").concat(toneCls(fcPct), "\">").concat(db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' : 'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения'), "</div>");
+  document.getElementById('mVals').textContent = "".concat(fmtRub(margin), " \u0438\u0437 ").concat(fmtRub(planM));
+  var mf = document.getElementById('mFill');
+  mf.style.width = Math.min(mPct, 100) + '%';
   mf.style.background = toneCol(mPct);
   document.getElementById('mPct').textContent = Math.round(mPct) + '%';
-  document.getElementById('mPlan').textContent =
-    'прогноз ' + fmtRub(margin / db * DAYS_IN[rowKey(row)]);
-
+  document.getElementById('mPlan').textContent = 'прогноз ' + fmtRub(margin / db * DAYS_IN[rowKey(row)]);
   renderChart(row, emp);
   renderTeam(empsAll, emp);
 }
-
-let chart = null;
-function renderChart(row, emp){
-  const cur = rowKey(row);
-  const total = DAYS_IN[cur];
-  const byDay = {};
-  for (const p of series){
-    const m = p.d.slice(0,7);
-    if (m !== cur) continue;
-    byDay[p.d] = p.fact;
+var chart = null;
+function renderChart(row, emp) {
+  var cur = rowKey(row);
+  var total = DAYS_IN[cur];
+  var byDay = {};
+  var _iterator = _createForOfIteratorHelper(series),
+    _step;
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var p = _step.value;
+      var m = p.d.slice(0, 7);
+      if (m !== cur) continue;
+      byDay[p.d] = p.fact;
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
   }
-  const now = new Date();
-  const isCur = cur === currentMonthKey();
-  const lastDay = isCur ? Math.min(now.getUTCDate(), total) : total;
-  // ось X — весь месяц; столбики — по прошедшие дни (null = день ещё не наступил),
-  // пунктир плана идёт через весь месяц — виден даже 1-го числа
-  const labels = [], vals = [];
-  for (let d = 1; d <= total; d++){
-    const key = `${cur}-${String(d).padStart(2,'0')}`;
+  var now = new Date();
+  var isCur = cur === currentMonthKey();
+  var lastDay = isCur ? Math.min(now.getUTCDate(), total) : total;
+  var labels = [],
+    vals = [];
+  for (var d = 1; d <= total; d++) {
+    var key = "".concat(cur, "-").concat(String(d).padStart(2, '0'));
     labels.push(d);
-    vals.push(d <= lastDay ? (byDay[key] || 0) : null);
+    vals.push(d <= lastDay ? byDay[key] || 0 : null);
   }
-  // персона: график показывает ЛИЧНЫЕ продажи (доля × факт аптеки за день);
-  // план тоже личный (доля × план аптеки)
-  const k = emp ? (emp.share || 0) : 1;
-  const shown = vals.map(v => v == null ? null : Math.round(v * k));
-  const planPerDay = row.plan_revenue * k / total;
+  var k = emp ? emp.share || 0 : 1;
+  var shown = vals.map(function (v) {
+    return v == null ? null : Math.round(v * k);
+  });
+  var planPerDay = row.plan_revenue * k / total;
   document.getElementById('chHint').textContent = 'пунктир — план дня';
-
   if (chart) chart.destroy();
-  const ctx = document.getElementById('ch').getContext('2d');
+  var ctx = document.getElementById('ch').getContext('2d');
   chart = new Chart(ctx, {
     data: {
-      labels,
-      datasets: [
-        { type:'bar', data: shown, backgroundColor:'#4169aa', borderRadius:3, barPercentage:.72, categoryPercentage:.9 },
-        { type:'line', data: labels.map(() => planPerDay), borderColor:'#133367',
-          borderDash:[5,4], borderWidth:1.6, pointRadius:0, fill:false }
-      ]
+      labels: labels,
+      datasets: [{
+        type: 'bar',
+        data: shown,
+        backgroundColor: '#4169aa',
+        borderRadius: 3,
+        barPercentage: .72,
+        categoryPercentage: .9
+      }, {
+        type: 'line',
+        data: labels.map(function () {
+          return planPerDay;
+        }),
+        borderColor: '#133367',
+        borderDash: [5, 4],
+        borderWidth: 1.6,
+        pointRadius: 0,
+        fill: false
+      }]
     },
     options: {
-      responsive:true, maintainAspectRatio:false, animation:false,
-      plugins:{ legend:{display:false}, tooltip:{
-        callbacks:{ label: c => c.dataset.type === 'bar' ? fmtRub(c.parsed.y) : 'план дня: ' + fmtRub(planPerDay) } } },
-      scales:{
-        x:{ grid:{display:false}, ticks:{ font:{size:9}, color:'#7d8894', maxRotation:0, autoSkip:true } },
-        y:{ grid:{color:'#eef2f7'}, border:{display:false},
-            ticks:{ font:{size:9}, color:'#7d8894', callback: v => v >= 1000 ? (v/1000)+'к' : v } }
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function label(c) {
+              return c.dataset.type === 'bar' ? fmtRub(c.parsed.y) : 'план дня: ' + fmtRub(planPerDay);
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            font: {
+              size: 9
+            },
+            color: '#7d8894',
+            maxRotation: 0,
+            autoSkip: true
+          }
+        },
+        y: {
+          grid: {
+            color: '#eef2f7'
+          },
+          border: {
+            display: false
+          },
+          ticks: {
+            font: {
+              size: 9
+            },
+            color: '#7d8894',
+            callback: function callback(v) {
+              return v >= 1000 ? v / 1000 + 'к' : v;
+            }
+          }
+        }
       }
     }
   });
 }
-
-function renderTeam(emps, me){
-  const box = document.getElementById('team');
+function renderTeam(emps, me) {
+  var box = document.getElementById('team');
   document.getElementById('teamNote').textContent = emps.length + ' чел. · факт/план';
-  if (!emps.length){ box.innerHTML = '<div class="hint">Нет данных по сотрудникам.</div>'; return; }
-  const krT = kpiRows.find(r => r.month === MONTHS[rowKey(monthRow())]) || {};
-  const at = krT.target_avg_check || null; // цель среднего чека месяца
-  box.innerHTML = emps.map(e => {
-    const _ovT = epOverride(e.pharmacy_id, e.fio, monthRow().month);
-    const pp = (_ovT && _ovT.revenue!=null) ? _ovT.revenue : monthRow().plan_revenue * ((_ovT && _ovT.share!=null) ? _ovT.share : (e.share || 0));
-    const pct = pp ? e.revenue / pp * 100 : 0;
-    const col = toneCol(pct);
-    const pch = at ? Math.round(pp / at) : null;        // личный план чеков = план ₽ / цель ср. чека
-    const chk = e.checks || 0;
-    const ac = chk ? e.revenue / chk : null;            // факт среднего чека
-    const st = (e.stm||0)+(e.ustm||0);                   // СТМ+УСТМ — одна метрика
-    const mk = e.marketing || 0;                         // маркетинг — факт сотрудника
-    const _shrK = (_ovT && _ovT.share!=null) ? _ovT.share : (e.share || 0);
-    const mkp = monthRow().plan_marketing != null ? monthRow().plan_marketing * _shrK : null;
-    const mkpct = mkp ? Math.round(mk / mkp * 100) : null;
-    const kpiLine = !at && !chk && !st && !mk && mkp == null ? '' :
-      `<div class="kpi">чеки <b>${chk}</b>${pch ? '/' + pch : ''} · ср. чек <b>${ac ? Math.round(ac) : '—'}</b>${at ? '/' + Math.round(at) : ''} ₽${st ? ` · СТМ <b>${fmtRub(st)}</b>` : ''}${(mk || mkp != null) ? ` · маркетинг <b>${fmtRub(mk)}</b>${mkp != null ? ` / ${fmtRub(mkp)} · ${mkpct}%` : ''}` : ''}</div>`;
-    return `<div class="emp${me && e.employee_id === me.employee_id ? ' me' : ''}">
-      <div><div class="fio">${esc(e.fio)}</div><div class="role">${fmtRub(e.revenue)} · ${MONTHS[rowKey(monthRow())].toLowerCase()}</div>${kpiLine}</div>
-      <div class="pv" style="color:${col}">${Math.round(pct)}%</div>
-      <div class="mbar"><div class="fill" style="width:${Math.min(pct,100)}%;background:${col}"></div></div>
-    </div>`;
+  if (!emps.length) {
+    box.innerHTML = '<div class="hint">Нет данных по сотрудникам.</div>';
+    return;
+  }
+  var krT = kpiRows.find(function (r) {
+    return r.month === MONTHS[rowKey(monthRow())];
+  }) || {};
+  var at = krT.target_avg_check || null;
+  box.innerHTML = emps.map(function (e) {
+    var _ovT = epOverride(e.pharmacy_id, e.fio, monthRow().month);
+    var pp = _ovT && _ovT.revenue != null ? _ovT.revenue : monthRow().plan_revenue * (_ovT && _ovT.share != null ? _ovT.share : e.share || 0);
+    var pct = pp ? e.revenue / pp * 100 : 0;
+    var col = toneCol(pct);
+    var pch = at ? Math.round(pp / at) : null;
+    var chk = e.checks || 0;
+    var ac = chk ? e.revenue / chk : null;
+    var st = (e.stm || 0) + (e.ustm || 0);
+    var mk = e.marketing || 0;
+    var _shrK = _ovT && _ovT.share != null ? _ovT.share : e.share || 0;
+    var mkp = monthRow().plan_marketing != null ? monthRow().plan_marketing * _shrK : null;
+    var mkpct = mkp ? Math.round(mk / mkp * 100) : null;
+    var kpiLine = !at && !chk && !st && !mk && mkp == null ? '' : "<div class=\"kpi\">\u0447\u0435\u043A\u0438 <b>".concat(chk, "</b>").concat(pch ? '/' + pch : '', " \xB7 \u0441\u0440. \u0447\u0435\u043A <b>").concat(ac ? Math.round(ac) : '—', "</b>").concat(at ? '/' + Math.round(at) : '', " \u20BD").concat(st ? " \xB7 \u0421\u0422\u041C <b>".concat(fmtRub(st), "</b>") : '').concat(mk || mkp != null ? " \xB7 \u043C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433 <b>".concat(fmtRub(mk), "</b>").concat(mkp != null ? " / ".concat(fmtRub(mkp), " \xB7 ").concat(mkpct, "%") : '') : '', "</div>");
+    return "<div class=\"emp".concat(me && e.employee_id === me.employee_id ? ' me' : '', "\">\n      <div><div class=\"fio\">").concat(esc(e.fio), "</div><div class=\"role\">").concat(fmtRub(e.revenue), " \xB7 ").concat(MONTHS[rowKey(monthRow())].toLowerCase(), "</div>").concat(kpiLine, "</div>\n      <div class=\"pv\" style=\"color:").concat(col, "\">").concat(Math.round(pct), "%</div>\n      <div class=\"mbar\"><div class=\"fill\" style=\"width:").concat(Math.min(pct, 100), "%;background:").concat(col, "\"></div></div>\n    </div>");
   }).join('');
 }
-
-// ===== контролы =====
-function initControls(){
-  const selPh = document.getElementById('selPh');
-  selPh.innerHTML = catalog.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
-  if (!catalog.some(p => p.id === phId)) phId = catalog.length ? catalog[0].id : 1;
+function initControls() {
+  var selPh = document.getElementById('selPh');
+  selPh.innerHTML = catalog.map(function (p) {
+    return "<option value=\"".concat(p.id, "\">").concat(esc(p.name), "</option>");
+  }).join('');
+  if (!catalog.some(function (p) {
+    return p.id === phId;
+  })) phId = catalog.length ? catalog[0].id : 1;
   selPh.value = String(phId);
-  selPh.onchange = () => {
-    phId = +selPh.value; empId = '';
+  selPh.onchange = function () {
+    phId = +selPh.value;
+    empId = '';
     document.getElementById('selEmp').innerHTML = '<option value="">Вся аптека</option>';
     loadPh();
   };
-  const selEmp = document.getElementById('selEmp');
+  var selEmp = document.getElementById('selEmp');
   selEmp.value = empId;
-  selEmp.onchange = () => { empId = selEmp.value; loadPh(); };
+  selEmp.onchange = function () {
+    empId = selEmp.value;
+    loadPh();
+  };
 }
-
-function fillEmployees(){
-  const selEmp = document.getElementById('selEmp');
-  selEmp.innerHTML = '<option value="">Вся аптека</option>' +
-    (sum.employees || []).map(e =>
-      `<option value="${e.employee_id}"${String(e.employee_id) === empId ? ' selected' : ''}>${esc(e.fio)}</option>`
-    ).join('');
+function fillEmployees() {
+  var selEmp = document.getElementById('selEmp');
+  selEmp.innerHTML = '<option value="">Вся аптека</option>' + (sum.employees || []).map(function (e) {
+    return "<option value=\"".concat(e.employee_id, "\"").concat(String(e.employee_id) === empId ? ' selected' : '', ">").concat(esc(e.fio), "</option>");
+  }).join('');
   selEmp.disabled = false;
 }
-
-const _loadPh = loadPh;
-loadPh = async function(){ await _loadPh(); fillEmployees(); loadRecs(); };
-
-// ===== рекомендации =====
-const ICO_AT = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#c0392b" stroke-width="1.6"/><path d="M8 4.8v3.8" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11" r=".9" fill="#c0392b"/></svg>';
-const ICO_GO = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2.5 8.5l3.2 3.2 7.8-7.9" stroke="#1e8e4e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-async function loadRecs(){
-  const box = document.getElementById('recs');
-  const note = document.getElementById('recNote');
-  const mk = currentMonthKey();
-  const mname = mk ? MONTHS[mk] : null;
-  const row = monthRow();
-  const items = [];
-  // 1) цели месяца из /api/kpi (чеки/средний чек/купоны) — только для всей аптеки
-  try {
-    const k = await jget('/api/kpi?pharmacy_id=' + phId);
-    const kr = (k.rows || []).find(r => r.month === mname);
-    if (kr && !empId){
-      const gaps = [];
-      if (kr.target_checks_per_day != null && kr.fact_checks_per_day != null && kr.fact_checks_per_day < kr.target_checks_per_day)
-        gaps.push(`<b>чеков в день:</b> ${kr.fact_checks_per_day} из ${kr.target_checks_per_day}`);
-      if (kr.target_avg_check != null && kr.fact_avg_check != null && kr.fact_avg_check < kr.target_avg_check)
-        gaps.push(`<b>средний чек:</b> ${Math.round(kr.fact_avg_check)} из ${kr.target_avg_check} ₽`);
-      if (kr.target_multi_share != null && kr.fact_multi_share != null && kr.fact_multi_share < kr.target_multi_share)
-        gaps.push(`<b>доля мультичеков:</b> ${Math.round(kr.fact_multi_share*100)} из ${Math.round(kr.target_multi_share*100)}%`);
-      if (kr.target_coupons_per_week != null && (kr.fact_coupons || 0) < kr.target_coupons_per_week)
-        gaps.push(`<b>купоны:</b> ${kr.fact_coupons || 0} за период, цель ${kr.target_coupons_per_week}/нед`);
-      if (gaps.length) items.push({ico: ICO_GO, html: 'Цели месяца: ' + gaps.join(' · ') + '. Ближайший рычаг — предложить товар-спутник к частым покупкам.'});
-    }
-  } catch(e) { /* kpi недоступен — пропускаем */ }
-  // 2) дефектуры (отказы за 7 дней) — клиенты уходят с пустыми руками
-  try {
-    const so = await jget('/api/stockout/top?days=7');
-    const phName = (catalog.find(p => p.id === phId) || {}).name || '';
-    const mine = (so.top || []).filter(t => (t.pharmacies || '').includes(phName));
-    if (mine.length) {
-      const t = mine[0];
-      const rest = mine.length > 1 ? ` <span class="sub">Ещё: ${mine.slice(1,4).map(x=>esc(x.product)).join(', ')}</span>` : '';
-      items.push({ico: ICO_AT, html: `<b>Отказы за 7 дней:</b> «${esc(t.product)}» — ${t.times} раз(а). Проверить остатки и заказ.${rest}`});
-      if (mine.length > 1) note.textContent = `отказов: ${mine.length}`;
-    }
-  } catch(e) { /* stockout недоступен */ }
-  // 3) вывод
-  if (!items.length){
-    box.innerHTML = '<div class="hint">Заметных отклонений нет. Держим темп.</div>';
-    if (!note.textContent) note.textContent = '';
-    return;
-  }
-  box.innerHTML = items.map(i => `<div class="rec">${i.ico}<div>${i.html}</div></div>`).join('');
+var _loadPh = loadPh;
+loadPh = function () {
+  var _ref = _asyncToGenerator(_regenerator().m(function _callee() {
+    return _regenerator().w(function (_context) {
+      while (1) switch (_context.n) {
+        case 0:
+          _context.n = 1;
+          return _loadPh();
+        case 1:
+          fillEmployees();
+          loadRecs();
+        case 2:
+          return _context.a(2);
+      }
+    }, _callee);
+  }));
+  return function loadPh() {
+    return _ref.apply(this, arguments);
+  };
+}();
+var ICO_AT = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.4" stroke="#c0392b" stroke-width="1.6"/><path d="M8 4.8v3.8" stroke="#c0392b" stroke-width="1.6" stroke-linecap="round"/><circle cx="8" cy="11" r=".9" fill="#c0392b"/></svg>';
+var ICO_GO = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2.5 8.5l3.2 3.2 7.8-7.9" stroke="#1e8e4e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function loadRecs() {
+  return _loadRecs.apply(this, arguments);
 }
-
-
-// селекторы наполняем после загрузки каталога (catalog приходит из /api/catalog)
-loadAll().then(() => initControls());
-</script>
+function _loadRecs() {
+  _loadRecs = _asyncToGenerator(_regenerator().m(function _callee5() {
+    var box, note, mk, mname, row, items, _k, kr, gaps, so, phName, mine, t, rest, _t2, _t3;
+    return _regenerator().w(function (_context5) {
+      while (1) switch (_context5.p = _context5.n) {
+        case 0:
+          box = document.getElementById('recs');
+          note = document.getElementById('recNote');
+          mk = currentMonthKey();
+          mname = mk ? MONTHS[mk] : null;
+          row = monthRow();
+          items = [];
+          _context5.p = 1;
+          _context5.n = 2;
+          return jget('/api/kpi?pharmacy_id=' + phId);
+        case 2:
+          _k = _context5.v;
+          kr = (_k.rows || []).find(function (r) {
+            return r.month === mname;
+          });
+          if (kr && !empId) {
+            gaps = [];
+            if (kr.target_checks_per_day != null && kr.fact_checks_per_day != null && kr.fact_checks_per_day < kr.target_checks_per_day) gaps.push("<b>\u0447\u0435\u043A\u043E\u0432 \u0432 \u0434\u0435\u043D\u044C:</b> ".concat(kr.fact_checks_per_day, " \u0438\u0437 ").concat(kr.target_checks_per_day));
+            if (kr.target_avg_check != null && kr.fact_avg_check != null && kr.fact_avg_check < kr.target_avg_check) gaps.push("<b>\u0441\u0440\u0435\u0434\u043D\u0438\u0439 \u0447\u0435\u043A:</b> ".concat(Math.round(kr.fact_avg_check), " \u0438\u0437 ").concat(kr.target_avg_check, " \u20BD"));
+            if (kr.target_multi_share != null && kr.fact_multi_share != null && kr.fact_multi_share < kr.target_multi_share) gaps.push("<b>\u0434\u043E\u043B\u044F \u043C\u0443\u043B\u044C\u0442\u0438\u0447\u0435\u043A\u043E\u0432:</b> ".concat(Math.round(kr.fact_multi_share * 100), " \u0438\u0437 ").concat(Math.round(kr.target_multi_share * 100), "%"));
+            if (kr.target_coupons_per_week != null && (kr.fact_coupons || 0) < kr.target_coupons_per_week) gaps.push("<b>\u043A\u0443\u043F\u043E\u043D\u044B:</b> ".concat(kr.fact_coupons || 0, " \u0437\u0430 \u043F\u0435\u0440\u0438\u043E\u0434, \u0446\u0435\u043B\u044C ").concat(kr.target_coupons_per_week, "/\u043D\u0435\u0434"));
+            if (gaps.length) items.push({
+              ico: ICO_GO,
+              html: 'Цели месяца: ' + gaps.join(' · ') + '. Ближайший рычаг — предложить товар-спутник к частым покупкам.'
+            });
+          }
+          _context5.n = 4;
+          break;
+        case 3:
+          _context5.p = 3;
+          _t2 = _context5.v;
+        case 4:
+          _context5.p = 4;
+          _context5.n = 5;
+          return jget('/api/stockout/top?days=7');
+        case 5:
+          so = _context5.v;
+          phName = (catalog.find(function (p) {
+            return p.id === phId;
+          }) || {}).name || '';
+          mine = (so.top || []).filter(function (t) {
+            return (t.pharmacies || '').includes(phName);
+          });
+          if (mine.length) {
+            t = mine[0];
+            rest = mine.length > 1 ? " <span class=\"sub\">\u0415\u0449\u0451: ".concat(mine.slice(1, 4).map(function (x) {
+              return esc(x.product);
+            }).join(', '), "</span>") : '';
+            items.push({
+              ico: ICO_AT,
+              html: "<b>\u041E\u0442\u043A\u0430\u0437\u044B \u0437\u0430 7 \u0434\u043D\u0435\u0439:</b> \xAB".concat(esc(t.product), "\xBB \u2014 ").concat(t.times, " \u0440\u0430\u0437(\u0430). \u041F\u0440\u043E\u0432\u0435\u0440\u0438\u0442\u044C \u043E\u0441\u0442\u0430\u0442\u043A\u0438 \u0438 \u0437\u0430\u043A\u0430\u0437.").concat(rest)
+            });
+            if (mine.length > 1) note.textContent = "\u043E\u0442\u043A\u0430\u0437\u043E\u0432: ".concat(mine.length);
+          }
+          _context5.n = 7;
+          break;
+        case 6:
+          _context5.p = 6;
+          _t3 = _context5.v;
+        case 7:
+          if (items.length) {
+            _context5.n = 8;
+            break;
+          }
+          box.innerHTML = '<div class="hint">Заметных отклонений нет. Держим темп.</div>';
+          if (!note.textContent) note.textContent = '';
+          return _context5.a(2);
+        case 8:
+          box.innerHTML = items.map(function (i) {
+            return "<div class=\"rec\">".concat(i.ico, "<div>").concat(i.html, "</div></div>");
+          }).join('');
+        case 9:
+          return _context5.a(2);
+      }
+    }, _callee5, null, [[4, 6], [1, 3]]);
+  }));
+  return _loadRecs.apply(this, arguments);
+}
+loadAll().then(function () {
+  return initControls();
+});</script>
 </body>
 </html>
