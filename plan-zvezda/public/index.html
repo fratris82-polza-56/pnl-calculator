@@ -108,7 +108,7 @@
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-08 21:40 · обороты-es5";
+      el.textContent = "сборка 2026-10-08 22:20 · обороты-данные";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -379,7 +379,7 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
   <div class="h2row" id="sec-kpi"><h2>KPI квартала</h2><span class="note">чеков/день и ср.чек — из факта; купоны — возвраты по промо</span></div>
   <div class="card tbl-wrap no-fade"><table id="tblKpi"></table></div>
 
-  <div class="h2row" id="sec-ob"><h2>Обороты по месяцам</h2><span class="note">выручка и ВД по бухгалтерским данным · январь–октябрь 2026</span></div>
+  <div class="h2row" id="sec-ob"><h2>Обороты по месяцам</h2></div>
   <div class="grid charts" id="chartsOb">
     <div class="card chart-card" id="cardObRev"><h3>Выручка по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObRev"></canvas></div></div>
     <div class="card chart-card" id="cardObMar"><h3>Валовая доходность, млн ₽</h3><div class="chart-box"><canvas id="chObMar"></canvas></div></div>
@@ -615,7 +615,7 @@ function loadOb() {
           });
           val = function val(pid, ym, k, ch) {
             var r = rows.find(function (x) {
-              return x.pharmacy_id == pid && x.ym === ym && (x.channel || "retail") === ch;
+              return x.pharmacy_id == pid && x.ym === ym && (ch === undefined || (x.channel || "retail") === ch);
             });
             return r ? r[k] || 0 : 0;
           };
