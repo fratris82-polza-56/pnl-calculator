@@ -29,6 +29,12 @@ const ev = async e => {
   if (r.exceptionDetails) throw new Error((r.exceptionDetails.exception?.description || 'eval fail').split('\n')[0]);
   return r.result?.value;
 };
+// Токен доступа (для серверных URL): PZ_TOKEN из env — кладём в localStorage и перезагружаем
+if (process.env.PZ_TOKEN && /^http:/.test(url)) {
+  await send('Page.navigate', { url: new URL(url).origin + '/' });
+  await new Promise(r => setTimeout(r, 800));
+  await ev(`localStorage.setItem('me_token', ${JSON.stringify(process.env.PZ_TOKEN)})`);
+}
 await send('Page.navigate', { url });
 await new Promise(r => setTimeout(r, waitMs));
 
@@ -36,16 +42,24 @@ const stamp = await ev(`!![...document.querySelectorAll('div,span')].find(d=>d.t
 const banner = await ev(`(()=>{const b=document.querySelector('#compatBanner');return b?b.textContent.slice(0,160):null})()`);
 const canvases = await ev(`document.querySelectorAll('canvas').length`);
 const charts = await ev(`(()=>{try{return [...document.querySelectorAll('canvas')].map(c=>{const g=Chart&&Chart.getChart?Chart.getChart(c):null;return (c.id||'canvas')+':'+(g?g.data.labels.length+'pt/'+g.data.datasets.length+'ds':'EMPTY')})}catch(e){return ['ERR:'+e.message]}})()`);
-// клик по фильтру «Месяц», если есть
-let monthPopup = 'n/a';
-const hasMs = await ev(`!!document.querySelector('#msBtn')`);
-if (hasMs) {
-  await ev(`document.querySelector('#msBtn').click()`);
+// фильтры месяц/квартал — нативные <select>: меняем значение и проверяем пересчёт
+let monthFilter = 'n/a';
+const hasSel = await ev(`!!document.querySelector('#selMonth') && !!document.querySelector('#selQuarter')`);
+if (hasSel) {
+  const title0 = await ev(`(document.querySelector('#chDayTitle')||{textContent:''}).textContent`);
+  await ev(`(()=>{const s=document.querySelector('#selMonth'); s.value='Октябрь'; s.dispatchEvent(new Event('change'))})()`);
+  await new Promise(r => setTimeout(r, 700));
+  const title1 = await ev(`(document.querySelector('#chDayTitle')||{textContent:''}).textContent`);
+  const dayPts = await ev(`(()=>{const c=Chart&&Chart.getChart?Chart.getChart(document.querySelector('#chDay')):null;return c?c.data.labels.length:-1})()`);
+  await ev(`(()=>{const s=document.querySelector('#selQuarter'); s.value='4'; s.dispatchEvent(new Event('change'))})()`);
+  await new Promise(r => setTimeout(r, 700));
+  const qApplied = await ev(`(typeof qGet==='function') ? qGet() : 'no-fn'`);
+  await ev(`(()=>{const s=document.querySelector('#selQuarter'); s.value=''; s.dispatchEvent(new Event('change'))})()`);
   await new Promise(r => setTimeout(r, 400));
-  monthPopup = await ev(`(()=>{const p=document.querySelector('#msPop');return p?getComputedStyle(p).display:'no-popup'})()`);
+  monthFilter = { select: true, monthChanged: String(title0) !== String(title1), title0: String(title0).slice(0, 60), title1: String(title1).slice(0, 60), dayPts, qApplied };
 }
 
-console.log(JSON.stringify({ url, stamp, banner, canvases, charts, monthPopup, jsErrors: errors.slice(0, 5) }, null, 1));
-const bad = !stamp || !!banner || errors.length > 0 || charts.some(c => c.endsWith('EMPTY') || c.startsWith('ERR'));
+console.log(JSON.stringify({ url, stamp, banner, canvases, charts, monthFilter, jsErrors: errors.slice(0, 5) }, null, 1));
+const bad = !stamp || !!banner || errors.length > 0 || charts.some(c => c.endsWith('EMPTY') || c.startsWith('ERR')) || (hasSel && monthFilter && monthFilter.monthChanged === false);
 console.log(bad ? 'FAIL' : 'PASS');
 process.exit(bad ? 1 : 0);

@@ -108,7 +108,7 @@
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-08 16:05 · es2015";
+      el.textContent = "сборка 2026-10-08 21:10 · фильтры-списки";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -139,24 +139,8 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 /* шапка-бренд убрана: фильтры — выпадающие списки */
 .fbar select{appearance:none;-webkit-appearance:none;flex:none;border:1px solid var(--line);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center/10px 6px;color:var(--navy);border-radius:99px;padding:7px 30px 7px 14px;font-size:12.5px;font-weight:600;min-height:34px;cursor:pointer;font-family:inherit}
 .fbar select:focus{outline:none;border-color:var(--blue)}
-/* Мультиселект месяцев и кнопка кварталов */
-.ms{position:relative;flex:none}
-.ms-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;min-height:34px;cursor:pointer;font-family:inherit}
-.ms-btn:focus{outline:none;border-color:var(--blue)}
-.ms-car{width:10px;height:6px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain;transition:transform .15s ease}
-.ms.open .ms-car{transform:rotate(180deg)}
-.ms-pop{display:none;position:absolute;z-index:50;top:calc(100% + 6px);left:0;min-width:190px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 28px rgba(19,51,103,.14);padding:6px}
-.ms.open .ms-pop{display:block}
-.ms-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;white-space:nowrap}
-.ms-opt:hover{background:#eef3fa}
-.ms-ck{width:14px;height:14px;flex:none;border:1.5px solid #b8c4d4;border-radius:4px;position:relative}
-.ms-opt.on .ms-ck{background:var(--navy);border-color:var(--navy)}
-.ms-opt.on .ms-ck::after{content:'';position:absolute;left:3.5px;top:1px;width:4px;height:7px;border:solid #fff;border-width:0 1.8px 1.8px 0;transform:rotate(40deg)}
-.ms-opt.all.on .ms-ck{background:var(--blue);border-color:var(--blue)}
-.ms-foot{display:flex;gap:6px;border-top:1px solid var(--line);margin-top:5px;padding:6px 4px 2px}
-.ms-foot button{flex:1;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:11px;font-weight:600;border-radius:8px;padding:4px 6px;cursor:pointer;font-family:inherit}
-.ms-foot button:hover{background:#eef3fa}
-.ms-foot #msClr{color:var(--mut)}
+/* Месяц/квартал — нативные <select>: старые браузеры (IE11) не умеют
+   самодельные popup-списки. Стили общие с «Аптеками» (.fbar select). */
 .fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;margin-left:54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fbar::-webkit-scrollbar{display:none}
 /* чипы-фильтры заменены на выпадающие списки */
@@ -326,34 +310,20 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
 <div class="wrap">
   <div class="topbar">
     <div class="fbar" id="fbar" aria-label="Фильтры">
-      <div class="ms" id="msMonth">
-        <button type="button" class="ms-btn" id="msBtn" aria-haspopup="listbox" aria-expanded="false">
-          <span id="msLabel">Все месяцы</span><span class="ms-car"></span>
-        </button>
-        <div class="ms-pop" id="msPop">
-          <div class="ms-opt all" data-v=""><span class="ms-ck"></span>Все месяцы</div>
-          <div class="ms-opt" data-v="Сентябрь"><span class="ms-ck"></span>Сентябрь</div>
-          <div class="ms-opt" data-v="Октябрь"><span class="ms-ck"></span>Октябрь</div>
-          <div class="ms-opt" data-v="Ноябрь"><span class="ms-ck"></span>Ноябрь</div>
-          <div class="ms-opt" data-v="Декабрь"><span class="ms-ck"></span>Декабрь</div>
-          <div class="ms-foot">
-            <button type="button" id="msClr">Снять</button>
-            <button type="button" id="msAll">Все</button>
-          </div>
-        </div>
-      </div>
-      <div class="ms" id="msQuarter">
-        <button type="button" class="ms-btn" id="msQBtn" aria-haspopup="listbox" aria-expanded="false" title="Разрез по кварталам">
-          <span id="msQLabel">Все кварталы</span><span class="ms-car"></span>
-        </button>
-        <div class="ms-pop" id="msQPop">
-          <div class="ms-opt all" data-v=""><span class="ms-ck"></span>Все кварталы</div>
-          <div class="ms-opt" data-v="1"><span class="ms-ck"></span>1 квартал</div>
-          <div class="ms-opt" data-v="2"><span class="ms-ck"></span>2 квартал</div>
-          <div class="ms-opt" data-v="3"><span class="ms-ck"></span>3 квартал</div>
-          <div class="ms-opt" data-v="4"><span class="ms-ck"></span>4 квартал</div>
-        </div>
-      </div>
+      <select id="selMonth" aria-label="Месяц">
+        <option value="">Все месяцы</option>
+        <option value="Сентябрь">Сентябрь</option>
+        <option value="Октябрь">Октябрь</option>
+        <option value="Ноябрь">Ноябрь</option>
+        <option value="Декабрь">Декабрь</option>
+      </select>
+      <select id="selQuarter" aria-label="Квартал" title="Разрез по кварталам">
+        <option value="">Все кварталы</option>
+        <option value="1">1 квартал</option>
+        <option value="2">2 квартал</option>
+        <option value="3">3 квартал</option>
+        <option value="4">4 квартал</option>
+      </select>
       <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
     </div>
   </div>
@@ -2275,121 +2245,29 @@ function msGet() {
 function qGet() {
   return qSel;
 }
-function msLabel() {
-  if (!msSel.length) return "Все месяцы";
-  if (msSel.length === 1) return msSel[0];
-  return msSel.length + " мес.";
-}
 function msSync() {
-  var lbl = $("#msLabel");
-  if (lbl) lbl.textContent = msLabel();
-  document.querySelectorAll("#msPop .ms-opt").forEach(function (el) {
-    var v = el.dataset.v;
-    el.classList.toggle("on", msSel.includes(v));
-    el.setAttribute("aria-selected", msSel.includes(v) ? "true" : "false");
-  });
-  var ql = $("#msQLabel");
-  if (ql) ql.textContent = qSel ? qSel + " кв." : "Все кварталы";
-  document.querySelectorAll("#msQPop .ms-opt").forEach(function (el) {
-    el.classList.toggle("on", el.dataset.v === qSel);
-    el.setAttribute("aria-selected", el.dataset.v === qSel ? "true" : "false");
-  });
-  var box = $("#msMonth");
-  if (box) box.classList.toggle("open", box.classList.contains("open"));
+  var sm = $("#selMonth");
+  if (sm && sm.value !== (msSel[0] || "")) sm.value = msSel[0] || "";
+  var sq = $("#selQuarter");
+  if (sq && sq.value !== (qSel || "")) sq.value = qSel || "";
 }
 function msApply() {
   msSync();
   refresh();
 }
 function initMonthFilter() {
-  var box = $("#msMonth"),
-    btn = $("#msBtn"),
-    pop = $("#msPop");
-  if (!box || !btn || !pop) return;
-  btn.onclick = function (e) {
-    e.stopPropagation();
-    var open = !box.classList.contains("open");
-    box.classList.toggle("open", open);
-    btn.setAttribute("aria-expanded", open ? "true" : "false");
-  };
-  pop.addEventListener("click", function (e) {
-    return e.stopPropagation();
-  });
-  document.addEventListener("click", function () {
-    box.classList.remove("open");
-    btn.setAttribute("aria-expanded", "false");
-  });
-  pop.querySelectorAll(".ms-opt").forEach(function (el) {
-    el.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var v = el.dataset.v;
-      if (!v) {
-        msSel = [];
-        box.classList.remove("open");
-        btn.setAttribute("aria-expanded", "false");
-        msApply();
-        return;
-      }
-      if (e.ctrlKey || e.metaKey) {
-        var i = msSel.indexOf(v);
-        if (i >= 0) msSel.splice(i, 1);else {
-          msSel.push(v);
-          msSel.sort(function (a, b) {
-            return MONTHS.indexOf(a) - MONTHS.indexOf(b);
-          });
-        }
-      } else {
-        msSel = [v];
-        box.classList.remove("open");
-        btn.setAttribute("aria-expanded", "false");
-      }
-      msApply();
-    });
-  });
-  var clr = $("#msClr"),
-    all = $("#msAll");
-  if (clr) clr.onclick = function (e) {
-    e.stopPropagation();
-    msSel = [];
-    box.classList.remove("open");
-    btn.setAttribute("aria-expanded", "false");
+  var sm = $("#selMonth");
+  var sq = $("#selQuarter");
+  if (!sm || !sq) return;
+  sm.onchange = function () {
+    msSel = sm.value ? [sm.value] : [];
     msApply();
   };
-  if (all) all.onclick = function (e) {
-    e.stopPropagation();
-    msSel = [];
-    box.classList.remove("open");
-    btn.setAttribute("aria-expanded", "false");
-    msApply();
+  sq.onchange = function () {
+    qSel = sq.value || "";
+    msSync();
+    refresh();
   };
-  var qbox = $("#msQuarter"),
-    qbtn = $("#msQBtn"),
-    qpop = $("#msQPop");
-  if (qbox && qbtn && qpop) {
-    qbtn.onclick = function (e) {
-      e.stopPropagation();
-      var open = !qbox.classList.contains("open");
-      qbox.classList.toggle("open", open);
-      qbtn.setAttribute("aria-expanded", open ? "true" : "false");
-    };
-    qpop.addEventListener("click", function (e) {
-      return e.stopPropagation();
-    });
-    qpop.querySelectorAll(".ms-opt").forEach(function (el) {
-      el.addEventListener("click", function (e) {
-        e.stopPropagation();
-        qSel = el.dataset.v || "";
-        qbox.classList.remove("open");
-        qbtn.setAttribute("aria-expanded", "false");
-        msSync();
-        refresh();
-      });
-    });
-    document.addEventListener("click", function () {
-      qbox.classList.remove("open");
-      qbtn.setAttribute("aria-expanded", "false");
-    });
-  }
   msSync();
 }
 (function boot() {
