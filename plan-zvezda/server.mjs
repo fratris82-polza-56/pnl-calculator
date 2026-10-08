@@ -496,7 +496,10 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
   const MONTHS_OK = ['Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
   let months = String(q.get('months')||'').split(',').map(s=>s.trim()).filter(m=>MONTHS_OK.includes(m));
   if (!months.length){ const one = q.get('month'); if (one && MONTHS_OK.includes(one)) months=[one]; }
-  const quarter = q.get('quarter');            // «1»|«2» — агрегировать строки плана по кварталам
+  const quarter = q.get('quarter');            // «1»..«4» — показывать только этот квартал (агрегат); прочее — по месяцам
+  const qi = ['1','2','3','4'].includes(String(quarter||'')) ? Number(quarter) : null;
+  const QMONTHS = {1:['Январь','Февраль','Март'],2:['Апрель','Май','Июнь'],3:['Сентябрь'],4:['Октябрь','Ноябрь','Декабрь']};
+  if (qi) months = MONTHS_OK.filter(m=>QMONTHS[qi].includes(m));   // 1-2 кв.: планов в БД нет — вернётся пусто, это честно
   const byMonths = months.length && months.length<MONTHS_OK.length; // подмножество месяцев
 
   const hasM = months.length > 0;
@@ -547,14 +550,14 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
 
   // Кварталы: агрегируем строки плана по (pharmacy_id, quarter) — сумма планов/факта
   let out;
-  if (quarter) {
+  if (qi) {
     const groups = {};
     const QLABEL = {3:'3 кв.',4:'4 кв.'};
     planRows.forEach(p => {
       const idx = MONTHS_OK.indexOf(p.month);
-      const qi = Math.floor((8+idx)/3)+1;   // календарный квартал: Сентябрь→3, Октябрь–Декабрь→4
-      const key = `${p.pharmacy_id}|Q${qi}`;
-      groups[key] ??= { pharmacy_id: p.pharmacy_id, pharmacy: p.name, quarter: qi,
+      const qn = Math.floor((8+idx)/3)+1;   // календарный квартал: Сентябрь→3, Октябрь–Декабрь→4
+      const key = `${p.pharmacy_id}|Q${qn}`;
+      groups[key] ??= { pharmacy_id: p.pharmacy_id, pharmacy: p.name, quarter: qn,
         plan_revenue:0, plan_margin:0, fact_revenue:0, fact_margin:0, fact_stm:0, fact_ustm:0, fact_marketing:0,
         plan_stm_sum:0, plan_mkt_sum:0, hasStmPlan:false, hasMktPlan:false,
         forecast_revenue:0, forecast_margin:0, forecast_stm:0, forecast_marketing:0, fact_checks:0, fact_days:0, total_days:0, months:[] };
@@ -601,7 +604,7 @@ route('GET', /^\/api\/summary(?:\?|$)/, (req, res, m, url) => {
         forecast_revenue: Math.round(g.forecast_revenue), forecast_margin: Math.round(g.forecast_margin),
         forecast_pct: g.plan_revenue? +(g.forecast_revenue/g.plan_revenue*100).toFixed(1) : null,
       };
-    });
+    }).filter(r => !qi || r.q === qi);   // выбранный квартал 1/2: просто нет строк — пусто без ошибки
   } else {
   out = planRows.map(p => {
     const f = factByPhMonth[`${p.pharmacy_id}|${p.month}`] ||
@@ -993,7 +996,9 @@ function serveStatic(res, urlPath, req) {
     res.writeHead(404); res.end('not found'); return;
   }
   const type = MIME[extname(file)] || 'application/octet-stream';
-  res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-cache' });
+  const headers = { 'Content-Type': type, 'Cache-Control': 'no-cache' };
+  if (type.indexOf('text/html') === 0) headers['Cache-Control'] = 'no-store, must-revalidate';   // HTML не кэшируем: обновления дашборда должны применяться сразу
+  res.writeHead(200, headers);
   res.end(readFileSync(file));
 }
 

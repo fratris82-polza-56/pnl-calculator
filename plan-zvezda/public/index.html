@@ -227,7 +227,18 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
           </div>
         </div>
       </div>
-      <button type="button" class="btn btn-q" id="btnQ" title="Группировать месяцы по кварталам">По кварталам</button>
+      <div class="ms" id="msQuarter">
+        <button type="button" class="ms-btn" id="msQBtn" aria-haspopup="listbox" aria-expanded="false" title="Разрез по кварталам">
+          <span id="msQLabel">Все кварталы</span><span class="ms-car"></span>
+        </button>
+        <div class="ms-pop" id="msQPop">
+          <div class="ms-opt all" data-v=""><span class="ms-ck"></span>Все кварталы</div>
+          <div class="ms-opt" data-v="1"><span class="ms-ck"></span>1 квартал</div>
+          <div class="ms-opt" data-v="2"><span class="ms-ck"></span>2 квартал</div>
+          <div class="ms-opt" data-v="3"><span class="ms-ck"></span>3 квартал</div>
+          <div class="ms-opt" data-v="4"><span class="ms-ck"></span>4 квартал</div>
+        </div>
+      </div>
       <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
     </div>
   </div>
@@ -729,7 +740,7 @@ function renderKpi(k){
     const pac = pc(r.fact_avg_check, r.target_avg_check, isFuture||!r.fact_days);
     const pcp = r.target_coupons_per_week? `${r.fact_coupons} / ${Math.round(r.target_coupons_per_week*4.3)} ${pc(r.fact_coupons, r.target_coupons_per_week*4.3, !r.fact_coupons)}` : '—';
     h += `<tr><td class="l stick">${r.month}</td>`+
-      `<td class="num">${fcpd} <span class="mut">/ ${r.target_checks_per_day??'—'}</span> ${pcpd}</td>`+
+      `<td class="num">${fcpd} <span class="mut">/ ${(r.target_checks_per_day!=null?r.target_checks_per_day:'—')}</span> ${pcpd}</td>`+
       `<td class="num">${fac} <span class="mut">/ ${r.target_avg_check?fmt(r.target_avg_check):'—'}</span> ${pac}</td>`+
       `<td class="num m-hide mut">${r.target_multi_share!=null?('цель +'+Math.round(r.target_multi_share*100)+' п.п.'):'—'}</td>`+
       `<td class="num m-hide">${pcp}</td></tr>`;
@@ -917,10 +928,11 @@ $('#btnSim').onclick = async () => {
 async function refresh(){
   const phId=$('#fPh').value;
   const sel = (typeof msGet!=='undefined')? msGet() : [];
+  const qs = (typeof qGet!=='undefined')? qGet() : '';
   const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId);
-  if(qtOn && sel.length>1) q.set('quarter','1');
-  if(sel.length) q.set('months',sel.join(','));
-  const mlab = qtOn? 'по кварталам' : (sel.length? sel.join(' + ') : 'весь период');
+  if(qs) q.set('quarter',qs);                      // выбранный квартал 1..4 — месяцы не мешаем
+  else if(sel.length) q.set('months',sel.join(','));
+  const mlab = qs? qs+' кв.' : (sel.length? sel.join(' + ') : 'весь период');
   const sum = await api('/api/summary?'+q);
   renderKpis(sum, phId, mlab);
   renderTable(sum);
@@ -1027,8 +1039,9 @@ function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s =
 
 // ---------- Мультиселект месяцев (Ctrl/клик) + режим кварталов ----------
 let msSel = ['Сентябрь'];            // выбранные месяцы; [] = все
-let qtOn = false;                    // «По кварталам»
+let qSel = '';                       // выбранный квартал: '' | '1'..'4'
 function msGet(){ return msSel; }
+function qGet(){ return qSel; }
 function msLabel(){
   if(!msSel.length) return 'Все месяцы';
   if(msSel.length===1) return msSel[0];
@@ -1040,6 +1053,11 @@ function msSync(){
     const v = el.dataset.v;
     el.classList.toggle('on', msSel.includes(v));
     el.setAttribute('aria-selected', msSel.includes(v)?'true':'false');
+  });
+  const ql = $('#msQLabel'); if(ql) ql.textContent = qSel? qSel+' кв.' : 'Все кварталы';
+  document.querySelectorAll('#msQPop .ms-opt').forEach(el=>{
+    el.classList.toggle('on', el.dataset.v===qSel);
+    el.setAttribute('aria-selected', el.dataset.v===qSel?'true':'false');
   });
   const box = $('#msMonth'); if(box) box.classList.toggle('open', box.classList.contains('open'));
 }
@@ -1054,19 +1072,34 @@ function initMonthFilter(){
     el.addEventListener('click', e=>{
       e.stopPropagation();
       const v = el.dataset.v;
-      if(!v){ msSel = []; msApply(); return; }        // «Все месяцы»
-      if(e.ctrlKey || e.metaKey){                      // Ctrl-мультиселект
+      if(!v){ msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); return; }  // «Все месяцы» → закрыть
+      if(e.ctrlKey || e.metaKey){                      // Ctrl-мультиселект — поп остаётся открытым
         const i = msSel.indexOf(v);
         if(i>=0) msSel.splice(i,1); else { msSel.push(v); msSel.sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b)); }
-      } else msSel = [v];                              // обычный клик — одиночный выбор
+      } else {
+        msSel = [v];                                   // обычный клик — одиночный выбор
+        box.classList.remove('open'); btn.setAttribute('aria-expanded','false');   // …и поп закрывается
+      }
       msApply();
     });
   });
   const clr = $('#msClr'), all = $('#msAll');
-  if(clr) clr.onclick = e=>{ e.stopPropagation(); msSel = []; msApply(); };
-  if(all) all.onclick = e=>{ e.stopPropagation(); msSel = []; msApply(); };
-  const bq = $('#btnQ');
-  if(bq) bq.onclick = ()=>{ qtOn = !qtOn; bq.classList.toggle('on',qtOn); refresh(); };
+  if(clr) clr.onclick = e=>{ e.stopPropagation(); msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); };
+  if(all) all.onclick = e=>{ e.stopPropagation(); msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); };
+  const qbox = $('#msQuarter'), qbtn = $('#msQBtn'), qpop = $('#msQPop');
+  if(qbox && qbtn && qpop){
+    qbtn.onclick = e=>{ e.stopPropagation(); const open = !qbox.classList.contains('open'); qbox.classList.toggle('open',open); qbtn.setAttribute('aria-expanded',open?'true':'false'); };
+    qpop.addEventListener('click', e=>e.stopPropagation());
+    qpop.querySelectorAll('.ms-opt').forEach(el=>{
+      el.addEventListener('click', e=>{
+        e.stopPropagation();
+        qSel = el.dataset.v||'';                     // '' = «Все кварталы» → обычный вид по месяцам
+        qbox.classList.remove('open'); qbtn.setAttribute('aria-expanded','false');
+        msSync(); refresh();
+      });
+    });
+    document.addEventListener('click', ()=>{ qbox.classList.remove('open'); qbtn.setAttribute('aria-expanded','false'); });
+  }
   msSync();
 }
 

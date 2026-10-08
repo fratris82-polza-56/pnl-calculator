@@ -8,13 +8,16 @@ const __origFetch = window.fetch;
 window.fetch = async function(url){
   const u = String(url);
   const mk = d => new Response(JSON.stringify(d), {headers:{'Content-Type':'application/json'}});
-  const qp = (()=>{ try{ return new URL(u, 'http://x/').searchParams; }catch(e){ return new URLSearchParams(); } })();
+  let qp; try { qp = new URL(u, 'http://x/').searchParams; } catch(e) { qp = new URLSearchParams(); }
   const fPh = qp.get('pharmacy_id');
   const MONTHS_OK = ['Сентябрь','Октябрь','Ноябрь','Декабрь'];
-  let fMs = String(qp.get('months')||'').split(',').map(s=>s.trim()).filter(m=>MONTHS_OK.includes(m));
-  if(!fMs.length){ const one = qp.get('month'); if(one && MONTHS_OK.includes(one)) fMs=[one]; }
-  const fQ = qp.get('quarter') === '1';
-  const monthKey = m => ({'Сентябрь':'2026-09','Октябрь':'2026-10','Ноябрь':'2026-11','Декабрь':'2026-12'}[m]||'');
+  let fMs = String(qp.get('months')||'').split(',').map(function(s){return s.trim();}).filter(function(m){return MONTHS_OK.indexOf(m)>=0;});
+  if(!fMs.length){ const one = qp.get('month'); if(one && MONTHS_OK.indexOf(one)>=0) fMs=[one]; }
+  const QMONTHS = {1:['Январь','Февраль','Март'],2:['Апрель','Май','Июнь'],3:['Сентябрь'],4:['Октябрь','Ноябрь','Декабрь']};
+  let fQ = String(qp.get('quarter')||'');
+  if(['1','2','3','4'].indexOf(fQ)>=0) fMs = MONTHS_OK.filter(function(m){return QMONTHS[Number(fQ)].indexOf(m)>=0;});
+  else fQ = '';
+  const monthKey = function(m){ return ({'Сентябрь':'2026-09','Октябрь':'2026-10','Ноябрь':'2026-11','Декабрь':'2026-12'})[m]||''; };
   const _epLS = ()=>{ try{ return JSON.parse(localStorage.getItem('pz.empPlan')||'[]'); }catch(e){ return []; } };
   if(u.includes('/api/plan/employee')){
     const opt = arguments[1]||{};
@@ -53,24 +56,26 @@ window.fetch = async function(url){
       rows.forEach(r=>{
         const qi = r.month==='Сентябрь' ? 3 : 4;
         const key = r.pharmacy_id+'|'+qi;
-        const g = groups[key] ??= {pharmacy_id:r.pharmacy_id, pharmacy:r.pharmacy, month:'', q:qi,
+        if(!groups[key]) groups[key] = {pharmacy_id:r.pharmacy_id, pharmacy:r.pharmacy, month:'', q:qi,
           plan_revenue:0, plan_margin:0, fact_revenue:0, fact_margin:0, fact_stm:0, fact_ustm:0, fact_marketing:0,
           plan_stm:0, plan_marketing:0,
           forecast_revenue:0, forecast_margin:0, forecast_stm:0, forecast_marketing:0, fact_checks:0, fact_days:0, total_days:0};
+        const g = groups[key];
         for(const k of ['plan_revenue','plan_margin','fact_revenue','fact_margin','fact_stm','fact_ustm','fact_marketing','plan_stm','plan_marketing','fact_checks','fact_days','total_days','forecast_revenue','forecast_margin','forecast_stm','forecast_marketing']) g[k]+=r[k]||0;
       });
-      Object.values(groups).forEach(g=>{ g.month = (g.q===3?'3 кв. · Сентябрь':'4 кв. · Октябрь+Ноябрь+Декабрь');
+      rows = Object.keys(groups).map(function(k){return groups[k];}).sort(function(a,b){return a.pharmacy_id-b.pharmacy_id||a.q-b.q;});
+      rows.forEach(function(g){ g.month = (g.q===3?'3 кв. · Сентябрь':'4 кв. · Октябрь+Ноябрь+Декабрь');
         const factStm=g.fact_stm+g.fact_ustm;
         g.pct_revenue=g.plan_revenue?+(g.fact_revenue/g.plan_revenue*100).toFixed(1):null;
         g.pct_margin=g.plan_margin?+(g.fact_margin/g.plan_margin*100).toFixed(1):null;
         g.pct_stm=g.plan_stm?+(factStm/g.plan_stm*100).toFixed(1):null;
         g.pct_marketing=g.plan_marketing?+(g.fact_marketing/g.plan_marketing*100).toFixed(1):null;
         g.forecast_pct=g.plan_revenue?+(g.forecast_revenue/g.plan_revenue*100).toFixed(1):null; });
-      rows = Object.values(groups).sort((a,b)=>a.pharmacy_id-b.pharmacy_id||a.q-b.q);
+      if(Number(fQ)>=1 && Number(fQ)<=4) rows = rows.filter(function(r){return r.q===Number(fQ);});
     }
     let emps = SNAPSHOT.summary.employees||[];
-    if(fPh) emps = emps.filter(e=>String(e.pharmacy_id)===fPh);
-    return mk({rows, employees: emps, asOf: SNAPSHOT.summary.asOf});
+    if(fPh) emps = emps.filter(function(e){return String(e.pharmacy_id)===fPh;});
+    return mk({rows:rows, employees: emps, asOf: SNAPSHOT.summary.asOf});
   }
   if(u.includes('/api/s.series')){
     let ser;
@@ -84,7 +89,7 @@ window.fetch = async function(url){
         ser = Object.entries(byDay).sort((a,b)=>a[0]<b[0]?-1:1).map(([d,fact])=>({d,fact}));
       } else ser = SNAPSHOT.sseries.series||[];
     }
-    if(fMs.length) ser = ser.filter(x=>fMs.some(m=>x.d.startsWith(monthKey(m))));
+    if(fMs.length) ser = ser.filter(function(x){return fMs.some(function(m){return x.d.indexOf(monthKey(m))===0;});});
     return mk({series: ser});
   }
   if(u.includes('/api/integration/log')) return mk([]);
@@ -373,7 +378,18 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
           </div>
         </div>
       </div>
-      <button type="button" class="btn btn-q" id="btnQ" title="Группировать месяцы по кварталам">По кварталам</button>
+      <div class="ms" id="msQuarter">
+        <button type="button" class="ms-btn" id="msQBtn" aria-haspopup="listbox" aria-expanded="false" title="Разрез по кварталам">
+          <span id="msQLabel">Все кварталы</span><span class="ms-car"></span>
+        </button>
+        <div class="ms-pop" id="msQPop">
+          <div class="ms-opt all" data-v=""><span class="ms-ck"></span>Все кварталы</div>
+          <div class="ms-opt" data-v="1"><span class="ms-ck"></span>1 квартал</div>
+          <div class="ms-opt" data-v="2"><span class="ms-ck"></span>2 квартал</div>
+          <div class="ms-opt" data-v="3"><span class="ms-ck"></span>3 квартал</div>
+          <div class="ms-opt" data-v="4"><span class="ms-ck"></span>4 квартал</div>
+        </div>
+      </div>
       <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
     </div>
   </div>
@@ -875,7 +891,7 @@ function renderKpi(k){
     const pac = pc(r.fact_avg_check, r.target_avg_check, isFuture||!r.fact_days);
     const pcp = r.target_coupons_per_week? `${r.fact_coupons} / ${Math.round(r.target_coupons_per_week*4.3)} ${pc(r.fact_coupons, r.target_coupons_per_week*4.3, !r.fact_coupons)}` : '—';
     h += `<tr><td class="l stick">${r.month}</td>`+
-      `<td class="num">${fcpd} <span class="mut">/ ${r.target_checks_per_day??'—'}</span> ${pcpd}</td>`+
+      `<td class="num">${fcpd} <span class="mut">/ ${(r.target_checks_per_day!=null?r.target_checks_per_day:'—')}</span> ${pcpd}</td>`+
       `<td class="num">${fac} <span class="mut">/ ${r.target_avg_check?fmt(r.target_avg_check):'—'}</span> ${pac}</td>`+
       `<td class="num m-hide mut">${r.target_multi_share!=null?('цель +'+Math.round(r.target_multi_share*100)+' п.п.'):'—'}</td>`+
       `<td class="num m-hide">${pcp}</td></tr>`;
@@ -1063,10 +1079,11 @@ $('#btnSim').onclick = async () => {
 async function refresh(){
   const phId=$('#fPh').value;
   const sel = (typeof msGet!=='undefined')? msGet() : [];
+  const qs = (typeof qGet!=='undefined')? qGet() : '';
   const q=new URLSearchParams(); if(phId)q.set('pharmacy_id',phId);
-  if(qtOn && sel.length>1) q.set('quarter','1');
-  if(sel.length) q.set('months',sel.join(','));
-  const mlab = qtOn? 'по кварталам' : (sel.length? sel.join(' + ') : 'весь период');
+  if(qs) q.set('quarter',qs);                      // выбранный квартал 1..4 — месяцы не мешаем
+  else if(sel.length) q.set('months',sel.join(','));
+  const mlab = qs? qs+' кв.' : (sel.length? sel.join(' + ') : 'весь период');
   const sum = await api('/api/summary?'+q);
   renderKpis(sum, phId, mlab);
   renderTable(sum);
@@ -1173,8 +1190,9 @@ function deltaBadge(pct){ if(pct==null) return ''; const c = cls(pct); const s =
 
 // ---------- Мультиселект месяцев (Ctrl/клик) + режим кварталов ----------
 let msSel = ['Сентябрь'];            // выбранные месяцы; [] = все
-let qtOn = false;                    // «По кварталам»
+let qSel = '';                       // выбранный квартал: '' | '1'..'4'
 function msGet(){ return msSel; }
+function qGet(){ return qSel; }
 function msLabel(){
   if(!msSel.length) return 'Все месяцы';
   if(msSel.length===1) return msSel[0];
@@ -1186,6 +1204,11 @@ function msSync(){
     const v = el.dataset.v;
     el.classList.toggle('on', msSel.includes(v));
     el.setAttribute('aria-selected', msSel.includes(v)?'true':'false');
+  });
+  const ql = $('#msQLabel'); if(ql) ql.textContent = qSel? qSel+' кв.' : 'Все кварталы';
+  document.querySelectorAll('#msQPop .ms-opt').forEach(el=>{
+    el.classList.toggle('on', el.dataset.v===qSel);
+    el.setAttribute('aria-selected', el.dataset.v===qSel?'true':'false');
   });
   const box = $('#msMonth'); if(box) box.classList.toggle('open', box.classList.contains('open'));
 }
@@ -1200,19 +1223,34 @@ function initMonthFilter(){
     el.addEventListener('click', e=>{
       e.stopPropagation();
       const v = el.dataset.v;
-      if(!v){ msSel = []; msApply(); return; }        // «Все месяцы»
-      if(e.ctrlKey || e.metaKey){                      // Ctrl-мультиселект
+      if(!v){ msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); return; }  // «Все месяцы» → закрыть
+      if(e.ctrlKey || e.metaKey){                      // Ctrl-мультиселект — поп остаётся открытым
         const i = msSel.indexOf(v);
         if(i>=0) msSel.splice(i,1); else { msSel.push(v); msSel.sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b)); }
-      } else msSel = [v];                              // обычный клик — одиночный выбор
+      } else {
+        msSel = [v];                                   // обычный клик — одиночный выбор
+        box.classList.remove('open'); btn.setAttribute('aria-expanded','false');   // …и поп закрывается
+      }
       msApply();
     });
   });
   const clr = $('#msClr'), all = $('#msAll');
-  if(clr) clr.onclick = e=>{ e.stopPropagation(); msSel = []; msApply(); };
-  if(all) all.onclick = e=>{ e.stopPropagation(); msSel = []; msApply(); };
-  const bq = $('#btnQ');
-  if(bq) bq.onclick = ()=>{ qtOn = !qtOn; bq.classList.toggle('on',qtOn); refresh(); };
+  if(clr) clr.onclick = e=>{ e.stopPropagation(); msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); };
+  if(all) all.onclick = e=>{ e.stopPropagation(); msSel = []; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); msApply(); };
+  const qbox = $('#msQuarter'), qbtn = $('#msQBtn'), qpop = $('#msQPop');
+  if(qbox && qbtn && qpop){
+    qbtn.onclick = e=>{ e.stopPropagation(); const open = !qbox.classList.contains('open'); qbox.classList.toggle('open',open); qbtn.setAttribute('aria-expanded',open?'true':'false'); };
+    qpop.addEventListener('click', e=>e.stopPropagation());
+    qpop.querySelectorAll('.ms-opt').forEach(el=>{
+      el.addEventListener('click', e=>{
+        e.stopPropagation();
+        qSel = el.dataset.v||'';                     // '' = «Все кварталы» → обычный вид по месяцам
+        qbox.classList.remove('open'); qbtn.setAttribute('aria-expanded','false');
+        msSync(); refresh();
+      });
+    });
+    document.addEventListener('click', ()=>{ qbox.classList.remove('open'); qbtn.setAttribute('aria-expanded','false'); });
+  }
   msSync();
 }
 
