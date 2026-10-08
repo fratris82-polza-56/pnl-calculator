@@ -2722,7 +2722,7 @@ window.fetch = function () {
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-08 21:10 · фильтры-списки";
+      el.textContent = "сборка 2026-10-08 21:40 · обороты-es5";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -48626,6 +48626,18 @@ function obPhName(id) {
   });
   return p ? p.name : "Аптека " + id;
 }
+function uniqArr(a) {
+  var out = [],
+    seen = {};
+  for (var i = 0; i < a.length; i++) {
+    var k = a[i];
+    if (!Object.prototype.hasOwnProperty.call(seen, k)) {
+      seen[k] = 1;
+      out.push(k);
+    }
+  }
+  return out;
+}
 function loadOb() {
   return __async(this, null, _regenerator().m(function _callee() {
     var hide, ob, rows, yms, MN, labels, phId, shown, phIds, hasEcom, val, valT, palette, one, mkSeries, net, pc, h, netRow, tr, tm, tc, _t;
@@ -48658,9 +48670,9 @@ function loadOb() {
           hide();
           return _context.a(2);
         case 5:
-          yms = _toConsumableArray(new Set(rows.map(function (r) {
+          yms = uniqArr(rows.map(function (r) {
             return r.ym;
-          }))).sort();
+          })).sort();
           MN = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
           labels = yms.map(function (ym) {
             var _ym$split = ym.split("-"),
@@ -48673,9 +48685,9 @@ function loadOb() {
           shown = phId ? rows.filter(function (r) {
             return String(r.pharmacy_id) === phId;
           }) : rows;
-          phIds = _toConsumableArray(new Set(shown.map(function (r) {
+          phIds = uniqArr(shown.map(function (r) {
             return r.pharmacy_id;
-          }))).sort(function (a, b) {
+          })).sort(function (a, b) {
             return a - b;
           });
           hasEcom = shown.some(function (r) {
@@ -49332,9 +49344,9 @@ function drawMonth(sum) {
     return r.q > 0;
   });
   if (qrows.length) {
-    var labels = _toConsumableArray(new Set(qrows.map(function (r) {
+    var labels = uniqArr(qrows.map(function (r) {
       return r.month;
-    })));
+    }));
     var phId = $("#fPh").value;
     var agg = function agg(lab) {
       return qrows.filter(function (r) {
