@@ -1,0 +1,13 @@
+{
+  "id": "zalezalka",
+  "title": "Залежалка",
+  "icon": "📦",
+  "version": "1.0.0",
+  "roles": ["manager"],
+ "nav": {
+    "group": "Разделы",
+    "order": 8
+  },
+  "entry": "public/index.html",
+  "enabled": true
+}

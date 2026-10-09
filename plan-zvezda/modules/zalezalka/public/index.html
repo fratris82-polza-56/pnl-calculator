@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Залежалка · polza.ru Аптеки</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiNlZGVhZTIiLz4KPHBhdGggZD0iTTEyMCA2MEMxMjAgNjUuNTMwMSAxMTcuNzU4IDcwLjUzNjkgMTE0LjEzMSA3NC4xNjM4QzExMC41MSA3Ny43OTA3IDEwNS41MDMgODAuMDMyNSA5OS45NzI3IDgwLjAzMjVIODAuMDI3NFY5OS45NzI2QzgwLjAyNzQgMTExLjAzMyA3MS4wNjUzIDEyMCA2MCAxMjBDNDguOTM0NyAxMjAgMzkuOTcyNyAxMTEuMDMzIDM5Ljk3MjcgOTkuOTcyNlY4MC4wMzI1SDU5Ljk2OTJDNjUuNDk5MyA4MC4wMzI1IDcwLjUwNjIgNzcuNzkwNyA3NC4xMzMxIDc0LjE2MzhDNzcuNzU0OCA3MC41MzY5IDc5Ljk5NjYgNjUuNTMwMSA3OS45OTY2IDYwQzc5Ljk5NjYgNDguOTM5OCA3MS4wMzQ2IDM5Ljk3MjYgNTkuOTY5MiAzOS45NzI2SDM5Ljk3MjdWMjAuMDI3NEMzOS45NzI3IDguOTY3MTcgNDguOTM5OCAwIDYwIDBDNjUuNTMwMSAwIDcwLjUzNyAyLjI0MTc5IDc0LjE2MzggNS44Njg2N0M3Ny43ODU2IDkuNDkwNDIgODAuMDI3NCAxNC40OTczIDgwLjAyNzQgMjAuMDI3NFYzOS45NzI2SDk5Ljk3MjdDMTExLjAzMyAzOS45NzI2IDEyMCA0OC45Mzk4IDEyMCA2MFoiIGZpbGw9IiM1RDhERDQiLz4KPHBhdGggZD0iTTc5Ljk5NjYgNjBDNzkuOTk2NiA2NS41MzAxIDc3Ljc1NDggNzAuNTM3IDc0LjEzMzEgNzQuMTYzOEM3MC41MDYyIDc3Ljc5MDcgNjUuNDk5MyA4MC4wMzI1IDU5Ljk2OTIgODAuMDMyNUgzOS45NzI3VjM5Ljk3MjdINTkuOTY5MkM3MS4wMzQ2IDM5Ljk3MjcgNzkuOTk2NiA0OC45Mzk4IDc5Ljk5NjYgNjBaIiBmaWxsPSIjZWRlYWUyIi8+CjxwYXRoIGQ9Ik0zOS45NzI2IDM5Ljk3MjdWODAuMDMyNUgyMC4wMzI1QzguOTY3MTcgODAuMDMyNSAwIDcxLjA2MDIgMCA2MEMwIDQ4LjkzOTggOC45NjcxNyAzOS45NzI3IDIwLjAzMjUgMzkuOTcyN0gzOS45NzI2WiIgZmlsbD0iIzVEOERENCIvPgo8L3N2Zz4=">
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--navy:#1c2b4a;--txt:#1c2333;--mut:#7a8399;--line:#e3e8f2;--ok:#1d8a4e;--bad:#c23a3a;--blue:#5383c7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:14px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+  .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
+  .topbar h1{font-size:16px;font-weight:750}
+  .back{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;background:transparent}
+  .back:hover{background:rgba(255,255,255,.12)}
+  .wrap{margin:0 auto;padding:12px 10px 40px;max-width:1400px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;overflow-x:auto}
+  .card h2{font-size:14px;margin-bottom:8px;color:var(--navy)}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:12px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .kpi .t{font-size:11.5px;color:var(--mut);margin-bottom:4px}
+  .kpi .v{font-size:19px;font-weight:750;color:var(--navy)}
+  .kpi .s{font-size:11.5px;color:var(--mut);margin-top:3px}
+  .kpi-big .v{font-size:22px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{border-bottom:1px solid var(--line);padding:6px 6px;text-align:right}
+  td{white-space:nowrap}
+  th.l,td.l{text-align:left}
+  th{color:var(--mut);font-weight:600;font-size:12px;white-space:normal;vertical-align:bottom}
+  tr:hover td{background:#f8fafd}
+  .pos{color:var(--ok);font-weight:600}
+  .neg{color:var(--bad);font-weight:600}
+  .mut{color:var(--mut)}
+  .note{font-size:12px;color:var(--mut);margin:2px 0 10px}
+  h3.sub{font-size:12.5px;color:var(--navy);margin:0 0 8px}
+  .err{color:var(--bad);font-size:13px;padding:12px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="back" onclick="parent&&parent.mNav?parent.mNav('dashboard'):location.href='/'">← Главное меню</button>
+  <h1>📦 Залежалка</h1>
+</div>
+<div class="wrap">
+  <div class="note" id="note">загрузка…</div>
+  <div class="kpis" id="kpis"></div>
+  <div class="card"><table id="tbl"></table></div>
+  <div class="card" id="topWrap" style="display:none"><h3 class="sub" id="topTitle"></h3><table id="tblTop"></table></div>
+</div>
+<script>
+(function () {
+  "use strict";
+  function $(s) { return document.querySelector(s); }
+  function fmtK(v) { return Math.round(v).toLocaleString("ru-RU") + " ₽"; }
+  function fmtM(v) { return (v / 1e6).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " млн ₽"; }
+  function fmtNum(v) { return Number(v).toLocaleString("ru-RU"); }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function zalCls(p) { return p >= 10 ? "neg" : p >= 5 ? "" : "pos"; }
+
+  function render(d) {
+    var T = d.total;
+    $("#note").textContent = "залеж старше " + d.threshold + " дней · " + d.period + " · " +
+      d.records + " позиций · обновлено " + d.asOf;
+
+    $("#kpis").innerHTML =
+      '<div class="kpi kpi-big"><div class="t">Залеж старше ' + d.threshold + ' дней</div>' +
+      '<div class="v num">' + fmtK(T.oldOpt) + '</div>' +
+      '<div class="s">' + T.pctOldOpt.toFixed(2) + '% опт-суммы сети · ' + T.oldItems + ' позиций из ' + fmtNum(T.items) + '</div>' +
+      '<div class="s">в количестве ' + T.pctOldKol.toFixed(1) + '% (' + fmtNum(T.oldKol) + ' шт из ' + fmtNum(T.kol) + ')</div></div>' +
+      '<div class="kpi"><div class="t">Залеж сети, опт</div><div class="v num">' + fmtM(T.opt) + '</div><div class="s">' + T.items + ' позиций</div></div>' +
+      '<div class="kpi"><div class="t">Доля в рознице</div><div class="v num">' + T.pctOldRozn.toFixed(2) + '%</div><div class="s">' + fmtK(T.oldRozn) + ' из ' + fmtM(T.roz) + '</div></div>';
+
+    var th = '<thead><tr><th class="l">Аптека</th><th>Позиций</th><th>Кол-во</th><th>Опт, ₽</th><th>Доля в сети</th>' +
+      '<th>Залеж &gt;' + d.threshold + ' дн, ₽</th><th>Доля от своего залежа</th>' +
+      '<th>Кол-во залежа</th><th>Доля кол-ва</th><th>Макс. залёж, дн</th></tr></thead>';
+    var body = "";
+    d.pharmacies.forEach(function (p) {
+      body += '<tr>' +
+        '<td class="l">' + esc(p.name) + '</td>' +
+        '<td>' + fmtNum(p.items) + '</td>' +
+        '<td>' + fmtNum(p.kol) + '</td>' +
+        '<td>' + fmtK(p.opt) + '</td>' +
+        '<td>' + p.shareOpt.toFixed(2) + '%</td>' +
+        '<td>' + fmtK(p.oldOpt) + '</td>' +
+        '<td class="' + zalCls(p.pctOldInSelf) + '">' + p.pctOldInSelf.toFixed(2) + '%</td>' +
+        '<td>' + fmtNum(p.oldKol) + '</td>' +
+        '<td>' + p.pctOldKol.toFixed(1) + '%</td>' +
+        '<td>' + fmtNum(p.maxDays) + '</td>' +
+        '</tr>';
+    });
+    body += '<tr style="font-weight:700"><td class="l">ИТОГО сеть</td>' +
+      '<td>' + fmtNum(T.items) + '</td><td>' + fmtNum(T.kol) + '</td>' +
+      '<td>' + fmtK(T.opt) + '</td><td>100,00%</td>' +
+      '<td>' + fmtK(T.oldOpt) + '</td>' +
+      '<td class="' + zalCls(T.pctOldOpt) + '">' + T.pctOldOpt.toFixed(2) + '%</td>' +
+      '<td>' + fmtNum(T.oldKol) + '</td><td>' + T.pctOldKol.toFixed(1) + '%</td>' +
+      '<td>—</td></tr>';
+    $("#tbl").innerHTML = th + '<tbody>' + body + '</tbody>';
+
+    // Топ позиций: по самой проблемной аптеке (наибольший старый залеж)
+    var sel = d.pharmacies.slice().sort(function (a, b) { return b.oldOpt - a.oldOpt; })[0];
+    if (sel && sel.top && sel.top.length) {
+      $("#topTitle").textContent = 'Крупнейшие позиции в залеже: ' + sel.name + ' — ' + fmtK(sel.oldOpt) + ' (' + sel.pctOldInSelf.toFixed(2) + '% её залежа)';
+      var th2 = '<thead><tr><th class="l">Позиция</th><th>Кол-во</th><th>Срок залежа, дн</th><th>Сумма опт, ₽</th><th>Доля залежа аптеки</th></tr></thead>';
+      var b2 = sel.top.map(function (t) {
+        return '<tr><td class="l" style="white-space:normal;max-width:380px">' + esc(t.name) + '</td>' +
+          '<td>' + fmtNum(t.kol) + '</td><td>' + fmtNum(t.days) + '</td>' +
+          '<td>' + fmtK(t.opt) + '</td><td>' + (sel.oldOpt ? (t.opt / sel.oldOpt * 100).toFixed(1) : '0,0') + '%</td></tr>';
+      }).join('');
+      $("#tblTop").innerHTML = th2 + '<tbody>' + b2 + '</tbody>';
+      $("#topWrap").style.display = '';
+    } else {
+      $("#topWrap").style.display = 'none';
+    }
+  }
+
+  var TOKEN = localStorage.getItem("me_token") || new URLSearchParams(location.search).get("t") || "";
+  fetch("/api/zalezalka", { headers: { "Authorization": "Bearer " + TOKEN } })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(function (d) {
+      if (!d || d.available === false || !d.pharmacies || !d.pharmacies.length) {
+        $("#note").textContent = "данных по залежалке пока нет";
+        return;
+      }
+      render(d);
+    })
+    .catch(function (e) {
+      $("#note").textContent = "";
+      $("#kpis").innerHTML = '<div class="err">Не удалось загрузить данные: ' + esc(e.message) + '</div>';
+    });
+})();
+</script>
+</body>
+</html>
