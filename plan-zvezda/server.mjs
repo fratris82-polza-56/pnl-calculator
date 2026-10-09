@@ -1,4 +1,4 @@
-// Сервер план-дашборда «Звезда»: статика + REST API (в т.ч. приём факта из аптечного ПО).
+// Сервер план-дашборда «Полза · Аптеки»: статика + REST API (в т.ч. приём факта из аптечного ПО).
 import http from 'node:http';
 import crypto from 'node:crypto';
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
@@ -405,7 +405,7 @@ route('GET', /^\/integration\/?$/, (req, res) => {
     .map(p => `<tr><td class="num">${p.id}</td><td>${p.name}</td></tr>`).join('');
   const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>План «Звезда» — интеграция аптечного ПО</title>
+<title>Полза · Аптеки — интеграция аптечного ПО</title>
 <style>
 body{font:14px/1.55 system-ui,sans-serif;max-width:860px;margin:24px auto;padding:0 16px;color:#1a2230}
 h1{font-size:22px}h2{font-size:16px;margin-top:28px}code,pre{background:#f2f4f8;border-radius:6px;font-size:12.5px}
@@ -414,7 +414,7 @@ table{border-collapse:collapse;width:100%;margin:10px 0}th,td{border:1px solid #
 th{background:#f2f4f8}.num{text-align:center}.mut{color:#66707f;font-size:12.5px}.key{font-family:monospace;background:#fff8e1;border:1px dashed #d9b300;padding:6px 10px;border-radius:6px;display:inline-block}
 .warn{background:#fff4f4;border-left:3px solid #d84a3f;padding:8px 12px;border-radius:4px}
 </style></head><body>
-<h1>Выгрузка продаж в дашборд «План-Звезда»</h1>
+<h1>Выгрузка продаж в дашборд «Полза · Аптеки»</h1>
 <p>Сервер принимает продажи по HTTP (POST JSON). Достаточно отправлять пакет один-два раза в день (например в 07:00 и в течение дня каждый час). Повторная отправка того же пакета <b>безопасна</b> — чеки с уже известным номером пропускаются автоматически.</p>
 
 <h2>1. Адрес и ключ доступа</h2>
