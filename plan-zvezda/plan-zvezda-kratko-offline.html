@@ -3239,7 +3239,7 @@ window.fetch = function () {
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-09 14:10 · центр креста = фон";
+      el.textContent = "сборка 2026-10-09 14:25 · рейтинг";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -15293,8 +15293,9 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .team .kpi b{color:var(--ink)}
 .team .pv{font-size:14px;font-weight:750;text-align:right}
 .team .emp .mbar{grid-column:1/3;margin:0}
-.team .badges{display:flex;flex-wrap:wrap;gap:4px;margin:-2px 0 8px}
-.team .bdg{font-size:10px;font-weight:600;color:#2f6bb0;background:#e8f1fb;border-radius:6px;padding:2px 7px;white-space:nowrap}
+.team .badges{display:flex;flex-wrap:wrap;gap:3px 4px;margin:-2px 0 8px}
+.team .bdg{font-size:9.5px;font-weight:600;color:#2f6bb0;background:#e8f1fb;border-radius:6px;padding:2px 5px;white-space:nowrap}
+.team .bdg b{font-weight:700}
 .team .hint{font-size:11px;color:var(--mut);margin-top:8px}
 .rec{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #eef2f7;font-size:12.5px;line-height:1.45}
 .rec:last-child{border-bottom:none}
@@ -15989,15 +15990,15 @@ function renderTeam(emps, me) {
     return m.to > 0;
   }, function (a, b) {
     return b.to - a.to;
-  }], ['средний чек', function (m) {
+  }], ['ср. чек', function (m) {
     return m.ac > 0;
   }, function (a, b) {
     return b.ac - a.ac;
-  }], ['чеки', function (m) {
+  }], ['Чек', function (m) {
     return m.ch > 0;
   }, function (a, b) {
     return b.ch - a.ch;
-  }], ['маркетинг', function (m) {
+  }], ['Маркетинг', function (m) {
     return m.mk > 0;
   }, function (a, b) {
     return b.mk - a.mk;
@@ -16018,7 +16019,7 @@ function renderTeam(emps, me) {
     });
     if (!cands.length) return;
     cands.sort(d[2]);
-    medals.push('<span class="bdg">' + d[0] + ': ' + esc(fioShort(cands[0].e.fio)) + '</span>');
+    medals.push('<span class="bdg"><b>' + d[0] + '</b> ' + esc(fioShort(cands[0].e.fio)) + '</span>');
   });
   bdg.innerHTML = medals.join('');
   box.innerHTML = emps.map(function (e) {
