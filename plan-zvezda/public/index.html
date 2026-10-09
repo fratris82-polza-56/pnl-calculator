@@ -108,7 +108,7 @@
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-09 09:25 · шапки-таблиц";
+      el.textContent = "сборка 2026-10-09 10:10 · обороты-12мес";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -353,7 +353,8 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
       <button class="sbtn" onclick="sblGo('sec-tbl')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2"/><path d="M3.2 9.8h17.6M9.8 9.8v9.4M15.4 9.8v9.4"/></svg></span><span>Сводная таблица</span></button>
       <button class="sbtn" onclick="sblGo('sec-emp')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.2" r="3.1"/><path d="M3.6 19c.8-3.1 2.8-4.7 5.4-4.7s4.6 1.6 5.4 4.7"/><circle cx="16.9" cy="9.3" r="2.5"/><path d="M16.2 14.7c2.2.3 3.8 1.7 4.5 4.3"/></svg></span><span>Сотрудники</span></button>
       <button class="sbtn" onclick="sblGo('sec-kpi')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg></span><span>KPI квартала</span></button>
-      <button class="sbtn" onclick="sblGo('sec-mkt')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.2c0-.9.7-1.7 1.7-1.7h13.6c1 0 1.7.8 1.7 1.7v1.5a2.3 2.3 0 0 0 0 4.6v1.5c0 .9-.7 1.7-1.7 1.7H5.2c-1 0-1.7-.8-1.7-1.7v-1.5a2.3 2.3 0 0 0 0-4.6z"/><path d="M14.6 7v10" stroke-dasharray="2.2 2.4"/></svg></span><span>Отказы и купоны</span></button>
+      <button class="sbtn" onclick="sblGo('sec-ob')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5h17M4.5 16l4.8-5.3 3.4 3L19 7.5M15.5 7.5H19V11"/></svg></span><span>Обороты по месяцам</span></button>
+      <button class="sbtn" onclick="sblGo('sec-zal')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 12 3.6l8.8 4.8v7.2L12 20.4l-8.8-4.8z"/><path d="M3.2 8.4 12 13.2l8.8-4.8M12 13.2v7.2"/></svg></span><span>Залежалка</span></button>
       <button class="sbtn" onclick="sblSettings(this)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.6h8.6M17.4 7.6H20M4 16.4h2.6M11.4 16.4H20"/><circle cx="15" cy="7.6" r="2.1"/><circle cx="9" cy="16.4" r="2.1"/></svg></span><span>Обмен и рассылки</span></button>
     </nav>
     <div class="sbl-foot">
@@ -386,6 +387,11 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
     <div class="card chart-card" id="cardObNet" style="grid-column:1/-1"><h3 id="hObNet">Сеть: выручка (ТО) и ВД по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObNet"></canvas></div></div>
   </div>
   <div class="card tbl-wrap"><table id="tblOb"></table></div>
+
+  <div class="h2row" id="sec-zal"><h2>Залежалка</h2><span class="note" id="zalNote">залеж старше 600 дней — доля опт-суммы по аптекам</span></div>
+  <div class="grid kpis" id="zalKpi" style="margin-bottom:2px"></div>
+  <div class="card tbl-wrap"><table id="tblZal"></table></div>
+  <div class="card tbl-wrap" id="zalTopWrap" style="display:none"><table id="tblZalTop"></table></div>
 
   <div class="h2row" style="margin-top:20px"><button class="btn btn-gear" id="btnSettings"><svg class="gear-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.9 1.9M7.4 16.6l-1.9 1.9M18.5 18.5l-1.9-1.9M7.4 7.4L5.5 5.5"/></svg><span>Настройки</span></button></div>
   <div class="api" id="apiSettings" style="display:none">
@@ -592,7 +598,16 @@ function loadOb() {
         case 5:
           yms = uniqArr(rows.map(function (r) {
             return r.ym;
-          })).sort();
+          }));
+          uniqArr(yms.map(function (ym) {
+            return ym.slice(0, 4);
+          })).forEach(function (yy) {
+            for (var mm = 1; mm <= 12; mm++) {
+              var full = yy + "-" + (mm < 10 ? "0" : "") + mm;
+              if (yms.indexOf(full) < 0) yms.push(full);
+            }
+          });
+          yms.sort();
           MN = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
           labels = yms.map(function (ym) {
             var _ym$split = ym.split("-"),
@@ -2166,6 +2181,130 @@ function _loadModNav() {
     }, _callee15, null, [[1, 6]]);
   }));
 }
+// Секция «Залежалка»: доля залежа старше порога по каждой аптеке.
+// Данные — снапшот /api/zalezalka (выгрузка 1С «Залежалый товар»); в офлайн-файле тот же JSON вшит в SNAPSHOT.
+var ZAL = null;
+function fmtK(v) {
+  return Math.round(v).toLocaleString("ru-RU") + " ₽";
+}
+function fmtNum(v) {
+  return Number(v).toLocaleString("ru-RU");
+}
+// Класс доли: чем больше доля старого залежа, тем «злее»
+function zalCls(p) {
+  return p >= 10 ? "neg" : p >= 5 ? "" : "pos";
+}
+function renderZal(d, phId) {
+  var T = d.total;
+  var wrap = $("#zalKpi");
+  var note = $("#zalNote");
+  if (note) {
+    note.textContent = "залеж старше " + d.threshold + " дней · " + d.period + " · " +
+      d.records + " позиций · обновлено " + d.asOf;
+  }
+  // KPI: сколько денег в старом залеже и какая это доля
+  var oldPct = T.pctOldOpt;
+  wrap.innerHTML = kpiBig("Залеж старше " + d.threshold + " дней",
+    fmtK(T.oldOpt),
+    "<div class=\"s\">" + oldPct.toFixed(2) + "% опт-суммы сети · " +
+    T.oldItems + " позиций из " + fmtNum(T.items) +
+    "</div><div class=\"s\">в количестве " + T.pctOldKol.toFixed(1) +
+    "% (" + fmtNum(T.oldKol) + " шт из " + fmtNum(T.kol) + ")</div>") +
+    kpi("Залеж сети, опт", fmtM(T.opt), T.items + " позиций") +
+    kpi("Доля в рознице", T.pctOldRozn.toFixed(2) + "%", fmtK(T.oldRozn) + " из " + fmtM(T.roz));
+
+  // Таблица по аптекам. При выбранной аптеке в шапке — остальные показываем приглушённо.
+  var pal = CAT && CAT.pharmacy ? CAT.pharmacy : [];
+  var colorOf = {};
+  pal.forEach(function (p) { colorOf[p.name] = p.color; });
+  var th = "<thead><tr><th class=\"stick\" style=\"text-align:left\">Аптека</th>" +
+    "<th>Позиций</th><th>Кол-во</th><th>Опт, ₽</th><th>Доля в сети</th>" +
+    "<th>Залеж &gt;" + d.threshold + " дн, ₽</th><th>Доля от своего залежа</th>" +
+    "<th>Кол-во залежа</th><th>Доля кол-ва</th><th>Макс. залёж, дн</th></tr></thead>";
+  var body = "";
+  d.pharmacies.forEach(function (p) {
+    var dim = phId && String(phId) !== "all" && p.name !== obPhSelName(phId) ? " style=\"opacity:.42\"" : "";
+    var dot = colorOf[p.name] ? "<span style=\"display:inline-block;width:8px;height:8px;border-radius:50%;background:" + colorOf[p.name] + ";margin-right:6px\"></span>" : "";
+    body += "<tr" + dim + ">" +
+      "<td class=\"stick\" style=\"text-align:left\">" + dot + _escHtml(p.name) + "</td>" +
+      "<td>" + fmtNum(p.items) + "</td>" +
+      "<td>" + fmtNum(p.kol) + "</td>" +
+      "<td>" + fmtK(p.opt) + "</td>" +
+      "<td>" + p.shareOpt.toFixed(2) + "%</td>" +
+      "<td>" + fmtK(p.oldOpt) + "</td>" +
+      "<td class=\"" + zalCls(p.pctOldInSelf) + "\">" + p.pctOldInSelf.toFixed(2) + "%</td>" +
+      "<td>" + fmtNum(p.oldKol) + "</td>" +
+      "<td>" + p.pctOldKol.toFixed(1) + "%</td>" +
+      "<td>" + fmtNum(p.maxDays) + "</td>" +
+      "</tr>";
+  });
+  // Итоговая строка
+  body += "<tr class=\"ph-row\"><td class=\"stick\" style=\"text-align:left\">ИТОГО сеть</td>" +
+    "<td>" + fmtNum(T.items) + "</td><td>" + fmtNum(T.kol) + "</td>" +
+    "<td>" + fmtK(T.opt) + "</td><td>100,00%</td>" +
+    "<td>" + fmtK(T.oldOpt) + "</td>" +
+    "<td class=\"" + zalCls(T.pctOldOpt) + "\">" + T.pctOldOpt.toFixed(2) + "%</td>" +
+    "<td>" + fmtNum(T.oldKol) + "</td><td>" + T.pctOldKol.toFixed(1) + "%</td>" +
+    "<td>—</td></tr>";
+  $("#tblZal").innerHTML = th + "<tbody>" + body + "</tbody>";
+
+  // Топ позиций по выбранной аптеке (или по самой проблемной)
+  var sel = null;
+  if (phId && String(phId) !== "all") {
+    sel = d.pharmacies.filter(function (p) { return p.name === obPhSelName(phId); })[0];
+  }
+  if (!sel) sel = d.pharmacies[0];
+  var tw = $("#zalTopWrap");
+  if (sel && sel.top && sel.top.length) {
+    var h2 = "<h3 style=\"font-size:12.5px;color:var(--navy);margin:0 0 8px\">Крупнейшие позиции в залеже: " +
+      _escHtml(sel.name) + " — " + fmtK(sel.oldOpt) + " (" + sel.pctOldInSelf.toFixed(2) + "% её залежа)</h3>";
+    var th2 = "<thead><tr><th class=\"stick\" style=\"text-align:left\">Позиция</th>" +
+      "<th>Кол-во</th><th>Срок залежа, дн</th><th>Сумма опт, ₽</th><th>Доля залежа аптеки</th></tr></thead>";
+    var b2 = sel.top.map(function (t) {
+      return "<tr><td class=\"stick\" style=\"text-align:left;white-space:normal;max-width:380px\">" + _escHtml(t.name) + "</td>" +
+        "<td>" + fmtNum(t.kol) + "</td><td>" + fmtNum(t.days) + "</td>" +
+        "<td>" + fmtK(t.opt) + "</td><td>" + (sel.oldOpt ? (t.opt / sel.oldOpt * 100).toFixed(1) : "0,0") + "%</td></tr>";
+    }).join("");
+    $("#tblZalTop").innerHTML = th2 + "<tbody>" + b2 + "</tbody>";
+    var prev = tw.querySelector("h3");
+    if (prev) prev.remove();
+    tw.insertAdjacentHTML("afterbegin", h2);
+    tw.style.display = "";
+  } else {
+    tw.style.display = "none";
+  }
+}
+function obPhSelName(phId) {
+  if (!CAT || !CAT.pharmacy) return "";
+  var f = CAT.pharmacy.filter(function (p) { return String(p.id) === String(phId); });
+  return f.length ? f[0].name : "";
+}
+function loadZal() {
+  return __async(this, null, _regenerator().m(function _callee() {
+    var d, phId, ok;
+    return _regenerator().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          phId = ($("#fPh") || {}).value;
+          _context.n = 1;
+          return api("/api/zalezalka");
+        case 1:
+          d = _context.v;
+          _context.n = 3;
+          break;
+        case 2:
+          _t6 = _context.v;
+        case 3:
+          ok = d && d.available !== false && d.pharmacies && d.pharmacies.length;
+          if (ok) {
+            ZAL = d;
+            return _context.a(2, renderZal(d, phId));
+          }
+          return _context.a(2, void 0);
+      }
+    }, _callee, null, [[1, 3]]);
+  }));
+}
 function mNav(id) {
   if (id === "dashboard") {
     document.getElementById("mframe").classList.remove("visible");
@@ -2379,6 +2518,7 @@ function main() {
           $("#fPh").onchange = function () {
             refresh();
             loadOb();
+            loadZal();
           };
           _context19.n = 3;
           return refresh();
@@ -2392,11 +2532,14 @@ function main() {
           _context19.n = 6;
           return loadOb();
         case 6:
+          _context19.n = 7;
+          return loadZal();
+        case 7:
           phOptions($("#soPh"));
           phOptions($("#cpPh"));
-          _context19.n = 7;
+          _context19.n = 8;
           return loadSoTop();
-        case 7:
+        case 8:
           $("#btnSo").onclick = addSo;
           $("#btnCp").onclick = addCp;
           $("#btnSoTop").onclick = loadSoTop;
@@ -2458,7 +2601,7 @@ function main() {
           };
           setInterval(loadLog, 15e3);
           _loadModNav();
-        case 8:
+        case 9:
           return _context19.a(2);
       }
     }, _callee19);

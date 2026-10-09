@@ -370,6 +370,19 @@ route('GET', /^\/api\/obeorot(?:\?|$)/, (req, res, m, url) => {
   json(res, 200, { rows });
 });
 
+// Залежалка (неликвиды) — снапшот из выгрузки 1С «Залежалый товар».
+// Файл обновляется скриптом projects/stm-monthly/zalezalka_snapshot.js, здесь только отдача.
+route('GET', /^\/api\/zalezalka(?:\?|$)/, (req, res) => {
+  const f = join(ROOT, 'zalezalka.json');
+  if (!existsSync(f)) return json(res, 200, { available: false });
+  try {
+    const d = JSON.parse(readFileSync(f, 'utf8'));
+    json(res, 200, Object.assign({ available: true }, d));
+  } catch (e) {
+    json(res, 200, { available: false, error: String(e.message) });
+  }
+});
+
 // Состояние интеграции для карточки в настройках дашборда
 route('GET', /^\/api\/integration\/info(?:\?|$)/, (req, res) => {
   const phs = db.prepare('SELECT id, name FROM pharmacy ORDER BY id').all();
