@@ -109,7 +109,7 @@
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-09 12:27 · меню-инструменты";
+      el.textContent = "сборка 2026-10-09 12:54 · планирование-разделы";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -348,10 +348,10 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
     </div>
     <nav class="sbl-nav" id="mnav">
       <button class="sbtn active" id="mbtn-dashboard" onclick="mNav('dashboard');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20h17M5.5 20v-7M12 20V5.5M18.5 20v-10"/></svg></span><span>Главное меню</span></button>
-      <div class="sgrp">Инструменты</div>
+      <div class="sgrp">Планирование</div>
       <button class="sbtn" id="mbtn-pnl" onclick="mNav('pnl');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2"/><path d="M3.2 9.8h17.6M8.2 9.8v9.4M13.2 9.8v9.4M18.2 14.5v4.7"/></svg></span><span>Калькулятор P&amp;L</span></button>
       <button class="sbtn" id="mbtn-payback" onclick="mNav('payback');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.4" r="7.2"/><path d="M12 9.6v3.8l2.6 1.8M9.4 3.6h5.2"/></svg></span><span>Окупаемость</span></button>
-      <div class="sgrp">Разделы дашборда</div>
+      <div class="sgrp">Разделы</div>
       <button class="sbtn" onclick="sblGo('kpis')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="6.2" width="18.4" height="11.6" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.2 12h.01M17.8 12h.01"/></svg></span><span>Показатели</span></button>
       <button class="sbtn" onclick="sblGo('charts')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5h17M4.5 16l4.8-5.3 3.4 3L19 7.5M15.5 7.5H19V11"/></svg></span><span>Графики</span></button>
       <button class="sbtn" onclick="sblGo('sec-tbl')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2"/><path d="M3.2 9.8h17.6M9.8 9.8v9.4M15.4 9.8v9.4"/></svg></span><span>Сводная таблица</span></button>

@@ -10,31 +10,35 @@
   *{box-sizing:border-box;margin:0;padding:0}
   body{font:14px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
   .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
-  .topbar h1{font-size:16px;font-weight:750;margin-right:auto}
+  .topbar h1{font-size:16px;font-weight:750}
   .back{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;background:transparent}
   .back:hover{background:rgba(255,255,255,.12)}
-  .wrap{max-width:1180px;margin:0 auto;padding:12px 10px 40px}
+  .wrap{margin:0 auto;padding:12px 10px 40px;max-width:1400px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;overflow-x:auto}
   .card h2{font-size:14px;margin-bottom:8px;color:var(--navy)}
+  .mrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .mrow label{color:var(--mut);font-size:13px}
   select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--txt)}
-  input.num{width:110px;text-align:right}
-  input.txt{width:180px}
-  table{border-collapse:collapse;width:100%;font-size:13px}
-  th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:right;white-space:nowrap}
+  input.num{width:86px;text-align:right;padding:5px 6px}
+  input.txt{width:150px}
+  table{border-collapse:collapse;width:100%;font-size:13px;table-layout:auto}
+  th,td{border-bottom:1px solid var(--line);padding:6px 6px;text-align:right}
+  td{white-space:nowrap}
   th.l,td.l{text-align:left}
-  th{color:var(--mut);font-weight:600;font-size:12px}
+  th{color:var(--mut);font-weight:600;font-size:12px;white-space:normal;vertical-align:bottom}
   tr:hover td{background:#f8fafd}
   td .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
   .pos{color:var(--ok);font-weight:600}
   .neg{color:var(--bad);font-weight:600}
   .mut{color:var(--mut)}
-  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;color:var(--navy)}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;color:var(--navy)}
   .btn:hover{border-color:var(--blue)}
   .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
   .btn.danger{color:var(--bad)}
   .note{font-size:12px;color:var(--mut);margin-top:6px}
   .toast{position:fixed;bottom:14px;right:14px;background:var(--navy);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:.96}
+  @media (max-width:760px){ .card{overflow-x:auto} }
   .err{color:var(--bad);font-size:12px;margin-left:10px}
 </style>
 </head>
@@ -42,18 +46,20 @@
 <div class="topbar">
   <button class="back" onclick="parent&&parent.mNav?parent.mNav('dashboard'):location.href='/'">← Главное меню</button>
   <h1>Окупаемость</h1>
-  <label class="mut" style="color:#c7d2e8">Месяц</label>
-  <select id="fMonth"></select>
   <button class="btn primary" onclick="app.save()">Сохранить</button>
   <span class="err" id="err"></span>
 </div>
 <div class="wrap">
   <div class="card">
-    <h2>Плановая ВД и расходы по аптекам</h2>
+    <div class="mrow">
+      <h2 style="margin:0;margin-right:auto">Плановая ВД и расходы по аптекам</h2>
+      <label for="fMonth">Месяц</label>
+      <select id="fMonth"></select>
+    </div>
     <table id="tbl">
       <thead><tr>
         <th class="l">Аптека</th><th>План ТО</th><th>План ВД, руб</th><th>ВД из плана, %</th>
-        <th>Плановая ВД, %</th><th>Прибыль (по план. ВД)</th><th>Расходы</th><th>Фин. результат</th><th>Рентабельность</th>
+        <th>Плановая ВД, %</th><th>Прибыль</th><th>Расходы</th><th>Фин. результат</th><th>Рентабельность</th>
       </tr></thead>
       <tbody></tbody>
     </table>
