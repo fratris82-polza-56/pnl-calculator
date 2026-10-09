@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Маркетинг · Полза · Аптеки</title>
+<script src="/xlsx.min.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%231c2b4a'/%3E%3Cpath d='M24 8v32M8 24h32' stroke='%235d8dd4' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--navy:#1c2b4a;--txt:#1c2333;--mut:#7a8399;--line:#e3e8f2;--ok:#1d8a4e;--bad:#c23a3a;--blue:#5383c7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:14px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+  .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
+  .topbar h1{font-size:16px;font-weight:750}
+  .back{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;background:transparent}
+  .back:hover{background:rgba(255,255,255,.12)}
+  .wrap{margin:0 auto;padding:12px 10px 40px;max-width:1400px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;overflow-x:auto}
+  .card h2{font-size:14px;margin-bottom:8px;color:var(--navy)}
+  .mrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .mrow label{color:var(--mut);font-size:13px}
+  select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--txt)}
+  input.num{width:110px;text-align:right;padding:5px 6px}
+  input.txt{width:180px}
+  table{border-collapse:collapse;width:100%;font-size:13px;table-layout:auto}
+  th,td{border-bottom:1px solid var(--line);padding:6px 6px;text-align:right}
+  td{white-space:nowrap}
+  th.l,td.l{text-align:left}
+  th{color:var(--mut);font-weight:600;font-size:12px;white-space:normal;vertical-align:bottom}
+  tr:hover td{background:#f8fafd}
+  .pos{color:var(--ok);font-weight:600}
+  .neg{color:var(--bad);font-weight:600}
+  .mut{color:var(--mut)}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;color:var(--navy)}
+  .btn:hover{border-color:var(--blue)}
+  .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+  .btn.danger{color:var(--bad)}
+  .note{font-size:12px;color:var(--mut);margin-top:6px}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .kpi .k{flex:1;min-width:170px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .kpi .k .t{font-size:12px;color:var(--mut)}
+  .kpi .k .v{font-size:19px;font-weight:750;color:var(--navy);margin-top:2px}
+  .kpi .k .s{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .toast{position:fixed;bottom:14px;right:14px;background:var(--navy);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:.96}
+  .err{color:var(--bad);font-size:12px;margin-left:10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="back" onclick="parent&&parent.mNav?parent.mNav('dashboard'):location.href='/'">← Главное меню</button>
+  <h1>Маркетинг</h1>
+  <span class="err" id="err"></span>
+</div>
+<div class="wrap">
+  <div class="kpi" id="kpi"></div>
+  <div class="card">
+    <div class="mrow">
+      <h2 style="margin:0;margin-right:auto">Акции и расходы на маркетинг (<span id="moName"></span>)</h2>
+      <label for="fMonth">Месяц</label>
+      <select id="fMonth"></select>
+    </div>
+    <div class="mrow" style="margin-bottom:2px">
+      <input type="file" id="mkFile" accept=".xlsx,.xls,.csv,.json" style="font:inherit;font-size:13px;max-width:100%">
+      <button class="btn" onclick="app.tpl()">Шаблон</button>
+      <span class="mut" id="mkStatus" style="flex:1;min-width:160px"></span>
+    </div>
+    <table id="tbl">
+      <thead><tr><th class="l">Название</th><th class="l">Тип</th><th class="l">Аптека</th><th>Расход, ₽</th><th>Продажи, ₽</th><th>ROMI</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input id="nTitle" class="txt" placeholder="Название (акция, канал…)">
+      <select id="nKind" style="min-width:130px">
+        <option>акция</option><option>реклама</option><option>соцсети</option><option>печатные материалы</option><option>лояльность</option><option>другое</option>
+      </select>
+      <select id="nPh" style="min-width:150px"><option value="">Сеть (все аптеки)</option></select>
+      <input id="nAmount" class="num" type="number" min="0" placeholder="Расход, ₽">
+      <input id="nRevenue" class="num" type="number" min="0" placeholder="Продажи, ₽ (необяз.)">
+      <button class="btn" onclick="app.add()">+ Добавить</button>
+    </div>
+    <div class="note">ROMI = (Продажи − Расход) / Расход × 100%. Продажи можно не указывать. Файл: колонки «Месяц» (или месяц из селекта), «Название», «Тип», «Аптека» (пусто = сеть), «Расход», «Продажи» — xlsx/csv/json.</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const TOKEN = localStorage.getItem('me_token') || new URLSearchParams(location.search).get('t') || '';
+async function api(path, opt = {}) {
+  const r = await fetch('/api/m/marketing' + path, {
+    ...opt,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opt.headers || {}) },
+  });
+  if (r.status === 401) { location.href = '/me.html'; throw new Error('unauthorized'); }
+  if (!r.ok) throw new Error('http ' + r.status);
+  return r.json();
+}
+const fmt = n => n == null ? '—' : Number(n).toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+const MNAME = { '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь' };
+const YM_OF = { 'Сентябрь': '2026-09', 'Октябрь': '2026-10', 'Ноябрь': '2026-11', 'Декабрь': '2026-12' };
+const MONTHS = ['2026-09', '2026-10', '2026-11', '2026-12'];
+
+function pfNorm(s) { return String(s == null ? '' : s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/gi, ' ').trim(); }
+function pfNum(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  const s = String(v).replace(/[\s\u00a0]/g, '').replace(/,/g, '.').replace(/[^\d.\-+]/g, '');
+  if (!s) return null;
+  const n = Number(s); return isFinite(n) ? n : null;
+}
+function pfMon(v) {
+  const NM = ['Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'], PRE = ['сен', 'окт', 'ноя', 'дек'];
+  if (v == null || v === '') return null;
+  if (v instanceof Date && isFinite(v)) return NM[v.getMonth() - 9] || null;
+  if (typeof v === 'number' && isFinite(v)) {
+    const n = Math.round(v);
+    if (n >= 9 && n <= 12) return NM[n - 9];
+    if (n >= 40000 && n < 60000) { const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return NM[d.getUTCMonth() - 9] || null; }
+    return null;
+  }
+  const s = String(v).toLowerCase().replace(/ё/g, 'е').trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})/); if (m) return NM[+m[2] - 9] || null;
+  m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/); if (m) return NM[+m[2] - 9] || null;
+  m = s.match(/^(\d{1,2})[.\/-]\d{4}$/); if (m) return NM[+m[1] - 9] || null;
+  m = s.match(/^(\d{1,2})\s*$/); if (m) return NM[+m[1] - 9] || null;
+  for (let i = 0; i < 4; i++) if (s.startsWith(PRE[i])) return NM[i];
+  return null;
+}
+
+const app = {
+  rows: [], ym: '2026-10',
+
+  async load() {
+    $('fMonth').innerHTML = MONTHS.map(m => `<option value="${m}">${MNAME[m.slice(5, 7)]} ${m.slice(0, 4)}</option>`).join('');
+    $('fMonth').value = this.ym;
+    $('nPh').innerHTML = '<option value="">Сеть (все аптеки)</option>' +
+      (await api('/pharmacies').catch(() => ({ rows: [] }))).rows.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    await this.reload();
+  },
+
+  async reload() {
+    this.ym = $('fMonth').value || this.ym;
+    $('moName').textContent = MNAME[this.ym.slice(5, 7)] + ' ' + this.ym.slice(0, 4);
+    const r = await api('/items?month=' + this.ym);
+    this.rows = r.rows || [];
+    this.render();
+  },
+
+  phName(pid) { return pid == null ? 'Сеть' : ((this._ph || {})[pid] || ('#' + pid)); },
+
+  render() {
+    const spend = this.rows.reduce((s, x) => s + (+x.amount || 0), 0);
+    const rev = this.rows.reduce((s, x) => s + (+x.revenue || 0), 0);
+    const romi = spend ? (rev - spend) / spend * 100 : null;
+    const cnt = this.rows.length;
+    $('kpi').innerHTML =
+      `<div class="k"><div class="t">Расходы на маркетинг</div><div class="v">${fmt(spend)} ₽</div><div class="s">${cnt} строк(и)</div></div>` +
+      `<div class="k"><div class="t">Продажи в акциях</div><div class="v">${rev ? fmt(rev) + ' ₽' : '—'}</div><div class="s">${rev && spend ? 'доля расходов ' + (spend / rev * 100).toFixed(1) + '%' : 'заполните «Продажи» для доли'}</div></div>` +
+      `<div class="k"><div class="t">ROMI</div><div class="v ${romi != null ? (romi >= 0 ? 'pos' : 'neg') : ''}">${romi != null ? romi.toFixed(1) + '%' : '—'}</div><div class="s">(продажи − расход) / расход</div></div>`;
+    $('tbl').querySelector('tbody').innerHTML = this.rows.map(x =>
+      `<tr><td class="l">${esc(x.title)}</td><td class="l mut">${esc(x.kind)}</td><td class="l">${esc(this.phName(x.pharmacy_id))}</td>` +
+      `<td>${fmt(x.amount)}</td><td>${x.revenue != null ? fmt(x.revenue) : '—'}</td>` +
+      `<td class="${x.revenue != null && +x.amount ? (+x.revenue >= +x.amount ? 'pos' : 'neg') : 'mut'}">${x.revenue != null && +x.amount ? ((x.revenue - x.amount) / x.amount * 100).toFixed(1) + '%' : '—'}</td>` +
+      `<td><button class="btn danger" onclick="app.del(${x.id})">✕</button></td></tr>`
+    ).join('') || `<tr><td colspan="7" class="l mut">Нет данных — загрузите файл или добавьте строку</td></tr>`;
+  },
+
+  async add() {
+    const title = $('nTitle').value.trim(), amount = $('nAmount').value, revenue = $('nRevenue').value;
+    if (!title || amount === '') { toast('Нужны название и расход'); return; }
+    $('err').textContent = '';
+    try {
+      await api('/items', { method: 'POST', body: JSON.stringify({ items: [{ month: this.ym, pharmacy_id: $('nPh').value || null, title, kind: $('nKind').value, amount: +amount, revenue: revenue === '' ? null : +revenue }] }) });
+      $('nTitle').value = ''; $('nAmount').value = ''; $('nRevenue').value = '';
+      await this.reload();
+    } catch (e) { $('err').textContent = 'ошибка: ' + e.message; }
+  },
+
+  async del(id) {
+    $('err').textContent = '';
+    try { await api('/items?id=' + id, { method: 'DELETE' }); await this.reload(); }
+    catch (e) { $('err').textContent = 'ошибка: ' + e.message; }
+  },
+
+  // ---- Загрузка файла ----
+  mkParsed: null,
+
+  async mkFile(ev) {
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!f) return;
+    $('mkStatus').textContent = 'читаю…';
+    try {
+      let aoa;
+      if (/\.json$/i.test(f.name)) {
+        const j = JSON.parse(await f.text());
+        if (Array.isArray(j) && j.length && Array.isArray(j[0])) aoa = j;
+        else if (Array.isArray(j) && j.length && typeof j[0] === 'object') aoa = [Object.keys(j[0])].concat(j.map(o => Object.values(o)));
+        else throw new Error('непонятная структура JSON');
+      } else {
+        const buf = new Uint8Array(await f.arrayBuffer());
+        const isZip = buf[0] === 0x50 && buf[1] === 0x4b;
+        let aoa0;
+        if (!isZip) {
+          const txt = new TextDecoder('utf-8').decode(buf);
+          const wb = XLSX.read(txt, { type: 'string', raw: false });
+          aoa0 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null, raw: true });
+        } else {
+          const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+          aoa0 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null, raw: true });
+        }
+        aoa = aoa0;
+      }
+      this.mkParsed = parseMkAoa(aoa, this.ym);
+      this.mkParsed.fileName = f.name;
+      if (!this.mkParsed.items.length) {
+        this.mkParsed = null;
+        $('mkStatus').innerHTML = '<span style="color:var(--bad)">строк не распознано</span>';
+        return;
+      }
+      $('mkStatus').innerHTML = 'распознано строк: <b>' + this.mkParsed.items.length + '</b>' +
+        (this.mkParsed.bad.length ? ' · не распознано: ' + this.mkParsed.bad.length : '') +
+        ' — <a href="#" onclick="app.mkApply();return false" style="font-weight:700">Применить</a>' +
+        ' · <a href="#" onclick="app.mkReset();return false">отмена</a>';
+    } catch (e) {
+      this.mkParsed = null;
+      $('mkStatus').innerHTML = '<span style="color:var(--bad)">' + esc(e.message || 'не удалось прочитать файл') + '</span>';
+    }
+  },
+
+  mkReset() { this.mkParsed = null; $('mkStatus').textContent = ''; },
+
+  async mkApply() {
+    const p = this.mkParsed; if (!p || !p.items.length) return;
+    $('mkStatus').textContent = 'сохраняю…';
+    try {
+      const r = await api('/items', { method: 'POST', body: JSON.stringify({ items: p.items, replace: true, fileName: p.fileName }) });
+      this.mkParsed = null;
+      $('mkStatus').textContent = '';
+      toast(r.bad && r.bad.length ? 'Сохранено ' + r.saved + ', не распознано ' + r.bad.length : 'Загружено: ' + r.saved);
+      await this.reload();
+    } catch (e) { $('mkStatus').innerHTML = '<span style="color:var(--bad)">ошибка: ' + esc(e.message) + '</span>'; }
+  },
+
+  tpl() {
+    const aoa = [['Месяц', 'Название', 'Тип', 'Аптека', 'Расход', 'Продажи']];
+    aoa.push([MNAME[this.ym.slice(5, 7)] + ' ' + this.ym.slice(0, 4), 'Акция «Витаминная осень»', 'акция', 'Азовская', 15000, 90000]);
+    aoa.push([MNAME[this.ym.slice(5, 7)] + ' ' + this.ym.slice(0, 4), 'Соцсети (таргет)', 'соцсети', '', 8000, '']);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 12 }, { wch: 30 }, { wch: 16 }, { wch: 18 }, { wch: 12 }, { wch: 12 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Маркетинг');
+    XLSX.writeFile(wb, 'шаблон_маркетинг.xlsx');
+  },
+};
+
+function parseMkAoa(aoa, defYm) {
+  if (!aoa || !aoa.length || !aoa[0]) throw new Error('пустой файл');
+  const hdr = aoa[0].map(pfNorm);
+  const col = re => hdr.findIndex(h => re.test(h));
+  const cMo = col(/^(месяц|период|мес)/);
+  const cTitle = col(/название|наименование|акция|статья|кампания/);
+  if (cTitle < 0) throw new Error('в файле нет колонки «Название»');
+  const cKind = col(/тип|вид|канал|категория/);
+  const cPh = col(/аптека/);
+  const cAmt = col(/расход|бюджет|сумма|затрат/);
+  if (cAmt < 0) throw new Error('в файле нет колонки «Расход»');
+  const cRev = col(/продаж|выруч|оборот/);
+  const items = [], bad = [];
+  const resPh = typeof app !== 'undefined' && app.resolvePh ? app.resolvePh : null;
+  for (let r = 1; r < aoa.length; r++) {
+    const row = aoa[r]; if (!row || !row.length) continue;
+    const title = String(row[cTitle] == null ? '' : row[cTitle]).trim();
+    if (!title) continue;
+    if (/итого|всего/.test(pfNorm(title))) continue;
+    const mon = cMo >= 0 ? pfMon(row[cMo]) : null;
+    const ym = mon ? YM_OF[mon] : (cMo >= 0 ? null : defYm);
+    if (!ym) { bad.push({ row: r + 1, raw: title, reason: 'месяц не распознан' }); continue; }
+    const amount = pfNum(row[cAmt]);
+    if (amount == null) { bad.push({ row: r + 1, raw: title, reason: 'расход не число' }); continue; }
+    const rev = cRev >= 0 ? pfNum(row[cRev]) : null;
+    const kind = cKind >= 0 && row[cKind] != null ? String(row[cKind]).trim() : 'акция';
+    const phRaw = cPh >= 0 && row[cPh] != null && String(row[cPh]).trim() !== '' ? String(row[cPh]).trim() : null;
+    let phId = phRaw;
+    if (phRaw != null && resPh) { const mapped = resPh(phRaw); if (mapped != null) phId = mapped; }
+    items.push({ month: ym, pharmacy_id: phId, title, kind, amount, revenue: rev });
+  }
+  return { items, bad };
+}
+
+// Справочник аптек: имена из файла → id (работает и в parseMkAoa, и до отправки)
+app._ph = {};
+
+function $(s) { return document.getElementById(s); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+
+(async () => {
+  if (!TOKEN) { location.href = '/me.html'; return; }
+  localStorage.setItem('me_token', TOKEN);
+  $('fMonth').addEventListener('change', () => app.reload());
+  $('mkFile').addEventListener('change', ev => app.mkFile(ev));
+  try {
+    const ph = await api('/pharmacies');
+    app._ph = {}; (ph.rows || []).forEach(p => { app._ph[p.id] = p.name; });
+    await app.load();
+    const map = {};
+    Object.entries(app._ph).forEach(([id, name]) => { map[pfNorm(name)] = +id; });
+    app.resolvePh = raw => {
+      if (raw == null || raw === '') return null;
+      const n = Number(String(raw).trim().replace(',', '.'));
+      if (isFinite(n) && app._ph[n]) return n;
+      const s = pfNorm(raw).replace(/^аптека\s*/, '').replace(/^№\s*/, '');
+      if (map[s]) return map[s];
+      const num = s.match(/(\d+)/);
+      if (num && app._ph[+num[1]]) return +num[1];
+      const key = Object.keys(map).find(k => k.includes(s) || s.includes(k));
+      return key ? map[key] : null;
+    };
+    // Если файл выбрали до загрузки справочника — переконвертируем имена сейчас
+    if (app.mkParsed && app.mkParsed.items) {
+      app.mkParsed.items.forEach(it => {
+        if (it.pharmacy_id != null && typeof it.pharmacy_id === 'string' && app.resolvePh) {
+          const m = app.resolvePh(it.pharmacy_id);
+          if (m != null) it.pharmacy_id = m;
+        }
+      });
+    }
+  } catch (e) { $('err').textContent = 'ошибка загрузки: ' + e.message; }
+})();
+</script>
+</body>
+</html>

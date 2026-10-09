@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>СТМ · Полза · Аптеки</title>
+<script src="/xlsx.min.js"></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%231c2b4a'/%3E%3Cpath d='M24 8v32M8 24h32' stroke='%235d8dd4' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--navy:#1c2b4a;--txt:#1c2333;--mut:#7a8399;--line:#e3e8f2;--ok:#1d8a4e;--bad:#c23a3a;--blue:#5383c7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:14px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+  .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
+  .topbar h1{font-size:16px;font-weight:750}
+  .back{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;background:transparent}
+  .back:hover{background:rgba(255,255,255,.12)}
+  .wrap{margin:0 auto;padding:12px 10px 40px;max-width:1400px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;overflow-x:auto}
+  .card h2{font-size:14px;margin-bottom:8px;color:var(--navy)}
+  .mrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .mrow label{color:var(--mut);font-size:13px}
+  select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--txt)}
+  input.num{width:110px;text-align:right;padding:5px 6px}
+  input.txt{width:170px}
+  table{border-collapse:collapse;width:100%;font-size:13px;table-layout:auto}
+  th,td{border-bottom:1px solid var(--line);padding:6px 6px;text-align:right}
+  td{white-space:nowrap}
+  th.l,td.l{text-align:left}
+  th{color:var(--mut);font-weight:600;font-size:12px;white-space:normal;vertical-align:bottom}
+  tr:hover td{background:#f8fafd}
+  .bar{display:inline-block;height:8px;border-radius:4px;background:var(--blue);vertical-align:middle;margin-right:6px}
+  .pos{color:var(--ok);font-weight:600}
+  .neg{color:var(--bad);font-weight:600}
+  .mut{color:var(--mut)}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;color:var(--navy)}
+  .btn:hover{border-color:var(--blue)}
+  .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+  .btn.danger{color:var(--bad)}
+  .note{font-size:12px;color:var(--mut);margin-top:6px}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .kpi .k{flex:1;min-width:170px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .kpi .k .t{font-size:12px;color:var(--mut)}
+  .kpi .k .v{font-size:19px;font-weight:750;color:var(--navy);margin-top:2px}
+  .kpi .k .s{font-size:11.5px;color:var(--mut);margin-top:2px}
+  .toast{position:fixed;bottom:14px;right:14px;background:var(--navy);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:.96}
+  .err{color:var(--bad);font-size:12px;margin-left:10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="back" onclick="parent&&parent.mNav?parent.mNav('dashboard'):location.href='/'">← Главное меню</button>
+  <h1>СТМ — собственные торговые марки</h1>
+  <span class="err" id="err"></span>
+</div>
+<div class="wrap">
+  <div class="kpi" id="kpi"></div>
+  <div class="card">
+    <div class="mrow">
+      <h2 style="margin:0;margin-right:auto">Продажи СТМ по брендам (<span id="moName"></span>)</h2>
+      <label for="fMonth">Месяц</label>
+      <select id="fMonth"></select>
+    </div>
+    <div class="mrow" style="margin-bottom:2px">
+      <input type="file" id="stmFile" accept=".xlsx,.xls,.csv,.json" style="font:inherit;font-size:13px;max-width:100%">
+      <button class="btn" onclick="app.tpl()">Шаблон</button>
+      <span class="mut" id="stmStatus" style="flex:1;min-width:160px"></span>
+    </div>
+    <table id="tbl">
+      <thead><tr><th class="l">Бренд СТМ</th><th class="l">Аптека</th><th>Выручка, ₽</th><th>Маржа, ₽</th><th>ВД, %</th><th>Упаковок</th><th>Доля в сети</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input id="nBrand" class="txt" placeholder="Бренд СТМ">
+      <select id="nPh" style="min-width:150px"><option value="">Сеть (все аптеки)</option></select>
+      <input id="nRevenue" class="num" type="number" min="0" placeholder="Выручка, ₽">
+      <input id="nMargin" class="num" type="number" min="0" placeholder="Маржа, ₽ (необяз.)">
+      <input id="nQty" class="num" type="number" min="0" placeholder="Упаковок">
+      <button class="btn" onclick="app.add()">+ Добавить</button>
+    </div>
+    <div class="note">Доля в сети считается от суммы выручки СТМ за месяц. Файл: колонки «Месяц» (или месяц из селекта), «Бренд», «Аптека» (пусто = сеть), «Выручка», «Маржа», «Упаковки» — xlsx/csv/json. Позже данные будут подтягиваться по API.</div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const TOKEN = localStorage.getItem('me_token') || new URLSearchParams(location.search).get('t') || '';
+async function api(path, opt = {}) {
+  const r = await fetch('/api/m/stm' + path, {
+    ...opt,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opt.headers || {}) },
+  });
+  if (r.status === 401) { location.href = '/me.html'; throw new Error('unauthorized'); }
+  if (!r.ok) throw new Error('http ' + r.status);
+  return r.json();
+}
+const fmt = n => n == null ? '—' : Number(n).toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+const MNAME = { '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь' };
+const YM_OF = { 'Сентябрь': '2026-09', 'Октябрь': '2026-10', 'Ноябрь': '2026-11', 'Декабрь': '2026-12' };
+const MONTHS = ['2026-09', '2026-10', '2026-11', '2026-12'];
+
+function pfNorm(s) { return String(s == null ? '' : s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/gi, ' ').trim(); }
+function pfNum(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  const s = String(v).replace(/[\s\u00a0]/g, '').replace(/,/g, '.').replace(/[^\d.\-+]/g, '');
+  if (!s) return null;
+  const n = Number(s); return isFinite(n) ? n : null;
+}
+function pfMon(v) {
+  const NM = ['Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'], PRE = ['сен', 'окт', 'ноя', 'дек'];
+  if (v == null || v === '') return null;
+  if (v instanceof Date && isFinite(v)) return NM[v.getMonth() - 9] || null;
+  if (typeof v === 'number' && isFinite(v)) {
+    const n = Math.round(v);
+    if (n >= 9 && n <= 12) return NM[n - 9];
+    if (n >= 40000 && n < 60000) { const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return NM[d.getUTCMonth() - 9] || null; }
+    return null;
+  }
+  const s = String(v).toLowerCase().replace(/ё/g, 'е').trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})/); if (m) return NM[+m[2] - 9] || null;
+  m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/); if (m) return NM[+m[2] - 9] || null;
+  m = s.match(/^(\d{1,2})[.\/-]\d{4}$/); if (m) return NM[+m[1] - 9] || null;
+  m = s.match(/^(\d{1,2})\s*$/); if (m) return NM[+m[1] - 9] || null;
+  for (let i = 0; i < 4; i++) if (s.startsWith(PRE[i])) return NM[i];
+  return null;
+}
+
+const app = {
+  rows: [], ym: '2026-10', _ph: {},
+
+  async load() {
+    $('fMonth').innerHTML = MONTHS.map(m => `<option value="${m}">${MNAME[m.slice(5, 7)]} ${m.slice(0, 4)}</option>`).join('');
+    $('fMonth').value = this.ym;
+    const ph = await api('/pharmacies');
+    this._ph = {}; (ph.rows || []).forEach(p => { this._ph[p.id] = p.name; });
+    $('nPh').innerHTML = '<option value="">Сеть (все аптеки)</option>' +
+      (ph.rows || []).map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
+    const map = {};
+    Object.entries(this._ph).forEach(([id, name]) => { map[pfNorm(name)] = +id; });
+    this.resolvePh = raw => {
+      if (raw == null || raw === '') return null;
+      const n = Number(String(raw).trim().replace(',', '.'));
+      if (isFinite(n) && this._ph[n]) return n;
+      const s = pfNorm(raw).replace(/^аптека\s*/, '').replace(/^№\s*/, '');
+      if (map[s]) return map[s];
+      const num = s.match(/(\d+)/);
+      if (num && this._ph[+num[1]]) return +num[1];
+      const key = Object.keys(map).find(k => k.includes(s) || s.includes(k));
+      return key ? map[key] : null;
+    };
+    await this.reload();
+  },
+
+  async reload() {
+    this.ym = $('fMonth').value || this.ym;
+    $('moName').textContent = MNAME[this.ym.slice(5, 7)] + ' ' + this.ym.slice(0, 4);
+    const r = await api('/sales?month=' + this.ym);
+    this.rows = r.rows || [];
+    this.render();
+  },
+
+  phName(pid) { return pid == null ? 'Сеть' : (this._ph[pid] || ('#' + pid)); },
+
+  render() {
+    const total = this.rows.reduce((s, x) => s + (+x.revenue || 0), 0);
+    const margin = this.rows.reduce((s, x) => s + (+x.margin || 0), 0);
+    const qty = this.rows.reduce((s, x) => s + (+x.qty || 0), 0);
+    const vd = total ? margin / total * 100 : null;
+    const brands = new Set(this.rows.map(x => x.brand));
+    $('kpi').innerHTML =
+      `<div class="k"><div class="t">Выручка СТМ</div><div class="v">${fmt(total)} ₽</div><div class="s">${brands.size} бренд(ов), ${this.rows.length} строк(и)</div></div>` +
+      `<div class="k"><div class="t">Маржа СТМ</div><div class="v">${margin ? fmt(margin) + ' ₽' : '—'}</div><div class="s">${vd != null ? 'ВД ' + vd.toFixed(1) + '%' : 'заполните маржу для ВД'}</div></div>` +
+      `<div class="k"><div class="t">Упаковок</div><div class="v">${qty ? fmt(qty) : '—'}</div><div class="s">${qty && total ? 'средняя цена ' + fmt(total / qty) + ' ₽' : ''}</div></div>`;
+    const max = Math.max(1, ...this.rows.map(x => +x.revenue || 0));
+    $('tbl').querySelector('tbody').innerHTML = this.rows.map(x => {
+      const vdR = +x.revenue && x.margin != null ? x.margin / x.revenue * 100 : null;
+      const share = total ? (+x.revenue || 0) / total * 100 : null;
+      return `<tr><td class="l">${esc(x.brand)}</td><td class="l">${esc(this.phName(x.pharmacy_id))}</td>` +
+      `<td><span class="bar" style="width:${Math.max(2, Math.round((+x.revenue || 0) / max * 60))}px"></span>${fmt(x.revenue)}</td>` +
+      `<td>${x.margin != null ? fmt(x.margin) : '—'}</td>` +
+      `<td class="${vdR != null ? (vdR >= 25 ? 'pos' : vdR < 15 ? 'neg' : '') : 'mut'}">${vdR != null ? vdR.toFixed(1) + '%' : '—'}</td>` +
+      `<td>${x.qty != null ? fmt(x.qty) : '—'}</td>` +
+      `<td class="mut">${share != null ? share.toFixed(1) + '%' : '—'}</td>` +
+      `<td><button class="btn danger" onclick="app.del(${x.id})">✕</button></td></tr>`;
+    }).join('') || `<tr><td colspan="8" class="l mut">Нет данных — загрузите файл или добавьте строку</td></tr>`;
+  },
+
+  async add() {
+    const brand = $('nBrand').value.trim(), revenue = $('nRevenue').value;
+    if (!brand || revenue === '') { toast('Нужны бренд и выручка'); return; }
+    $('err').textContent = '';
+    try {
+      await api('/sales', { method: 'POST', body: JSON.stringify({ items: [{ month: this.ym, pharmacy_id: $('nPh').value || null, brand, revenue: +revenue, margin: $('nMargin').value === '' ? null : +$('nMargin').value, qty: $('nQty').value === '' ? null : +$('nQty').value }] }) });
+      $('nBrand').value = ''; $('nRevenue').value = ''; $('nMargin').value = ''; $('nQty').value = '';
+      await this.reload();
+    } catch (e) { $('err').textContent = 'ошибка: ' + e.message; }
+  },
+
+  async del(id) {
+    $('err').textContent = '';
+    try { await api('/sales?id=' + id, { method: 'DELETE' }); await this.reload(); }
+    catch (e) { $('err').textContent = 'ошибка: ' + e.message; }
+  },
+
+  // ---- Загрузка файла ----
+  stmParsed: null,
+
+  async stmFile(ev) {
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!f) return;
+    $('stmStatus').textContent = 'читаю…';
+    try {
+      let aoa;
+      if (/\.json$/i.test(f.name)) {
+        const j = JSON.parse(await f.text());
+        if (Array.isArray(j) && j.length && Array.isArray(j[0])) aoa = j;
+        else if (Array.isArray(j) && j.length && typeof j[0] === 'object') aoa = [Object.keys(j[0])].concat(j.map(o => Object.values(o)));
+        else throw new Error('непонятная структура JSON');
+      } else {
+        const buf = new Uint8Array(await f.arrayBuffer());
+        const isZip = buf[0] === 0x50 && buf[1] === 0x4b;
+        let aoa0;
+        if (!isZip) {
+          const txt = new TextDecoder('utf-8').decode(buf);
+          const wb = XLSX.read(txt, { type: 'string', raw: false });
+          aoa0 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null, raw: true });
+        } else {
+          const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+          aoa0 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null, raw: true });
+        }
+        aoa = aoa0;
+      }
+      this.stmParsed = parseStmAoa(aoa, this.ym, this.resolvePh);
+      this.stmParsed.fileName = f.name;
+      if (!this.stmParsed.items.length) {
+        this.stmParsed = null;
+        $('stmStatus').innerHTML = '<span style="color:var(--bad)">строк не распознано</span>';
+        return;
+      }
+      $('stmStatus').innerHTML = 'распознано строк: <b>' + this.stmParsed.items.length + '</b>' +
+        (this.stmParsed.bad.length ? ' · не распознано: ' + this.stmParsed.bad.length : '') +
+        ' — <a href="#" onclick="app.stmApply();return false" style="font-weight:700">Применить</a>' +
+        ' · <a href="#" onclick="app.stmReset();return false">отмена</a>';
+    } catch (e) {
+      this.stmParsed = null;
+      $('stmStatus').innerHTML = '<span style="color:var(--bad)">' + esc(e.message || 'не удалось прочитать файл') + '</span>';
+    }
+  },
+
+  stmReset() { this.stmParsed = null; $('stmStatus').textContent = ''; },
+
+  async stmApply() {
+    const p = this.stmParsed; if (!p || !p.items.length) return;
+    $('stmStatus').textContent = 'сохраняю…';
+    try {
+      const r = await api('/sales', { method: 'POST', body: JSON.stringify({ items: p.items, replace: true, fileName: p.fileName }) });
+      this.stmParsed = null;
+      $('stmStatus').textContent = '';
+      toast(r.bad && r.bad.length ? 'Сохранено ' + r.saved + ', не распознано ' + r.bad.length : 'Загружено: ' + r.saved);
+      await this.reload();
+    } catch (e) { $('stmStatus').innerHTML = '<span style="color:var(--bad)">ошибка: ' + esc(e.message) + '</span>'; }
+  },
+
+  tpl() {
+    const aoa = [['Месяц', 'Бренд', 'Аптека', 'Выручка', 'Маржа', 'Упаковки']];
+    aoa.push([MNAME[this.ym.slice(5, 7)] + ' ' + this.ym.slice(0, 4), 'Доктор Море', 'Азовская', 245000, 73500, 412]);
+    aoa.push([MNAME[this.ym.slice(5, 7)] + ' ' + this.ym.slice(0, 4), 'Полза Классик', '', 510000, 158000, 980]);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 12 }, { wch: 22 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 10 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'СТМ');
+    XLSX.writeFile(wb, 'шаблон_стм.xlsx');
+  },
+};
+
+function parseStmAoa(aoa, defYm, resolvePh) {
+  if (!aoa || !aoa.length || !aoa[0]) throw new Error('пустой файл');
+  const hdr = aoa[0].map(pfNorm);
+  const col = re => hdr.findIndex(h => re.test(h));
+  const cMo = col(/^(месяц|период|мес)/);
+  const cBrand = col(/бренд|стм|торговая марка|наименование|название/);
+  if (cBrand < 0) throw new Error('в файле нет колонки «Бренд»');
+  const cPh = col(/аптека/);
+  const cRev = col(/выруч|продаж|оборот|сумма/);
+  if (cRev < 0) throw new Error('в файле нет колонки «Выручка»');
+  const cMg = col(/маржа|прибыл|валовая/);
+  const cQty = col(/упаков|кол-во|количество|шт/);
+  const items = [], bad = [];
+  for (let r = 1; r < aoa.length; r++) {
+    const row = aoa[r]; if (!row || !row.length) continue;
+    const brand = String(row[cBrand] == null ? '' : row[cBrand]).trim();
+    if (!brand) continue;
+    if (/итого|всего/.test(pfNorm(brand))) continue;
+    const mon = cMo >= 0 ? pfMon(row[cMo]) : null;
+    const ym = mon ? YM_OF[mon] : (cMo >= 0 ? null : defYm);
+    if (!ym) { bad.push({ row: r + 1, raw: brand, reason: 'месяц не распознан' }); continue; }
+    const revenue = pfNum(row[cRev]);
+    if (revenue == null) { bad.push({ row: r + 1, raw: brand, reason: 'выручка не число' }); continue; }
+    const phRaw = cPh >= 0 && row[cPh] != null && String(row[cPh]).trim() !== '' ? String(row[cPh]).trim() : null;
+    let phId = phRaw;
+    if (phRaw != null && resolvePh) { const mapped = resolvePh(phRaw); if (mapped != null) phId = mapped; }
+    items.push({
+      month: ym, pharmacy_id: phId, brand,
+      revenue,
+      margin: cMg >= 0 ? pfNum(row[cMg]) : null,
+      qty: cQty >= 0 ? pfNum(row[cQty]) : null,
+    });
+  }
+  return { items, bad };
+}
+
+function $(s) { return document.getElementById(s); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+
+(async () => {
+  if (!TOKEN) { location.href = '/me.html'; return; }
+  localStorage.setItem('me_token', TOKEN);
+  $('fMonth').addEventListener('change', () => app.reload());
+  $('stmFile').addEventListener('change', ev => app.stmFile(ev));
+  try { await app.load(); } catch (e) { $('err').textContent = 'ошибка загрузки: ' + e.message; }
+})();
+</script>
+</body>
+</html>
