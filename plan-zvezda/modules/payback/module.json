@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "roles": ["manager"],
   "nav": {
-    "group": "Инструменты",
+    "group": "Планирование",
     "order": 5
   },
   "entry": "public/index.html",

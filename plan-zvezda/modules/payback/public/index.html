@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Окупаемость · Полза · Аптеки</title>
+<script src="/xlsx.min.js"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%231c2b4a'/%3E%3Cpath d='M24 8v32M8 24h32' stroke='%235d8dd4' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   :root{--bg:#f4f6fb;--card:#fff;--navy:#1c2b4a;--txt:#1c2333;--mut:#7a8399;--line:#e3e8f2;--ok:#1d8a4e;--bad:#c23a3a;--blue:#5383c7}
@@ -56,6 +57,11 @@
       <label for="fMonth">Месяц</label>
       <select id="fMonth"></select>
     </div>
+    <div class="mrow" style="margin-bottom:2px">
+      <input type="file" id="pfFile" accept=".xlsx,.xls,.csv,.json" style="font:inherit;font-size:13px;max-width:100%">
+      <button class="btn" onclick="app.pfTpl()">Шаблон</button>
+      <span class="mut" id="pfStatus" style="flex:1;min-width:160px"></span>
+    </div>
     <table id="tbl">
       <thead><tr>
         <th class="l">Аптека</th><th>План ТО</th><th>План ВД, руб</th><th>ВД из плана, %</th>
@@ -93,6 +99,34 @@ async function api(path, opt = {}) {
 }
 const fmt = n => n == null ? '—' : Number(n).toLocaleString('ru-RU', { maximumFractionDigits: 0 });
 const YM = ['09', '10', '11', '12'], MNAME = { '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь' };
+const YM_OF = { 'Сентябрь': '2026-09', 'Октябрь': '2026-10', 'Ноябрь': '2026-11', 'Декабрь': '2026-12' };
+
+function pfNorm(s) { return String(s == null ? '' : s).toLowerCase().replace(/ё/g, 'е').replace(/[^a-zа-я0-9]+/gi, ' ').trim(); }
+function pfNum(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return isFinite(v) ? v : null;
+  const s = String(v).replace(/[\s\u00a0]/g, '').replace(/,/g, '.').replace(/[^\d.\-+]/g, '');
+  if (!s || s === '-' || s === '+' || s === '.') return null;
+  const n = Number(s); return isFinite(n) ? n : null;
+}
+function pfMon(v) {
+  const NM = ['Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'], PRE = ['сен', 'окт', 'ноя', 'дек'];
+  if (v == null || v === '') return null;
+  if (v instanceof Date && isFinite(v)) return NM[v.getMonth() - 9] || null;
+  if (typeof v === 'number' && isFinite(v)) {
+    const n = Math.round(v);
+    if (n >= 9 && n <= 12) return NM[n - 9];
+    if (n >= 40000 && n < 60000) { const d = new Date(Date.UTC(1899, 11, 30) + n * 86400000); return NM[d.getUTCMonth() - 9] || null; }
+    return null;
+  }
+  const s = String(v).toLowerCase().replace(/ё/g, 'е').trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})/); if (m) return NM[+m[2] - 9] || null;
+  m = s.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/); if (m) return NM[+m[2] - 9] || null;
+  m = s.match(/^(\d{1,2})[.\/-]\d{4}$/); if (m) return NM[+m[1] - 9] || null;
+  m = s.match(/^(\d{1,2})\s*$/); if (m) return NM[+m[1] - 9] || null;
+  for (let i = 0; i < 4; i++) if (s.startsWith(PRE[i])) return NM[i];
+  return null;
+}
 
 const app = {
   plan: [], targets: {}, expenses: [], ym: null,
@@ -197,9 +231,147 @@ const app = {
       await this.reload();
     } catch (e) { $('err').textContent = 'ошибка сохранения: ' + e.message; }
   },
+
+  // ---- Загрузка файла с планами ----
+  pfParsed: null,
+
+  async pfFile(ev) {
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = ''; // повторный выбор того же файла тоже срабатывает
+    if (!f) return;
+    $('pfStatus').textContent = 'читаю…';
+    try {
+      let aoa;
+      if (/\.json$/i.test(f.name)) {
+        const j = JSON.parse(await f.text());
+        if (Array.isArray(j) && j.length && Array.isArray(j[0])) aoa = j;
+        else if (Array.isArray(j) && j.length && typeof j[0] === 'object') aoa = [Object.keys(j[0])].concat(j.map(o => Object.values(o)));
+        else throw new Error('непонятная структура JSON');
+      } else {
+        const buf = new Uint8Array(await f.arrayBuffer());
+        const isZip = buf[0] === 0x50 && buf[1] === 0x4b; // xlsx = zip-контейнер
+        let aoa0;
+        if (!isZip) {
+          // CSV/TXT: сам расшифровываем UTF-8 (иначе SheetJS читает байты как latin1)
+          const txt = new TextDecoder('utf-8').decode(buf);
+          const wb = XLSX.read(txt, { type: 'string', raw: false });
+          aoa0 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null, raw: true });
+        } else {
+          const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+          aoa0 = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null, raw: true });
+        }
+        aoa = aoa0;
+      }
+      this.pfParsed = parsePlanFileAoa(aoa, $('fMonth').value);
+      this.pfParsed.fileName = f.name;
+      if (!this.pfParsed.items.length) {
+        this.pfParsed = null;
+        $('pfStatus').innerHTML = '<span style="color:var(--bad)">строк с планами не распознано</span>';
+        return;
+      }
+      const mos = [...new Set(this.pfParsed.items.map(x => MNAME[x.month.slice(5, 7)]))].join(', ');
+      $('pfStatus').innerHTML = 'распознано строк: <b>' + this.pfParsed.items.length + '</b> (' + esc(mos) + ')' +
+        (this.pfParsed.bad.length ? ' · не распознано: ' + this.pfParsed.bad.length : '') +
+        ' — <a href="#" onclick="app.pfApply();return false" style="font-weight:700">Применить</a>' +
+        ' · <a href="#" onclick="app.pfReset();return false">отмена</a>';
+    } catch (e) {
+      this.pfParsed = null;
+      $('pfStatus').innerHTML = '<span style="color:var(--bad)">' + esc(e.message || 'не удалось прочитать файл') + '</span>';
+    }
+  },
+
+  pfReset() { this.pfParsed = null; $('pfStatus').textContent = ''; },
+
+  async pfApply() {
+    const p = this.pfParsed; if (!p || !p.items.length) return;
+    $('pfStatus').textContent = 'сохраняю…';
+    try {
+      const r = await api('/plan-file', { method: 'POST', body: JSON.stringify({ items: p.items, fileName: p.fileName }) });
+      this.pfParsed = null;
+      $('pfStatus').textContent = '';
+      toast(r.bad && r.bad.length ? 'Сохранено ' + r.saved + ', не распознано ' + r.bad.length : 'План обновлён: ' + r.saved);
+      await this.load();
+    } catch (e) { $('pfStatus').innerHTML = '<span style="color:var(--bad)">ошибка: ' + esc(e.message) + '</span>'; }
+  },
+
+  pfTpl() {
+    const mon = this.ym && MNAME[this.ym.slice(5, 7)] || 'Октябрь';
+    const aoa = [['Аптека', 'Месяц', 'План ТО, ₽', 'План ВД, руб']];
+    this.phList().forEach(p => {
+      const r = this.plan.find(x => x.pharmacy_id === p.id && this.monthOfRow(x) === this.ym);
+      aoa.push([p.name, mon, r ? Math.round(r.revenue) : 1000000, r ? Math.round(r.margin) : 225000]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 14 }, { wch: 14 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'План');
+    XLSX.writeFile(wb, 'шаблон_план_окупаемость.xlsx');
+  },
 };
 
 function $(s) { return document.getElementById(s); }
+
+// ---- Разбор файла с планами (xlsx/csv/json) ----
+// Форматы: колонки «Аптека», «Месяц», «План ТО», «План ВД, руб» — либо месяц отдельной
+// колонкой, либо пары колонок «<Месяц> ТО» / «<Месяц> ВД».
+function parsePlanFileAoa(aoa, defYm) {
+  if (!aoa || !aoa.length || !aoa[0]) throw new Error('пустой файл');
+  const hdr = aoa[0].map(pfNorm);
+  let cPh = hdr.findIndex(h => h === 'аптека id' || h === 'аптекаid' || h.startsWith('аптека id'));
+  if (cPh < 0) cPh = hdr.findIndex(h => h === 'аптека' || h.startsWith('аптека'));
+  if (cPh < 0) throw new Error('в файле нет колонки «Аптека»');
+  let cRev = hdr.findIndex(h => /план то/.test(h) || /товарооборот/.test(h) || /выручка/.test(h) || h === 'то');
+  if (cRev < 0) cRev = hdr.findIndex(h => h.startsWith('план') && !/вд/.test(h));
+  const cMg = hdr.findIndex(h => (/план вд/.test(h) || /(^|\s)вд(\s|$)/.test(h) || /валовая/.test(h)) && !/из плана/.test(h) && !/%/.test(h));
+  const cMo = hdr.findIndex(h => h === 'месяц' || h === 'период' || h === 'мес' || h.startsWith('месяц'));
+  const monthCols = [];
+  if (cMo < 0) hdr.forEach((h, i) => {
+    if (i === cPh || i === cRev || i === cMg || !h || h.length > 15) return;
+    const m = pfMon(h); if (!m) return;
+    let slot = monthCols.find(x => x.m === m); if (!slot) { slot = { m }; monthCols.push(slot); }
+    if (/вд/.test(h)) slot.mgI = i; else slot.revI = i;
+  });
+  if (cRev < 0 && !monthCols.length) throw new Error('в файле нет колонки «План ТО»');
+  if (cMg < 0 && !monthCols.length) throw new Error('в файле нет колонки «План ВД, руб»');
+  const list = app.phList();
+  const resolvePh = raw => {
+    if (raw == null || raw === '') return null;
+    const n = Number(String(raw).trim().replace(',', '.'));
+    if (isFinite(n) && list.some(p => p.id === n)) return n;
+    const s = pfNorm(raw).replace(/^аптека\s*/, '').replace(/^№\s*/, '');
+    if (!s) return null;
+    const bare = p => pfNorm(p.name).replace(/^аптека\s*/, '');
+    const eq = list.find(p => bare(p) === s || pfNorm(p.name) === s); if (eq) return eq.id;
+    const num = s.match(/(\d+)/); if (num && list.some(p => p.id === +num[1])) return +num[1];
+    const inc = list.find(p => { const b = bare(p); return b.includes(s) || s.includes(b); });
+    return inc ? inc.id : null;
+  };
+  const items = [], bad = [], seen = new Map();
+  for (let r = 1; r < aoa.length; r++) {
+    const row = aoa[r]; if (!row || !row.length) continue;
+    const first = pfNorm(row[cPh]);
+    if (!first && row[cPh] == null) continue; // пустая строка
+    if (/итого|всего/.test(first)) continue;
+    const phId = resolvePh(row[cPh]);
+    const pairs = cMo >= 0
+      ? [{ m: pfMon(row[cMo]), rev: pfNum(row[cRev]), mg: pfNum(row[cMg]) }]
+      : monthCols.length
+        ? monthCols.map(mc => ({ m: mc.m, rev: pfNum(row[mc.revI]), mg: pfNum(row[mc.mgI]) }))
+        : [{ m: null, rev: pfNum(row[cRev]), mg: pfNum(row[cMg]) }];
+    for (const pr of pairs) {
+      if (pr.rev == null && pr.mg == null) continue;
+      if (!phId) { bad.push({ row: r + 1, raw: String(row[cPh] == null ? '' : row[cPh]), reason: 'аптека не распознана' }); continue; }
+      const ym = pr.m ? YM_OF[pr.m] : (cMo >= 0 ? null : defYm);
+      if (!ym) { bad.push({ row: r + 1, raw: String(row[cMo] == null ? '' : row[cMo]), reason: 'месяц не распознан' }); continue; }
+      if (pr.rev == null || pr.mg == null) { bad.push({ row: r + 1, raw: String(row[cPh] == null ? '' : row[cPh]), reason: 'нет План ТО или План ВД' }); continue; }
+      const key = phId + '|' + ym;
+      if (seen.has(key)) { items[seen.get(key)] = { pharmacy_id: phId, month: ym, revenue: pr.rev, margin: pr.mg }; continue; }
+      seen.set(key, items.length);
+      items.push({ pharmacy_id: phId, month: ym, revenue: pr.rev, margin: pr.mg });
+    }
+  }
+  return { items, bad };
+}
 function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
 
@@ -208,6 +380,8 @@ function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add
   localStorage.setItem('me_token', TOKEN);
   const fM = $('fMonth');
   if (fM) fM.addEventListener('change', () => app.reload());
+  const pfF = $('pfFile');
+  if (pfF) pfF.addEventListener('change', ev => app.pfFile(ev));
   try { await app.load(); } catch (e) { $('err').textContent = 'ошибка загрузки: ' + e.message; }
 })();
 </script>

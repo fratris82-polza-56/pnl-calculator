@@ -112,5 +112,28 @@ export default function ({ id, db, modDb, route, json, readBody, log }) {
     return names[mm] || null;
   }
 
+  // POST /api/m/payback/plan-file {items:[{pharmacy_id,month:'YYYY-MM',revenue,margin}],fileName?}
+  // Загрузка файла с планами: обновляет ядровую таблицу plan (месяц — именем). Неизвестные
+  // аптеки/месяцы не молча теряются, а возвращаются в bad.
+  route('POST', '/plan-file', async (req, res) => {
+    let b; try { b = await readBody(req); } catch (_) { return json(res, 400, { error: 'ожидается JSON' }); }
+    if (!Array.isArray(b.items)) return json(res, 400, { error: 'нужен {items:[{pharmacy_id,month,revenue,margin}]}' });
+    const ins = db.prepare(`INSERT INTO plan(pharmacy_id,month,revenue,margin) VALUES (?,?,?,?)
+      ON CONFLICT(pharmacy_id, month) DO UPDATE SET revenue=excluded.revenue, margin=excluded.margin`);
+    let saved = 0; const bad = [];
+    for (const it of b.items) {
+      const nm = okPh(it.pharmacy_id) ? monthName(it.month) : null;
+      const rev = +it.revenue, mg = +it.margin;
+      if (!nm || !isFinite(rev) || !isFinite(mg) || rev < 0 || mg < 0) {
+        bad.push({ ...it, reason: !okPh(it.pharmacy_id) ? 'аптека не найдена' : (!nm ? 'месяц вне периода сен–дек' : 'revenue/margin не числа') });
+        continue;
+      }
+      ins.run(+it.pharmacy_id, nm, rev, mg);
+      saved++;
+    }
+    log(`payback: план из файла «${String(b.fileName || '').slice(0, 60)}» — обновлено ${saved}, отклонено ${bad.length}`);
+    json(res, 200, { ok: true, saved, bad });
+  });
+
   log(`модуль "Окупаемость" готов, целей ВД: ${modDb.prepare('SELECT COUNT(*) AS c FROM mod_payback_target').get().c}, статей расходов: ${modDb.prepare('SELECT COUNT(*) AS c FROM mod_payback_expense').get().c}`);
 }
