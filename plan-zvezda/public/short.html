@@ -109,7 +109,7 @@
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-08 16:05 · es2015";
+      el.textContent = "сборка 2026-10-09 12:40 · выбор месяца";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -139,7 +139,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .topbar .sub{font-size:11.5px;color:var(--mut);margin-top:1px}
 .topbar a{margin-left:auto;font-size:11.5px;color:var(--blue);text-decoration:none;white-space:nowrap}
 
-.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.filters{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px}
 select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 10px;font-size:15px;font-weight:600;color:var(--navy);appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
 select:disabled{color:var(--mut);background-color:#f6f8fb}
 
@@ -206,6 +206,7 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
   <div class="err" id="err"></div>
 
   <div class="filters">
+    <select id="selMonth" aria-label="Месяц"></select>
     <select id="selPh" aria-label="Аптека"></select>
     <select id="selEmp" aria-label="Сотрудник"><option value="">Вся аптека</option></select>
   </div>
@@ -302,6 +303,7 @@ var catalog = [],
   kpiRows = [];
 var phId = +(localStorage.getItem('sz_ph') || 1);
 var empId = localStorage.getItem('sz_emp') || '';
+var mKey = localStorage.getItem('sz_mo') || currentMonthKey() || '2026-09';
 var empPlan = [];
 function epOverride(pharmacy_id, fio, month) {
   var n = function n(s) {
@@ -408,8 +410,8 @@ function _loadPh2() {
         case 0:
           localStorage.setItem('sz_ph', phId);
           localStorage.setItem('sz_emp', empId);
-          mk = currentMonthKey();
-          mname = mk ? MONTHS[mk] : null;
+          mk = mKey;
+          mname = MONTHS[mk] || null;
           qs = "pharmacy_id=".concat(phId) + (mname ? "&month=".concat(encodeURIComponent(mname)) : '');
           _context4.n = 1;
           return Promise.all([jget("/api/summary?".concat(qs)), jget("/api/s.series?".concat(qs)), jget('/api/kpi?pharmacy_id=' + phId).catch(function () {
@@ -435,17 +437,15 @@ function _loadPh2() {
   return _loadPh2.apply(this, arguments);
 }
 function monthRow() {
-  var cur = currentMonthKey();
+  var cur = mKey;
   var norm = function norm(r) {
     return rowKey(r);
   };
   return (sum.rows || []).find(function (r) {
     return norm(r) === cur;
-  }) || (sum.rows || []).filter(function (r) {
-    return norm(r) < cur;
-  }).sort(function (a, b) {
-    return norm(b).localeCompare(norm(a));
-  })[0] || (sum.rows || [])[0] || null;
+  }) || (sum.rows || []).find(function (r) {
+    return norm(r) === currentMonthKey();
+  }) || (sum.rows || [])[0] || null;
 }
 function dayBase(row) {
   var cur = currentMonthKey();
@@ -496,7 +496,7 @@ function render() {
   var mktFc = row.forecast_marketing != null ? row.forecast_marketing * _shrK : null;
   document.getElementById('asOf').textContent = "".concat(emp ? 'Лично: ' + emp.fio + ' · ' : '').concat(MONTHS[rowKey(row)]);
   document.getElementById('footDate').textContent = 'по ' + sum.asOf;
-  document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>".concat(esc(emp ? 'Личный план' : 'План месяца'), " \xB7 ").concat(MONTHS[rowKey(row)], "</span>\n      <span class=\"days\">").concat(isCur ? 'осталось ' + daysLeft + ' дн.' : 'месяц закрыт', "</span></div>\n    <div class=\"pct\">").concat(Math.round(fctPct), "<small> %</small></div>\n    <div class=\"bar\">\n      <div class=\"fill\" style=\"width:").concat(Math.min(fctPct, 100), "%;background:").concat(toneCol(fcPct), "\"></div>\n      ").concat(fcPct > 0.5 ? "<div class=\"tick\" style=\"left:".concat(Math.min(fcPct, 100), "%\" title=\"\u043F\u0440\u043E\u0433\u043D\u043E\u0437\"></div>") : '', "\n    </div>\n    <div class=\"bar-legend\"><span>\u0441\u043E\u0431\u0440\u0430\u043D\u043E ").concat(fmtRub(fact), "</span><span>\u043F\u043B\u0430\u043D ").concat(fmtRub(plan), "</span></div>\n    <div class=\"rows\">\n      <div><div class=\"t\">\u041F\u0440\u043E\u0433\u043D\u043E\u0437 \u043C\u0435\u0441\u044F\u0446\u0430</div>\n        <div class=\"v\">").concat(fmtML(fcVal), " <span>\xB7 ").concat(Math.round(fcPct), "% \u043F\u043B\u0430\u043D\u0430</span></div></div>\n      <div><div class=\"t\">\u0421\u0440\u0435\u0434\u043D\u0438\u0439 \u0447\u0435\u043A</div>\n        <div class=\"v\">").concat(avgCheck == null ? '—' : fmtRub(avgCheck)).concat(avgCheck == null || !avgTarget ? '' : " <span>\xB7 \u0446\u0435\u043B\u044C ".concat(fmtRub(avgTarget), "</span>")).concat(!checks ? '' : " <span>\xB7 \u0447\u0435\u043A\u043E\u0432 ".concat(checks).concat(planChecks ? '/' + planChecks : '', "</span>"), "</div></div>\n      <div><div class=\"t\">\u041D\u0430\u0446\u0435\u043D\u043A\u0430</div>\n        <div class=\"v\">").concat(Math.round(mkPct), "% <span>\xB7 \u043C\u0430\u0440\u0436\u0430 ").concat(Math.round(mgPct), "%</span></div></div>\n      <div><div class=\"t\">\u0421\u0422\u041C</div>\n        <div class=\"v\">").concat(fmtRub(stmVal)).concat(stmPlan != null ? " <span>\xB7 \u043F\u043B\u0430\u043D ".concat(fmtRub(stmPlan), " \xB7 ").concat((stmVal / stmPlan * 100).toFixed(1).replace('.', ','), "%</span>") : stmVal ? " <span>\xB7 ".concat(stmPct.toFixed(1).replace('.', ','), "% \u0422\u041E</span>") : '').concat(stmFc != null ? " <span>\xB7 \u043F\u0440\u043E\u0433\u043D\u043E\u0437 ".concat(fmtRub(stmFc), "</span>") : '', "</div></div>\n      <div><div class=\"t\">\u041C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433</div>\n        <div class=\"v\">").concat(fmtRub(mktVal)).concat(mktPlan != null ? " <span>\xB7 \u043F\u043B\u0430\u043D ".concat(fmtRub(mktPlan), " \xB7 ").concat((mktVal / mktPlan * 100).toFixed(1).replace('.', ','), "%</span>") : '').concat(mktFc != null ? " <span>\xB7 \u043F\u0440\u043E\u0433\u043D\u043E\u0437 ".concat(fmtRub(mktFc), "</span>") : '', "</div></div>\n    </div>\n    <div class=\"chip ").concat(toneCls(fcPct), "\">").concat(db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' : 'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения'), "</div>");
+  document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>".concat(esc(emp ? 'Личный план' : 'План месяца'), " \xB7 ").concat(MONTHS[rowKey(row)], "</span>\n      <span class=\"days\">").concat(isCur ? 'осталось ' + daysLeft + ' дн.' : 'месяц закрыт', "</span></div>\n    <div class=\"pct\">").concat(Math.round(fctPct), "<small> %</small></div>\n    <div class=\"bar\">\n      <div class=\"fill\" style=\"width:").concat(Math.min(fctPct, 100), "%;background:").concat(toneCol(fcPct), "\"></div>\n      ").concat(fcPct > 0.5 ? "<div class=\"tick\" style=\"left:".concat(Math.min(fcPct, 100), "%\" title=\"\u043F\u0440\u043E\u0433\u043D\u043E\u0437\"></div>") : '', "\n    </div>\n    <div class=\"bar-legend\"><span>\u0441\u043E\u0431\u0440\u0430\u043D\u043E ").concat(fmtRub(fact), "</span><span>\u043F\u043B\u0430\u043D ").concat(fmtRub(plan), "</span></div>\n    <div class=\"rows\">\n      <div><div class=\"t\">\u041F\u0440\u043E\u0433\u043D\u043E\u0437 \u043C\u0435\u0441\u044F\u0446\u0430</div>\n        <div class=\"v\">").concat(fmtML(fcVal), " <span>\xB7 ").concat(Math.round(fcPct), "% \u043F\u043B\u0430\u043D\u0430</span></div></div>\n      <div><div class=\"t\">\u0421\u0440\u0435\u0434\u043D\u0438\u0439 \u0447\u0435\u043A</div>\n        <div class=\"v\">").concat(avgCheck == null ? '—' : fmtRub(avgCheck)).concat(avgCheck == null || !avgTarget ? '' : " <span>\xB7 \u0446\u0435\u043B\u044C ".concat(fmtRub(avgTarget), "</span>")).concat(!checks ? '' : " <span>\xB7 \u0447\u0435\u043A\u043E\u0432 ".concat(checks).concat(planChecks ? '/' + planChecks : '', "</span>"), "</div></div>\n      <div><div class=\"t\">\u041D\u0430\u0446\u0435\u043D\u043A\u0430</div>\n        <div class=\"v\">").concat(Math.round(mkPct), "% <span>\xB7 \u043C\u0430\u0440\u0436\u0430 ").concat(Math.round(mgPct), "%</span></div></div>\n      <div><div class=\"t\">\u0421\u0422\u041C</div>\n        <div class=\"v\">").concat(fmtRub(stmVal)).concat(stmPlan != null ? " <span>\xB7 \u043F\u043B\u0430\u043D ".concat(fmtRub(stmPlan), " \xB7 ").concat((stmVal / stmPlan * 100).toFixed(1).replace('.', ','), "%</span>") : stmVal ? " <span>\xB7 ".concat(stmPct.toFixed(1).replace('.', ','), "% \u0422\u041E</span>") : '').concat(stmFc != null ? " <span>\xB7 \u043F\u0440\u043E\u0433\u043D\u043E\u0437 ".concat(fmtRub(stmFc), "</span>") : '', "</div></div>\n      <div><div class=\"t\">\u041C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433</div>\n        <div class=\"v\">").concat(fmtRub(mktVal)).concat(mktPlan != null ? " <span>\xB7 \u043F\u043B\u0430\u043D ".concat(fmtRub(mktPlan), " \xB7 ").concat((mktVal / mktPlan * 100).toFixed(1).replace('.', ','), "%</span>") : '').concat(mktFc != null ? " <span>\xB7 \u043F\u0440\u043E\u0433\u043D\u043E\u0437 ".concat(fmtRub(mktFc), "</span>") : '', "</div></div>\n    </div>\n    <div class=\"chip ").concat(toneCls(fcPct), "\">").concat(!isCur && fctPct === 0 ? 'Данных за месяц нет' : db <= 2 && fctPct === 0 ? 'Месяц только начался — данных пока мало' : 'Прогноз: ' + (fcPct >= 100 ? 'план будет выполнен' : fcPct >= 85 ? 'чуть-чуть до плана' : 'риск невыполнения'), "</div>");
   document.getElementById('mVals').textContent = "".concat(fmtRub(margin), " \u0438\u0437 ").concat(fmtRub(planM));
   var mf = document.getElementById('mFill');
   mf.style.width = Math.min(mPct, 100) + '%';
@@ -645,6 +645,20 @@ function renderTeam(emps, me) {
   }).join('');
 }
 function initControls() {
+  var selMonth = document.getElementById('selMonth');
+  selMonth.innerHTML = Object.keys(MONTHS).map(function (k) {
+    return "<option value=\"".concat(k, "\">").concat(MONTHS[k], "</option>");
+  }).join('');
+  selMonth.value = mKey;
+  if (selMonth.value !== mKey) {
+    mKey = currentMonthKey() || '2026-09';
+    selMonth.value = mKey;
+  }
+  selMonth.onchange = function () {
+    mKey = selMonth.value;
+    localStorage.setItem('sz_mo', mKey);
+    loadPh();
+  };
   var selPh = document.getElementById('selPh');
   selPh.innerHTML = catalog.map(function (p) {
     return "<option value=\"".concat(p.id, "\">").concat(esc(p.name), "</option>");
@@ -706,8 +720,8 @@ function _loadRecs() {
         case 0:
           box = document.getElementById('recs');
           note = document.getElementById('recNote');
-          mk = currentMonthKey();
-          mname = mk ? MONTHS[mk] : null;
+          mk = mKey;
+          mname = MONTHS[mk] || null;
           row = monthRow();
           items = [];
           _context5.p = 1;
