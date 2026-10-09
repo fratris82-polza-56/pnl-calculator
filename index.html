@@ -23,10 +23,6 @@
         body.pdf-export .param-value { font-size: 0.65rem; }
         body.pdf-export .results-table { font-size: 0.55rem; }
         body.pdf-export .bar-track { height: 10px; }
-        body.pdf-export .scenarios { gap: 4px; margin-top: 6px; }
-        body.pdf-export .scenario-btn { padding: 6px; }
-        body.pdf-export .scenario-btn .title { font-size: 0.65rem; }
-        body.pdf-export .scenario-btn .profit { font-size: 0.8rem; }
         body.pdf-export .section-title { font-size: 0.5rem; }
         body.pdf-export .staff-row { display: flex; align-items: center; gap: 0; margin-bottom: 3px; padding: 3px; font-size: 0.55rem; }
         body.pdf-export .staff-row span:first-child { width: 55px; font-size: 0.6rem; flex-shrink: 0; text-align: left; }
@@ -84,31 +80,7 @@
         .bar-container { margin: 10px 0; }
         .bar-label { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.75rem; }
         .bar-track { height: 18px; background: #5383c7; border-radius: 10px; overflow: hidden; }
-        .scenarios { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
-        .scenario-btn { background: #5383c7; border: 2px solid #eff2f7; color: #000; padding: 12px; border-radius: 10px; cursor: pointer; text-align: center; }
-        .scenario-btn .title { font-weight: 600; margin-bottom: 4px; font-size: 0.85rem; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
-        .scenario-btn .profit { font-size: 1rem; font-weight: 700; color: #fff; }
         .section-title { font-size: 0.65rem; font-weight: 600; color: #5383c7; text-transform: uppercase; margin: 12px 0 8px 0; border-bottom: 1px solid #eff2f7; font-family: Montserrat, sans-serif; }
-        .breakeven-section { margin-top: 16px; padding: 12px; background: #f0f7ff; border-radius: 10px; border: 1px solid #d4e4f7; }
-        .breakeven-result { margin-top: 10px; padding: 10px; background: #fff; border-radius: 8px; }
-        .be-stepper { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
-        .be-step-btn { width: 46px; height: 42px; flex: 0 0 46px; border-radius: 8px; border: 1px solid #d4e4f7; background: #fff; color: #5383c7; font-size: 1.35rem; font-weight: 700; line-height: 1; cursor: pointer; padding: 0; font-family: Montserrat,sans-serif; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-        .be-step-btn:active { background: #5383c7; color: #fff; }
-        .be-step-val { flex: 1 1 auto; min-width: 0; height: 42px; border: 1px solid #d4e4f7; border-radius: 8px; text-align: center; font-family: Montserrat,sans-serif; font-size: 0.95rem; font-weight: 600; color: #222; background: #fff; padding: 0 4px; }
-        .be-step-val:focus { outline: none; border-color: #5383c7; box-shadow: 0 0 0 2px rgba(83,131,199,0.18); }
-        .be-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-        .be-chip { padding: 8px 11px; min-height: 34px; border-radius: 17px; border: 1px solid #d4e4f7; background: #fff; color: #5383c7; font-size: 0.72rem; font-weight: 600; cursor: pointer; font-family: Montserrat,sans-serif; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
-        .be-chip:active { background: #5383c7; color: #fff; }
-        .be-step-btn:disabled, .be-chip:disabled { opacity: 0.5; cursor: not-allowed; }
-        /* Мобильный (<768px): слайдеры планировщика скрыты, вместо них степперы — скролл не сбивает значения */
-        .breakeven-section input[type="range"] { display: none; }
-        @media (min-width: 768px) {
-            .breakeven-section input[type="range"] { display: block; }
-            .be-stepper, .be-chips { display: none; }
-        }
-        .breakeven-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.75rem; }
-        .breakeven-row:last-child { margin-bottom: 0; }
-        .breakeven-row.highlight { padding: 8px; background: #e8f4fd; border-radius: 6px; margin-top: 8px; }
         .staff-detail { margin: 10px 0 8px 0; font-size: 0.8rem; }
         .staff-row { display: flex; align-items: center; gap: 0; margin-bottom: 6px; padding: 6px; background: #5383c7; border-radius: 6px; font-size: 0.75rem; color: #fff; }
         .staff-arrow, .staff-count, .staff-salary { flex-shrink: 0; }
@@ -158,10 +130,6 @@
             .quick-btn { padding: 2px 5px; font-size: 0.5rem; }
             .results-table { font-size: 0.65rem; }
             .bar-track { height: 10px; }
-            .scenarios { gap: 4px; margin-top: 6px; }
-            .scenario-btn { padding: 6px; }
-            .scenario-btn .title { font-size: 0.65rem; }
-            .scenario-btn .profit { font-size: 0.8rem; color: #fff; }
             .section-title { font-size: 0.5rem; }
             .staff-row { display: flex; align-items: center; gap: 0; margin-bottom: 3px; padding: 3px; font-size: 0.55rem; color: #fff; }
             .staff-arrow, .staff-count, .staff-salary { flex-shrink: 0; }
@@ -232,10 +200,6 @@
             .bar-container { margin: 16px 0; }
             .bar-label { margin-bottom: 6px; font-size: 0.85rem; }
             .bar-track { height: 24px; border-radius: 12px; }
-            .scenarios { grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 20px; }
-            .scenario-btn { padding: 16px; border-radius: 12px; }
-            .scenario-btn .title { font-size: 0.9rem; }
-            .scenario-btn .profit { font-size: 1.1rem; color: #fff; }
             .section-title { margin: 20px 0 10px 0; font-size: 0.75rem; }
             .staff-detail { margin: 15px 0 10px 0; font-size: 0.85rem; }
             .staff-row { display: flex; align-items: center; gap: 0; margin-bottom: 8px; padding: 8px; border-radius: 8px; font-size: 0.85rem; background: #5383c7; color: #fff; }
@@ -274,9 +238,6 @@
         .bar-fill.expenses { background: linear-gradient(90deg, #f78d37, #f0c000); }
         .bar-fill.profit { background: linear-gradient(90deg, #6dc47b, #00cc6a); }
         .bar-fill.loss { background: linear-gradient(90deg, #ee6242, #ff3040); }
-        .scenario-btn.pessimistic .profit { color: #f78d37; }
-        .scenario-btn.baseline .profit { color: #fff; }
-        .scenario-btn.optimistic .profit { color: #6dc47b; }
         .staff-arrow { background: #fff; border: none; border-radius: 4px; cursor: pointer; color: #5383c7; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .staff-arrow:hover { background: #e0e9f7; }
         .share-bar .ecom { background: linear-gradient(90deg, #a855f7, #7c3aed); }
@@ -327,15 +288,6 @@
         }
         .kpi-card .value {
             font-size: 10pt !important;
-        }
-        .scenario-row {
-            display: flex !important;
-            gap: 8px !important;
-            margin-bottom: 6px !important;
-        }
-        .scenario-btn {
-            flex: 1 !important;
-            padding: 6px !important;
         }
         .staff-section {
             margin-top: 6px !important;
@@ -533,64 +485,6 @@
                     <tr id="tblProfitRow"><td><strong>Операционная прибыль</strong></td><td id="tblProfitM"><strong class="loss">-112 тыс ₽</strong></td><td id="tblProfitY"><strong class="loss">-1.34 млн ₽</strong></td></tr>
                     <tr id="tblNetProfitRow"><td><strong>Чистая прибыль</strong></td><td id="tblNetProfitM"><strong class="loss">-112 тыс ₽</strong></td><td id="tblNetProfitY"><strong class="loss">-1.34 млн ₽</strong></td></tr>
                 </table>
-                <div class="scenarios">
-                    <div class="scenario-btn pessimistic" onclick="loadScenario('pessimistic')"><div class="title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Пессимистичный</div><div class="profit" id="scenPess">-5.2 млн ₽</div></div>
-                    <div class="scenario-btn baseline" onclick="loadScenario('baseline')"><div class="title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> Базовый</div><div class="profit" id="scenBase">-1.3 млн ₽</div></div>
-                    <div class="scenario-btn optimistic" onclick="loadScenario('optimistic')"><div class="title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Оптимистичный</div><div class="profit" id="scenOptim">+13.7 млн ₽</div></div>
-                </div>
-                <div class="breakeven-section">
-                    <div class="section-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5383c7" stroke-width="2"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg> Планировщик: расходы → товарооборот</div>
-                    <div class="param">
-                        <div class="param-header"><span class="param-label">Расходы в месяц<button id="beSyncExpenses" style="background:#5383c7;color:#fff;border:none;padding:2px 7px;border-radius:5px;cursor:pointer;font-size:0.6rem;font-family:Montserrat,sans-serif;margin-left:6px;">Из расчёта</button></span><span class="param-value" id="beExpensesVal">1 005 тыс ₽/мес</span></div>
-                        <input type="range" id="beExpensesRange" min="0" max="20000000" step="5000" value="1005000" autocomplete="off">
-                    </div>
-                    <div class="param">
-                        <div class="param-header"><span class="param-label">Доля ECOM в товарообороте</span><span class="param-value" id="beEcomShareVal">20% ECOM / 80% Розница</span></div>
-                        <input type="range" id="beEcomShareRange" min="0" max="100" step="1" value="20" autocomplete="off">
-                    </div>
-                    <div class="param">
-                        <div class="param-header"><span class="param-label">Наценка Розница (%)</span><span class="param-value" id="beMarkupRetailVal">28%</span></div>
-                        <input type="range" id="beMarkupRetail" min="0" max="100" step="0.5" value="28" autocomplete="off">
-                    </div>
-                    <div class="param">
-                        <div class="param-header"><span class="param-label">Наценка ECOM (%)</span><span class="param-value" id="beMarkupEcomVal">5%</span></div>
-                        <input type="range" id="beMarkupEcom" min="0" max="100" step="0.5" value="5" autocomplete="off">
-                    </div>
-                    <div class="param">
-                        <div class="param-header"><span class="param-label">Желаемая прибыль в месяц</span><span class="param-value" id="beProfitRangeVal">0 ₽</span></div>
-                        <input type="range" id="beProfitRange" min="0" max="3000000" step="10000" value="0" autocomplete="off">
-                    </div>
-                    <div class="breakeven-result">
-                        <div class="breakeven-row">
-                            <span>Средняя наценка:</span>
-                            <span id="beAvgMarkup" style="font-weight:600;">23.4%</span>
-                        </div>
-                        <div class="breakeven-row highlight">
-                            <span>Нужный товарооборот:</span>
-                            <span id="beRevenueM" style="font-weight:700;color:#5383c7;">5.45 млн ₽/мес</span>
-                        </div>
-                        <div class="breakeven-row">
-                            <span>В год:</span>
-                            <span id="beRevenueY" style="font-weight:600;">65.4 млн ₽/год</span>
-                        </div>
-                        <div class="breakeven-row">
-                            <span>Прибыль сверх расходов:</span>
-                            <span id="beProfitVal" style="font-weight:600;color:#6dc47b;">0 ₽/мес</span>
-                        </div>
-                        <div class="breakeven-row">
-                            <span>Расходы в год:</span>
-                            <span id="beExpensesY" style="font-weight:600;">12.1 млн ₽/год</span>
-                        </div>
-                        <div class="breakeven-row">
-                            <span>Товарооборот Розница:</span>
-                            <span id="beRetailRev" style="font-weight:600;">4.36 млн ₽/мес</span>
-                        </div>
-                        <div class="breakeven-row">
-                            <span>Товарооборот ECOM:</span>
-                            <span id="beEcomRev" style="font-weight:600;">1.09 млн ₽/мес</span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -601,152 +495,10 @@
         function fmt(n) { return n.toLocaleString('ru-RU'); }
         function fmtS(n) { const a = Math.abs(n); const s = n < 0 ? '-' : ''; return a >= 1000000 ? s + (a/1000000).toFixed(2) + ' млн ₽' : s + (a/1000).toFixed(0) + ' тыс ₽'; }
 
-        // Планировщик: от расходов к товарообороту по каналам
-        let currentExpensesYear = 0; // Годовые расходы (берутся из calculate())
-        let beExpensesAuto = true;   // Расходы планировщика следуют за основным расчётом
-        let beResetTimers = []; // Отложенные сбросы (перекрывают восстановление формы браузером)
-        let beExpensesResetTimer = null; // Отдельный таймер для слайдера «Расходы»: возвращает авто-режим, не мешая ручному вводу
 
-        function beMargin(markupPct) { return markupPct / (100 + markupPct); } // Маржа из наценки
-
-        function calcBreakeven() {
-            const expEl = document.getElementById('beExpensesRange');
-            if (!expEl) return;
-            if (beExpensesAuto && currentExpensesYear > 0) expEl.value = Math.round(currentExpensesYear / 12);
-            const expensesMonth = parseFloat(expEl.value) || 0;
-            const sE = parseFloat(document.getElementById('beEcomShareRange').value) || 0;
-            const sR = 100 - sE;
-            const markupR = parseFloat(document.getElementById('beMarkupRetail').value) || 0;
-            const markupE = parseFloat(document.getElementById('beMarkupEcom').value) || 0;
-            const profitMonth = parseFloat(document.getElementById('beProfitRange').value) || 0;
-            document.getElementById('beProfitRangeVal').textContent = fmtS(profitMonth);
-            document.getElementById('beProfitVal').textContent = (profitMonth > 0 ? '+' : '') + fmtS(profitMonth) + '/мес';
-            document.getElementById('beExpensesVal').textContent = fmtS(expensesMonth) + '/мес';
-            document.getElementById('beExpensesY').textContent = fmtS(expensesMonth * 12) + '/год';
-            document.getElementById('beEcomShareVal').textContent = sE + '% ECOM / ' + sR + '% Розница';
-            document.getElementById('beMarkupRetailVal').textContent = markupR + '%';
-            document.getElementById('beMarkupEcomVal').textContent = markupE + '%';
-            beSyncSteppers();
-            const avgMargin = (sR / 100) * beMargin(markupR) + (sE / 100) * beMargin(markupE);
-            const avgMarkup = (sR / 100) * markupR + (sE / 100) * markupE;
-            document.getElementById('beAvgMarkup').textContent = avgMarkup.toFixed(1) + '%';
-            if (avgMargin <= 0) {
-                document.getElementById('beRevenueM').textContent = '—';
-                document.getElementById('beRevenueY').textContent = '—';
-                document.getElementById('beRetailRev').textContent = '—';
-                document.getElementById('beEcomRev').textContent = '—';
-                return;
-            }
-            const revMonth = (expensesMonth + profitMonth) / avgMargin;
-            document.getElementById('beRevenueM').textContent = fmtS(revMonth) + '/мес';
-            document.getElementById('beRevenueY').textContent = fmtS(revMonth * 12) + '/год';
-            document.getElementById('beRetailRev').textContent = fmtS(revMonth * sR / 100) + '/мес';
-            document.getElementById('beEcomRev').textContent = fmtS(revMonth * sE / 100) + '/мес';
-        }
-
-        // ── Степперы для мобильных (<768px) вместо слайдеров планировщика ──
-        const BE_STEPPER_CFG = {
-            beExpensesRange: { step: 5000, accel: 25000, chips: [500000, 1000000, 1500000, 2000000, 3000000] },
-            beEcomShareRange: { step: 1 },
-            beMarkupRetail: { step: 0.5 },
-            beMarkupEcom: { step: 0.5 },
-            beProfitRange: { step: 10000, accel: 50000, chips: [0, 250000, 500000, 1000000] }
-        };
-        const BE_STEPPER_LABELS = { beExpensesRange: 'Расходы в месяц', beEcomShareRange: 'Доля ECOM', beMarkupRetail: 'Наценка Розница', beMarkupEcom: 'Наценка ECOM', beProfitRange: 'Желаемая прибыль' };
-        function beStepRound(v, step) { return parseFloat((Math.round(v / step) * step).toFixed(2)); }
-        function beFmtStepper(v) { if (!isFinite(v)) v = 0; return Math.abs(v) >= 100 ? Math.round(v).toLocaleString('ru-RU') : String(parseFloat(v.toFixed(2))); }
-        function beClampToRange(r, v) { const min = parseFloat(r.min) || 0, max = parseFloat(r.max) || 0; return Math.min(max, Math.max(min, v)); }
-        function beApplyStepper(r, v, step) {
-            const nv = beClampToRange(r, beStepRound(v, step));
-            if (parseFloat(r.value) !== nv) { r.value = nv; r.dispatchEvent(new Event('input', { bubbles: true })); }
-            return nv;
-        }
-        function beBuildSteppers() {
-            Object.keys(BE_STEPPER_CFG).forEach(id => {
-                const r = document.getElementById(id); const cfg = BE_STEPPER_CFG[id];
-                if (!r || r.parentElement.querySelector('.be-stepper[data-for="' + id + '"]')) return;
-                const st = document.createElement('div'); st.className = 'be-stepper'; st.setAttribute('data-for', id);
-                const minus = document.createElement('button'); minus.type = 'button'; minus.className = 'be-step-btn'; minus.textContent = '−';
-                const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'be-step-val'; inp.inputMode = 'decimal'; inp.autocomplete = 'off'; inp.setAttribute('aria-label', (BE_STEPPER_LABELS[id] || id) + ': введите значение');
-                const plus = document.createElement('button'); plus.type = 'button'; plus.className = 'be-step-btn'; plus.textContent = '+';
-                st.appendChild(minus); st.appendChild(inp); st.appendChild(plus);
-                r.parentElement.appendChild(st);
-                if (cfg.chips) {
-                    const chips = document.createElement('div'); chips.className = 'be-chips';
-                    cfg.chips.forEach(cv => {
-                        const c = document.createElement('button'); c.type = 'button'; c.className = 'be-chip';
-                        c.textContent = cv === 0 ? '0' : fmtS(cv);
-                        c.addEventListener('click', () => beApplyStepper(r, cv, cfg.step));
-                        chips.appendChild(c);
-                    });
-                    r.parentElement.appendChild(chips);
-                }
-                // Удержание кнопки = ускоренный повтор (после ~0.8с шаг ×5)
-                let repTimer = null, repCount = 0, pointerAt = 0;
-                const stopRep = () => { if (repTimer) { clearInterval(repTimer); repTimer = null; } repCount = 0; };
-                const hold = (dir) => {
-                    stopRep();
-                    const applyOnce = () => beApplyStepper(r, (parseFloat(r.value) || 0) + dir * (repCount >= 6 ? (cfg.accel || cfg.step) : cfg.step), cfg.step);
-                    applyOnce();
-                    repTimer = setInterval(() => { repCount++; applyOnce(); }, 140);
-                };
-                [[minus, -1], [plus, 1]].forEach(pair => {
-                    const btn = pair[0], dir = pair[1];
-                    btn.addEventListener('pointerdown', (e) => { e.preventDefault(); pointerAt = Date.now(); hold(dir); });
-                    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, stopRep));
-                    btn.addEventListener('click', () => { if (Date.now() - pointerAt > 300) beApplyStepper(r, (parseFloat(r.value) || 0) + dir * cfg.step, cfg.step); }); // клавиатура
-                });
-                st.addEventListener('contextmenu', (e) => { if (e.target.classList && e.target.classList.contains('be-step-btn')) e.preventDefault(); });
-                // Ручной ввод: по Enter/потере фокуса применяем разобранное число; фокус отменяет отложенные сбросы (пользователь начал работу)
-                inp.addEventListener('focus', () => {
-                    beResetTimers.forEach(clearTimeout); beResetTimers = [];
-                    if (beExpensesResetTimer) { clearTimeout(beExpensesResetTimer); beExpensesResetTimer = null; }
-                    if (inp.select) inp.select();
-                });
-                inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } });
-                inp.addEventListener('blur', () => {
-                    const raw = parseFloat(inp.value.replace(/\s/g, '').replace(',', '.'));
-                    if (!isNaN(raw)) beApplyStepper(r, raw, cfg.step);
-                    calcBreakeven(); // перерисовать каноничное значение из range
-                    inp.value = beFmtStepper(parseFloat(r.value) || 0); // форс-синк поля (в т.ч. при некорректном вводе)
-                });
-            });
-        }
-        function beSyncSteppers() {
-            document.querySelectorAll('.be-stepper').forEach(st => {
-                const r = document.getElementById(st.getAttribute('data-for')); if (!r) return;
-                const inp = st.querySelector('.be-step-val');
-                if (document.activeElement === inp) return; // не мешаем пользователю печатать
-                inp.value = beFmtStepper(parseFloat(r.value) || 0);
-            });
-        }
-        function beWire() {
-            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.addEventListener('input', function() {
-                    beResetTimers.forEach(clearTimeout); beResetTimers = []; // пользователь трогает слайдер — отложенные сбросы отменяем
-                    if (id === 'beExpensesRange') {
-                        if (beExpensesResetTimer) { clearTimeout(beExpensesResetTimer); beExpensesResetTimer = null; }
-                        beExpensesAuto = false;
-                    }
-                    updateSliderFillById(id);
-                    calcBreakeven();
-                });
-            });
-            const syncBtn = document.getElementById('beSyncExpenses');
-            if (syncBtn) syncBtn.addEventListener('click', function() {
-                beExpensesAuto = true;
-                calcBreakeven();
-                updateSliderFillById('beExpensesRange');
-            });
-            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
-            beBuildSteppers();
-        }
 
         // ── Состояние: автосохранение, ссылка-параметры, копирование итогов ──
         const STATE_STAFF_ROLES = ['Zav', 'Prov', 'Sbor', 'Gruz', 'Tovar', 'Ubor', 'Vod', 'Exp'];
-        const STATE_BE_KEYS = ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'];
         const STATE_STORAGE_KEY = 'pnl_state_v1';
         window.__pnlRestored = false;
 
@@ -758,10 +510,7 @@
                 st['c' + r] = c ? (parseInt(c.value) || 0) : 0;
                 st['s' + r] = s ? (parseFloat(s.value) || 0) : 0;
             });
-            const be = {};
-            STATE_BE_KEYS.forEach(id => { const el = document.getElementById(id); be[id] = el ? (parseFloat(el.value) || 0) : 0; });
-            be.auto = beExpensesAuto ? 1 : 0;
-            return { v: 1, p: Object.assign({}, params), st: st, be: be };
+            return { v: 1, p: Object.assign({}, params), st: st };
         }
         function encodeState(obj) {
             return btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -786,15 +535,6 @@
                     if (sal && s.st['s' + r] !== undefined) sal.value = Math.max(0, parseFloat(s.st['s' + r]) || 0);
                 });
             }
-            if (s.be) {
-                STATE_BE_KEYS.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el && s.be[id] !== undefined && isFinite(parseFloat(s.be[id]))) {
-                        el.value = Math.min(parseFloat(el.max) || 0, Math.max(parseFloat(el.min) || 0, parseFloat(s.be[id])));
-                    }
-                });
-                if (s.be.auto !== undefined) beExpensesAuto = !!s.be.auto;
-            }
             return true;
         }
         function syncDomFromParams() {
@@ -809,10 +549,10 @@
             }, 300);
         }
         document.addEventListener('input', function(e) {
-            if (e.target && e.target.closest && (e.target.closest('#paramsPanel') || STATE_BE_KEYS.indexOf(e.target.id) !== -1)) scheduleSave();
+            if (e.target && e.target.closest && e.target.closest('#paramsPanel')) scheduleSave();
         }, true);
         document.addEventListener('click', function(e) {
-            if (e.target && e.target.closest && e.target.closest('.staff-arrow, .be-step-btn, .be-chip, .scenario-btn, #beSyncExpenses')) scheduleSave();
+            if (e.target && e.target.closest && e.target.closest('.staff-arrow')) scheduleSave();
         }, true);
 
         let toastTimer = null;
@@ -1326,10 +1066,7 @@
             const acquiringCost = grossRevenue * params.acquiring / 100 * params.acquiringShare / 100;
             const vendorBonus = params.vendorBonus;
             const operatingExpenses = params.rent + params.salary + (params.salary * params.social / 100) + logisticsCost + params.utilities + params.security + params.supplies + params.marketing + params.other + params.communication + params.software + params.insurance + params.accounting + params.training + spoilageCost + acquiringCost + (params.project / 12) - vendorBonus + (params.depreciation || 0);
-            
-            // Обновляем годовые расходы для окупаемости
-            currentExpensesYear = operatingExpenses * 12;
-            calcBreakeven();
+
             
             const opProfit = grossProfit - operatingExpenses;
             const netProfit = opProfit > 0 ? opProfit * (1 - params.profitTax / 100) : opProfit;
@@ -1460,69 +1197,6 @@
             document.getElementById('tblNetProfitRow').className = netProfitClass;
             // Снимок результатов для «Копировать итоги» (чистые числа)
             window._lastResults = { grossRevenueYear: grossRevenueYear, grossRevenue: grossRevenue, grossProfitYear: grossProfit * 12, grossProfit: grossProfit, opProfitYear: opProfitYear, opProfit: opProfit, netProfitYear: netProfitYear, netProfit: netProfit, costOfGoodsYear: costOfGoods * 12, operatingExpensesYear: operatingExpenses * 12, logisticsCost: logisticsCost, acquiringCost: acquiringCost, spoilageCost: spoilageCost };
-            updateScenarios();
-        }
-        function updateScenarios() {
-            // Сценарии теперь используют текущие значения слайдеров (params)
-            // Если все основные значения = 0, показываем 0 ₽
-            const isZero = params.revenueWarehouse === 0 && params.revenueRetail === 0 && params.revenueEcom === 0;
-            
-            if (isZero) {
-                ['Pess', 'Base', 'Optim'].forEach(k => {
-                    const el = document.getElementById('scen' + k);
-                    if (el) el.textContent = '0 ₽';
-                });
-                return;
-            }
-            
-            // Множители для сценариев
-            const multipliers = {
-                Pess: {rev: 0.6, margin: 0.8, rent: 1.2, salary: 1.15, cost: 1.15},  // -40% выручка, -20% маржа, +15-20% расходы
-                Base: {rev: 1, margin: 1, rent: 1, salary: 1, cost: 1},                 // текущие значения
-                Optim: {rev: 1.5, margin: 1.15, rent: 0.8, salary: 0.9, cost: 0.85}      // +50% выручка, +15% маржа, -15% расходы
-            };
-            
-            const taxRate = 0.2;
-            
-            ['Pess', 'Base', 'Optim'].forEach(k => {
-                const m = multipliers[k];
-                const revWarehouse = (params.revenueWarehouse * m.rev) / (1 + taxRate);
-                const costWarehouse = revWarehouse / (1 + (params.marginWarehouse * m.margin) / 100);
-                const gpWarehouse = revWarehouse - costWarehouse;
-                
-                const revRetail = (params.revenueRetail * m.rev) / (1 + taxRate);
-                const costRetail = revRetail / (1 + (params.marginRetail * m.margin) / 100);
-                const gpRetail = revRetail - costRetail;
-                
-                const revEcom = (params.revenueEcom * m.rev) / (1 + taxRate);
-                const costEcom = revEcom / (1 + (params.marginEcom * m.margin) / 100);
-                const gpEcom = revEcom - costEcom;
-                
-                const gp = gpWarehouse + gpRetail + gpEcom;
-                const costOfGoods = costWarehouse + costRetail + costEcom;
-                
-                const logisticsCost = costOfGoods * (params.logistics / 100) * m.cost;
-                const spoilageCost = costOfGoods * (params.spoilage / 100) * m.cost;
-                const acquiringCost = (params.revenueWarehouse * m.rev + params.revenueRetail * m.rev + params.revenueEcom * m.rev) * (params.acquiring / 100) * (params.acquiringShare / 100);
-                
-                const rent = params.rent * m.rent;
-                const salary = params.salary * m.salary;
-                const utilities = params.utilities * m.cost;
-                const security = params.security * m.cost;
-                const supplies = params.supplies * m.cost;
-                const marketing = params.marketing * m.cost;
-                const communication = params.communication * m.cost;
-                const software = params.software * m.cost;
-                const insurance = params.insurance * m.cost;
-                const accounting = params.accounting * m.cost;
-                const training = params.training * m.cost;
-                const vendorBonus = params.vendorBonus * m.rev;
-                
-                const exp = rent + salary + salary * params.social/100 + logisticsCost + utilities + security + supplies + marketing + communication + software + insurance + accounting + training + spoilageCost + acquiringCost - vendorBonus;
-                const op = (gp - exp) * 12;
-                const el = document.getElementById('scen' + k);
-                if (el) el.textContent = (op >= 0 ? '+' : '') + fmtS(op);
-            });
         }
         let slidersLocked = false;
         // ── Шкалы «Результатов»: по умолчанию синие, цвета включаются после первой правки цифр пользователем ──
@@ -1541,7 +1215,7 @@
             const panel = document.getElementById('paramsPanel');
             if (panel) panel.addEventListener('input', barsMarkDirty, true); // слайдеры и числовые поля калькулятора
             document.addEventListener('click', function(e) {
-                if (e.target.closest && e.target.closest('.staff-arrow, .scenario-btn')) barsMarkDirty(); // стрелки персонала и сценарии
+                if (e.target.closest && e.target.closest('.staff-arrow')) barsMarkDirty(); // стрелки персонала
             }, true);
         })();
         // Первый рендер: класс ширины включается после первой отрисовки, чтобы заливка пошла как «слайдер» 0 → значение
@@ -1622,18 +1296,12 @@
                 const percent = ((val - min) / (max - min)) * 100;
                 slider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
             });
-            // Планировщик: вернуть настройки по умолчанию
-            beExpensesAuto = true;
-            const beDefaults = { beExpensesRange: 1005000, beEcomShareRange: 20, beMarkupRetail: 28, beMarkupEcom: 5, beProfitRange: 0 };
-            Object.keys(beDefaults).forEach(id => { const el = document.getElementById(id); if (el) el.value = beDefaults[id]; });
-            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
             calculate();
-            updateScenarios();
         }
         function toggleLock() {
             slidersLocked = !slidersLocked;
             const btn = document.getElementById('lockBtn');
-            const inputs = document.querySelectorAll('#paramsPanel input[type="range"], #paramsPanel input[type="number"], #paramsPanel input[type="text"], #paramsPanel .be-step-btn, #paramsPanel .be-chip, #paramsPanel #beSyncExpenses');
+            const inputs = document.querySelectorAll('#paramsPanel input[type="range"], #paramsPanel input[type="number"], #paramsPanel input[type="text"], ');
             inputs.forEach(input => {
                 input.disabled = slidersLocked;
             });
@@ -1646,59 +1314,6 @@
                 btn.style.background = '#6dc47b';
                 btn.style.color = '#fff';
             }
-        }
-        
-        function loadScenario(t) {
-            // Загружает предустановленные значения в слайдеры
-            const presets = {
-                pessimistic: {revenueWarehouse: 2000000, marginWarehouse: 12, revenueRetail: 1000000, marginRetail: 45, revenueEcom: 0, marginEcom: 30, rent: 350000, salary: 500000, social: 30, logistics: 10, utilities: 20000, security: 10000, supplies: 15000, marketing: 10000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1.5, vendorBonus: 0},
-                baseline: {revenueWarehouse: 3500000, marginWarehouse: 15, revenueRetail: 1500000, marginRetail: 50, revenueEcom: 0, marginEcom: 30, rent: 290000, salary: 450000, social: 30, logistics: 5, utilities: 15000, security: 8000, supplies: 12000, marketing: 15000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 1, vendorBonus: 0},
-                optimistic: {revenueWarehouse: 7000000, marginWarehouse: 18, revenueRetail: 3000000, marginRetail: 55, revenueEcom: 0, marginEcom: 30, rent: 200000, salary: 400000, social: 30, logistics: 3, utilities: 10000, security: 5000, supplies: 8000, marketing: 30000, communication: 5000, software: 10000, acquiring: 1.5, insurance: 8000, accounting: 15000, training: 5000, spoilage: 0.5, vendorBonus: 50000}
-            };
-            const p = presets[t];
-            // Устанавливаем детализацию выручки
-            document.getElementById('revenueWarehouse').value = p.revenueWarehouse;
-            document.getElementById('marginWarehouse').value = p.marginWarehouse;
-            document.getElementById('revenueRetail').value = p.revenueRetail;
-            document.getElementById('marginRetail').value = p.marginRetail;
-            document.getElementById('revenueEcom').value = p.revenueEcom;
-            document.getElementById('marginEcom').value = p.marginEcom;
-            updateRevenueDetail();
-            // Устанавливаем остальные параметры
-            Object.keys(p).forEach(k => {
-                if (!['revenueWarehouse', 'marginWarehouse', 'revenueRetail', 'marginRetail', 'revenueEcom', 'marginEcom'].includes(k)) {
-                    const el = document.getElementById(k);
-                    if (el) {
-                        el.value = p[k];
-                        params[k] = p[k];
-                    }
-                }
-            });
-            // Обновить отображение всех значений
-            ['Revenue', 'Margin', 'RevenueWarehouse', 'MarginWarehouse', 'RevenueRetail', 'MarginRetail', 'RevenueEcom', 'MarginEcom', 'Rent', 'Salary', 'Social', 'Logistics', 'Utilities', 'Security', 'Supplies', 'Marketing', 'Other', 'Communication', 'Software', 'Acquiring', 'AcquiringShare', 'Insurance', 'Accounting', 'Training', 'Spoilage', 'VendorBonus'].forEach(id => {
-                const el = document.getElementById('val' + id);
-                if (el) {
-                    const key = id.charAt(0).toLowerCase() + id.slice(1);
-                    const val = params[key];
-                    if (id.includes('Margin')) {
-                        el.textContent = (typeof val === 'number' ? val.toFixed(1) : val) + '%';
-                    } else if (id === 'Social' || id === 'Logistics' || id === 'Acquiring' || id === 'AcquiringShare' || id === 'Spoilage') {
-                        el.textContent = val + '%';
-                    } else {
-                        el.textContent = fmt(val);
-                    }
-                }
-            });
-            updateStaffDisplay();
-            // Обновляем заполнение всех дорожек
-            document.querySelectorAll('input[type="range"]').forEach(slider => {
-                const min = parseFloat(slider.min) || 0;
-                const max = parseFloat(slider.max) || 100;
-                const val = parseFloat(slider.value);
-                const percent = ((val - min) / (max - min)) * 100;
-                slider.style.background = 'linear-gradient(to right, #5383c7, #5383c7) no-repeat left/' + percent + '% 100% #e0e9f7';
-            });
-            calculate();
         }
         document.querySelectorAll('input[type="range"]').forEach(s => {
             let isUpdatingFromDetail = false;
@@ -1806,31 +1421,6 @@
         barsPrimeBarWidths(); // первый рендер: шкалы заполняются как «слайдеры» 0 → значение
         drawRevenuePieChart();
         initStaffListeners();
-        beWire();
-        // Сброс планировщика к дефолтам после загрузки:
-        // при F5/возврате назад браузер восстанавливает прежние позиции слайдеров — перекрываем их
-        function beApplyDefaults(expensesOnly) {
-            beExpensesAuto = true;
-            const beInitDefaults = { beExpensesRange: 1005000, beEcomShareRange: 20, beMarkupRetail: 28, beMarkupEcom: 5, beProfitRange: 0 };
-            Object.keys(beInitDefaults).forEach(id => {
-                if (expensesOnly && id !== 'beExpensesRange') return;
-                const el = document.getElementById(id); if (el) el.value = beInitDefaults[id];
-            });
-            ['beExpensesRange', 'beEcomShareRange', 'beMarkupRetail', 'beMarkupEcom', 'beProfitRange'].forEach(updateSliderFillById);
-            calcBreakeven();
-        }
-        function beResetToDefaults() {
-            if (window.__pnlRestored) return; // состояние восстановлено из ссылки/localStorage — не затираем дефолтами
-            beApplyDefaults();
-            // Firefox/Chrome могут восстановить значения формы уже ПОСЛЕ pageshow —
-            // перекрываем восстановление отложенными сбросами (отменяются при ручном вводе)
-            beResetTimers.forEach(clearTimeout);
-            beResetTimers = [150, 600, 1500].map(ms => setTimeout(() => beApplyDefaults(), ms));
-            // Слайдер «Расходы»: отложенный сброс возвращает авто-режим («Из расчёта»),
-            // если пользователь перетащил его вручную — но не прерывает начатый ввод
-            if (beExpensesResetTimer) clearTimeout(beExpensesResetTimer);
-            beExpensesResetTimer = setTimeout(() => { beExpensesResetTimer = null; beApplyDefaults(true); }, 2500);
-        }
         // Восстановление состояния: ссылка (#p=...) приоритетнее localStorage, иначе — дефолты
         // ?pharmacy=<имя> — метка аптеки (из дашборда): попадает в код плана и в заголовок
         (function restoreState() {
@@ -1857,8 +1447,7 @@
                 window.__pnlRestored = true;
                 syncDomFromParams();
                 document.querySelectorAll('#paramsPanel input[type="range"]').forEach(function(s){ updateSliderFillById(s.id); });
-                STATE_BE_KEYS.forEach(updateSliderFillById);
-                updateStaffDisplay();
+                                updateStaffDisplay();
                 updateRevenueDetail();
                 if (fromUrl) { try { localStorage.setItem(STATE_STORAGE_KEY, encodeState(collectState())); } catch(e) {} }
             }
@@ -1888,8 +1477,7 @@
                             window.__pnlRestored = true;
                             syncDomFromParams();
                             document.querySelectorAll('#paramsPanel input[type="range"]').forEach(function(s){ updateSliderFillById(s.id); });
-                            STATE_BE_KEYS.forEach(updateSliderFillById);
-                            updateStaffDisplay();
+                                                        updateStaffDisplay();
                             updateRevenueDetail();
                             try { localStorage.setItem(STATE_STORAGE_KEY, encodeState(collectState())); } catch(e) {}
                         }
@@ -1902,9 +1490,6 @@
                 document.body.appendChild(bar);
             } catch(e) {}
         })();
-        beResetToDefaults();
-        window.addEventListener('pageshow', beResetToDefaults);
-        calcBreakeven();
         
 
     </script>
