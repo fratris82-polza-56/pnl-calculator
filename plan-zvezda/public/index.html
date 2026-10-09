@@ -351,6 +351,8 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
       <div class="sgrp">Разделы</div>
       <button class="sbtn" id="mbtn-pnl" onclick="mNav('pnl');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2"/><path d="M3.2 9.8h17.6M8.2 9.8v9.4M13.2 9.8v9.4M18.2 14.5v4.7"/></svg></span><span>Калькулятор P&amp;L</span></button>
       <button class="sbtn" id="mbtn-payback" onclick="mNav('payback');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.4" r="7.2"/><path d="M12 9.6v3.8l2.6 1.8M9.4 3.6h5.2"/></svg></span><span>Окупаемость</span></button>
+      <button class="sbtn" id="mbtn-marketing" onclick="mNav('marketing');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 10.7 17-4.9v12.4l-17-4.7z"/><path d="M11.7 16.8a3 3 0 1 1-5.9-1.7"/></svg></span><span>Маркетинг</span></button>
+      <button class="sbtn" id="mbtn-stm" onclick="mNav('stm');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3.5h7.9v7.9l-8.6 8.6a2 2 0 0 1-2.8 0l-5.1-5.1a2 2 0 0 1 0-2.8z"/><circle cx="16.1" cy="7.9" r="1.2"/></svg></span><span>СТМ</span></button>
       <button class="sbtn" onclick="sblGo('kpis')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="6.2" width="18.4" height="11.6" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.2 12h.01M17.8 12h.01"/></svg></span><span>Показатели</span></button>
       <button class="sbtn" onclick="sblGo('charts')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5h17M4.5 16l4.8-5.3 3.4 3L19 7.5M15.5 7.5H19V11"/></svg></span><span>Графики</span></button>
       <button class="sbtn" onclick="sblGo('sec-tbl')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2"/><path d="M3.2 9.8h17.6M9.8 9.8v9.4M15.4 9.8v9.4"/></svg></span><span>Сводная таблица</span></button>
@@ -2160,6 +2162,7 @@ function _loadModNav() {
           nav = document.getElementById("mnav");
           grps = {};
           mods.forEach(function (m) {
+            if (document.getElementById("mbtn-" + m.id)) return;
             var g = m.group || "";
             if (!grps[g]) grps[g] = [];
             grps[g].push(m);
