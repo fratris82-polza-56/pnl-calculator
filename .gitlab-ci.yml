@@ -4,7 +4,7 @@ pages:
   image: alpine:3.20
   script:
     - mkdir -p .public
-    - cp plan-zvezda-kratko-offline.html plan-zvezda-offline.html plan-zvezda-short-offline.html .public/
+    - cp plan-zvezda/plan-zvezda-kratko-offline.html plan-zvezda/plan-zvezda-offline.html plan-zvezda/plan-zvezda-short-offline.html .public/
     - printf '%s' '<!doctype html><meta charset=utf-8><meta http-equiv=refresh content=0;url=plan-zvezda-kratko-offline.html>' > .public/index.html
     - rm -rf public
     - mv .public public
