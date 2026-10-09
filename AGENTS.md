@@ -134,3 +134,20 @@ This is a starting point. Add your own conventions, style, and rules as you figu
 - [Default AGENTS.md](/reference/AGENTS.default)
 - [Automations vs heartbeat](/automation#automations-vs-heartbeat)
 - [Heartbeat](/gateway/heartbeat)
+
+<!-- BEGIN AI_SANDBOX_PROJECT_BOUNDARY -->
+## Граница проекта и AI-песочницы
+
+Разрабатывай приложение в его каталоге внутри `/opt/ai-sandbox/workspace`.
+Для публикации подготовь `compose.yaml` без host-портов и сообщи OpenClaw имя
+сервиса и внутренний порт контейнера: OpenClaw вызовет штатный
+`publish-project.mjs`, который выделит порт ВМ из пула `8080–8085`.
+
+Не превращай приложение в плагин OpenClaw и не создавай файлы в
+`workspace/.openclaw/extensions` для его публикации. Не меняй `openclaw.json`,
+`plugins.load.paths`, настройки Gateway, Caddy, системный Docker Compose,
+firewall, systemd и секреты ВМ. Если нужный пользователю домен, HTTPS или путь
+требует изменения платформы, опиши необходимые параметры и верни вопрос
+владельцу/администратору вместо правки платформы. Это правило не запрещает
+изменять код и файлы самого проекта.
+<!-- END AI_SANDBOX_PROJECT_BOUNDARY -->
