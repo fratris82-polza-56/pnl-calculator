@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Окупаемость · Полза · Аптеки</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%231c2b4a'/%3E%3Cpath d='M24 8v32M8 24h32' stroke='%235d8dd4' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root{--bg:#f4f6fb;--card:#fff;--navy:#1c2b4a;--txt:#1c2333;--mut:#7a8399;--line:#e3e8f2;--ok:#1d8a4e;--bad:#c23a3a;--blue:#5383c7}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font:14px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+  .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;background:var(--navy);color:#fff;position:sticky;top:0;z-index:5}
+  .topbar h1{font-size:16px;font-weight:750;margin-right:auto}
+  .back{display:inline-flex;align-items:center;gap:6px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;background:transparent}
+  .back:hover{background:rgba(255,255,255,.12)}
+  .wrap{max-width:1180px;margin:0 auto;padding:12px 10px 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;overflow-x:auto}
+  .card h2{font-size:14px;margin-bottom:8px;color:var(--navy)}
+  select,input{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--txt)}
+  input.num{width:110px;text-align:right}
+  input.txt{width:180px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:right;white-space:nowrap}
+  th.l,td.l{text-align:left}
+  th{color:var(--mut);font-weight:600;font-size:12px}
+  tr:hover td{background:#f8fafd}
+  td .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+  .pos{color:var(--ok);font-weight:600}
+  .neg{color:var(--bad);font-weight:600}
+  .mut{color:var(--mut)}
+  .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;color:var(--navy)}
+  .btn:hover{border-color:var(--blue)}
+  .btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+  .btn.danger{color:var(--bad)}
+  .note{font-size:12px;color:var(--mut);margin-top:6px}
+  .toast{position:fixed;bottom:14px;right:14px;background:var(--navy);color:#fff;border-radius:10px;padding:9px 14px;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:.96}
+  .err{color:var(--bad);font-size:12px;margin-left:10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="back" onclick="parent&&parent.mNav?parent.mNav('dashboard'):location.href='/'">← Главное меню</button>
+  <h1>Окупаемость</h1>
+  <label class="mut" style="color:#c7d2e8">Месяц</label>
+  <select id="fMonth"></select>
+  <button class="btn primary" onclick="app.save()">Сохранить</button>
+  <span class="err" id="err"></span>
+</div>
+<div class="wrap">
+  <div class="card">
+    <h2>Плановая ВД и расходы по аптекам</h2>
+    <table id="tbl">
+      <thead><tr>
+        <th class="l">Аптека</th><th>План ТО</th><th>План ВД, руб</th><th>ВД из плана, %</th>
+        <th>Плановая ВД, %</th><th>Прибыль (по план. ВД)</th><th>Расходы</th><th>Фин. результат</th><th>Рентабельность</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="note">Плановая ВД, % — целевая валовая доходность на месяц; если не задана, используется ВД из плана. Прибыль = План ТО × плановая ВД, %. Фин. результат = Прибыль − Расходы.</div>
+  </div>
+  <div class="card">
+    <h2>Статьи расходов (<span id="expMonth"></span>)</h2>
+    <table id="exp">
+      <thead><tr><th class="l">Аптека</th><th class="l">Статья</th><th>Сумма, ₽</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select id="nPh" style="min-width:160px"></select>
+      <input id="nTitle" class="txt" placeholder="Статья (аренда, ФОТ…)">
+      <input id="nAmount" class="num" placeholder="Сумма">
+      <button class="btn" onclick="app.addExp()">+ Добавить</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const TOKEN = localStorage.getItem('me_token') || new URLSearchParams(location.search).get('t') || '';
+async function api(path, opt = {}) {
+  const r = await fetch('/api/m/payback' + path, {
+    ...opt,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opt.headers || {}) },
+  });
+  if (r.status === 401) { location.href = '/me.html'; throw new Error('unauthorized'); }
+  if (!r.ok) throw new Error('http ' + r.status);
+  return r.json();
+}
+const fmt = n => n == null ? '—' : Number(n).toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+const YM = ['09', '10', '11', '12'], MNAME = { '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь' };
+
+const app = {
+  plan: [], targets: {}, expenses: [], ym: null,
+
+  async load() {
+    const plan = await api('/plan');
+    this.plan = plan.rows || [];
+    const months = [...new Set(this.plan.map(r => r.month))]
+      .map(n => ({ n, ym: '2026-' + Object.keys(MNAME).find(k => MNAME[k] === n) }))
+      .sort((a, b) => a.ym < b.ym ? -1 : 1);
+    $('fMonth').innerHTML = months.map(m => `<option value="${m.ym}">${m.n} 2026</option>`).join('');
+    if (!this.ym) this.ym = (months.find(m => m.ym === '2026-10') || months[months.length - 1] || {}).ym;
+    if (this.ym) $('fMonth').value = this.ym;
+    $('nPh').innerHTML = this.phList().map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    await this.reload();
+  },
+
+  async reload() {
+    this.ym = $('fMonth').value || this.ym;
+    $('expMonth').textContent = this.ym && (MNAME[this.ym.slice(5, 7)] || '') + ' ' + this.ym.slice(0, 4);
+    const [t, e] = await Promise.all([
+      api('/targets?month=' + this.ym),
+      api('/expenses?month=' + this.ym),
+    ]);
+    this.targets = {}; (t.rows || []).forEach(r => { this.targets[r.pharmacy_id] = r.margin_pct; });
+    this.expenses = e.rows || [];
+    this.render();
+  },
+
+  phList() {
+    const seen = new Map();
+    for (const r of this.plan) if (!seen.has(r.pharmacy_id)) seen.set(r.pharmacy_id, { id: r.pharmacy_id, name: r.ph_name });
+    return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+  },
+
+  expSum(phId) {
+    return this.expenses.filter(x => x.pharmacy_id === phId).reduce((s, x) => s + (+x.amount || 0), 0);
+  },
+
+  render() {
+    const rows = this.plan.filter(r => MNAME[r.month.slice ? '' : ''] !== undefined ? false : true); // noop guard
+    const list = this.plan.filter(r => this.ym && this.monthOfRow(r) === this.ym);
+    $('tbl').querySelector('tbody').innerHTML = list.map(r => {
+      const pctPlan = r.revenue ? r.margin / r.revenue * 100 : null;
+      const pct = this.targets[r.pharmacy_id] != null ? +this.targets[r.pharmacy_id] : pctPlan;
+      const profit = pct != null && r.revenue ? r.revenue * pct / 100 : null;
+      const exp = this.expSum(r.pharmacy_id);
+      const fin = profit != null ? profit - exp : null;
+      const rent = fin != null && r.revenue ? fin / r.revenue * 100 : null;
+      return `<tr>
+        <td class="l">${esc(r.ph_name)}</td>
+        <td>${fmt(r.revenue)}</td>
+        <td>${fmt(r.margin)}</td>
+        <td class="mut">${pctPlan != null ? pctPlan.toFixed(1) + '%' : '—'}</td>
+        <td><input class="num" type="number" step="0.1" min="0" max="100" value="${pct != null ? (+pct).toFixed(1) : ''}" data-tgt="${r.pharmacy_id}" onchange="app.setTgt(${r.pharmacy_id},this.value)"></td>
+        <td>${fmt(profit)}</td>
+        <td>${fmt(exp)}</td>
+        <td class="${fin != null ? (fin >= 0 ? 'pos' : 'neg') : ''}">${fmt(fin)}</td>
+        <td class="${rent != null ? (rent >= 0 ? 'pos' : 'neg') : ''}">${rent != null ? rent.toFixed(1) + '%' : '—'}</td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="9" class="l mut">Нет плана на выбранный месяц</td></tr>`;
+
+    $('exp').querySelector('tbody').innerHTML = this.expenses.map(x =>
+      `<tr><td class="l">${esc(this.phName(x.pharmacy_id))}</td><td class="l">${esc(x.title)}</td><td>${fmt(x.amount)}</td>` +
+      `<td><button class="btn danger" onclick="app.delExp(${x.pharmacy_id},'${esc(x.title).replace(/'/g, "\\'")}')">✕</button></td></tr>`
+    ).join('') || `<tr><td colspan="4" class="l mut">Расходы не заданы</td></tr>`;
+  },
+
+  monthOfRow(r) {
+    const inv = Object.fromEntries(Object.entries(MNAME).map(([k, v]) => [v, '2026-' + k]));
+    return inv[r.month] || null;
+  },
+
+  phName(id) { const p = this.phList().find(x => x.id === id); return p ? p.name : ('#' + id); },
+  setTgt(phId, v) {
+    if (v === '') delete this.targets[phId]; else this.targets[phId] = +v;
+    this.render();
+  },
+
+  addExp() {
+    const phId = +$('nPh').value, title = $('nTitle').value.trim(), amount = $('nAmount').value;
+    if (!phId || !title || amount === '' || !isFinite(+amount)) { toast('Заполните аптеку, статью и сумму'); return; }
+    const ex = this.expenses.find(x => x.pharmacy_id === phId && x.title.toLowerCase() === title.toLowerCase());
+    if (ex) ex.amount = +amount; else this.expenses.push({ pharmacy_id: phId, month: this.ym, title, amount: +amount });
+    $('nTitle').value = ''; $('nAmount').value = '';
+    this.render();
+  },
+
+  delExp(phId, title) {
+    this.expenses = this.expenses.filter(x => !(x.pharmacy_id === phId && x.title === title));
+    this.render();
+  },
+
+  async save() {
+    $('err').textContent = '';
+    const tgt = { items: Object.entries(this.targets).map(([ph, pct]) => ({ pharmacy_id: +ph, month: this.ym, margin_pct: pct })) };
+    const exp = { items: this.expenses.filter(x => x.month === this.ym) };
+    try {
+      await api('/targets', { method: 'POST', body: JSON.stringify(tgt) });
+      await api('/expenses', { method: 'POST', body: JSON.stringify(exp) });
+      toast('Сохранено');
+      await this.reload();
+    } catch (e) { $('err').textContent = 'ошибка сохранения: ' + e.message; }
+  },
+};
+
+function $(s) { return document.getElementById(s); }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+
+(async () => {
+  if (!TOKEN) { location.href = '/me.html'; return; }
+  localStorage.setItem('me_token', TOKEN);
+  const fM = $('fMonth');
+  if (fM) fM.addEventListener('change', () => app.reload());
+  try { await app.load(); } catch (e) { $('err').textContent = 'ошибка загрузки: ' + e.message; }
+})();
+</script>
+</body>
+</html>

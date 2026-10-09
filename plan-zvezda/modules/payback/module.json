@@ -1,0 +1,13 @@
+{
+  "id": "payback",
+  "title": "Окупаемость",
+  "icon": "🧮",
+  "version": "1.0.0",
+  "roles": ["manager"],
+  "nav": {
+    "group": "Инструменты",
+    "order": 5
+  },
+  "entry": "public/index.html",
+  "enabled": true
+}
