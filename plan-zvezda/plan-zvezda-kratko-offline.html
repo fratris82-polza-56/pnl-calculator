@@ -3239,7 +3239,7 @@ window.fetch = function () {
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-09 15:35 · звезда/маскоты по %";
+      el.textContent = "сборка 2026-10-09 16:05 · рекомендации-триггеры";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -16123,7 +16123,7 @@ function loadRecs() {
 }
 function _loadRecs() {
   _loadRecs = _asyncToGenerator(_regenerator().m(function _callee5() {
-    var box, note, mk, mname, row, items, _k, kr, gaps, so, phName, mine, t, rest, _t2, _t3;
+    var box, note, mk, mname, row, items, _k, kr, gaps, so, phName, mine, t, rest, _t2, _t3, fm, pm, ac;
     return _regenerator().w(function (_context5) {
       while (1) switch (_context5.p = _context5.n) {
         case 0:
@@ -16142,6 +16142,29 @@ function _loadRecs() {
             return r.month === mname;
           });
           if (kr && !empId) {
+            if (row && row.fact_revenue > 0 && row.plan_revenue > 0) {
+              fm = row.fact_margin / row.fact_revenue * 100;
+              pm = row.plan_margin / row.plan_revenue * 100;
+              if (fm < pm - 2) items.push({
+                ico: ICO_AT,
+                html: '<b>Внимание! Упала наценка:</b> ' + fm.toFixed(1).replace('.', ',') + '% при плановых ' + pm.toFixed(1).replace('.', ',') + '%.'
+              });
+            }
+            if (kr.target_avg_check != null) {
+              ac = kr.fact_avg_check != null ? kr.fact_avg_check : row && row.fact_checks > 0 ? Math.round(row.fact_revenue / row.fact_checks) : null;
+              if (ac != null && ac < kr.target_avg_check * 0.9) items.push({
+                ico: ICO_AT,
+                html: '<b>Внимание! Упал средний чек:</b> ' + Math.round(ac) + " \u20BD \u043F\u0440\u0438 \u043F\u043B\u0430\u043D\u0435 " + kr.target_avg_check + " \u20BD."
+              });
+            }
+            if (row && row.plan_stm > 0 && row.forecast_stm != null && row.forecast_stm < row.plan_stm * 0.9) items.push({
+              ico: ICO_AT,
+              html: '<b>Внимание! Нужно больше СТМ:</b> расчётный ТО ' + fmtRub(row.forecast_stm) + ' из плана ' + fmtRub(row.plan_stm) + ' (' + Math.round(row.forecast_stm / row.plan_stm * 100) + '%).'
+            });
+            if (row && row.plan_marketing > 0 && row.forecast_marketing != null && row.forecast_marketing < row.plan_marketing * 0.9) items.push({
+              ico: ICO_AT,
+              html: '<b>Внимание! Нужно больше Маркетинга:</b> расчётный ТО ' + fmtRub(row.forecast_marketing) + ' из плана ' + fmtRub(row.plan_marketing) + ' (' + Math.round(row.forecast_marketing / row.plan_marketing * 100) + '%).'
+            });
             gaps = [];
             if (kr.target_checks_per_day != null && kr.fact_checks_per_day != null && kr.fact_checks_per_day < kr.target_checks_per_day) gaps.push("<b>\u0447\u0435\u043A\u043E\u0432 \u0432 \u0434\u0435\u043D\u044C:</b> ".concat(kr.fact_checks_per_day, " \u0438\u0437 ").concat(kr.target_checks_per_day));
             if (kr.target_avg_check != null && kr.fact_avg_check != null && kr.fact_avg_check < kr.target_avg_check) gaps.push("<b>\u0441\u0440\u0435\u0434\u043D\u0438\u0439 \u0447\u0435\u043A:</b> ".concat(Math.round(kr.fact_avg_check), " \u0438\u0437 ").concat(kr.target_avg_check, " \u20BD"));
