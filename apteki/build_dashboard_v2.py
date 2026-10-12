@@ -378,7 +378,7 @@ def build():
     ch2 = profit_margin(weeks)
     ch3 = checks_chart(weeks)
 
-    # ---- сравнение по аптекам 2025 vs 2026 (розница + ИЗ, общие недели) ----
+    # ---- сравнение по аптекам 2025 vs 2026 (LFL: одна и та же неделя обоих годов) ----
     DEPT_ORDER = ['Азовская', 'Маяковская', 'Проспект Мира', 'Пятницкое', 'Юбилейный', 'Аптека']
     SHORT = {'Проспект Мира': 'Пр. Мира', 'Аптека': 'Ленин'}
     w26 = {w['week']: w for w in weeks}
@@ -398,9 +398,11 @@ def build():
         return f'{v:.2f}'.replace('.', ',') + '%' if v is not None else '—'
 
     def compute(mode):
-        """mode: 'rose' — только отделы, 'iz' — только ИЗ, 'all' — розница+ИЗ."""
+        """mode: 'rose' — только отделы, 'iz' — только ИЗ, 'all' — розница+ИЗ.
+        LFL: только последняя общая неделя (текущая) обоих годов — одинаковый период."""
         acc = {}
-        for wk in cmp_weeks:
+        lfl_week = cmp_weeks[-1] if cmp_weeks else None
+        for wk in ([lfl_week] if lfl_week is not None else []):
             a26, a25 = w26[wk], prev_full[wk]
             names = set((a26.get('depts') or {})) & set((a25.get('depts') or {}))
             for name in names:
@@ -441,7 +443,7 @@ def build():
                 tot[k] += d[k]
             wks = [wk for wk in cmp_weeks
                    if name in (w26[wk].get('depts') or {}) and name in (prev_full[wk].get('depts') or {})]
-            rng = f"{min(wks)}–{max(wks)}" if wks else '—'
+            rng = str(wks[-1]) if wks else '—'
             rows.append(
                 f"<tr><td>{esc(name)}</td><td>{rng}</td>"
                 f"<td class=num>{rub(d['r25'])}</td><td class=num>{rub(d['r26'])}</td>"
@@ -499,8 +501,10 @@ def build():
     # ---- weekly table ----
     wrows = []
     cum = 0
+    cum_pr = 0
     for i, w in enumerate(weeks):
         cum += w['all']['выручка']
+        cum_pr += w['all']['прибыль'] or 0
         pw = weeks[i - 1]['all'] if i > 0 else None
         wow = ((w['all']['выручка'] / pw['выручка'] - 1) * 100) if (pw and pw.get('выручка')) else None
         py = prev_year.get(w['week'])
@@ -525,7 +529,7 @@ def build():
             f"<td class=num>{rub(w['all']['чеков'])}</td>"
             f"<td class=num>{rub(w['all']['ср_чек'])}</td>"
             f"<td class=num>{wow_html}</td><td class=num>{yoy_html}</td>"
-            f"<td class=num>{rub(cum)}</td></tr>")
+            f"<td class=num>{rub(cum)}</td><td class=num>{rub(cum_pr)}</td></tr>")
 
     # ---- dept tables (week 37) ----
     def dep2(x):
@@ -649,47 +653,47 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 </div>
 
 <div class="card">
-<h2>Сравнение по аптекам 2025 vs 2026 · РОЗНИЦА</h2>
+<h2>Сравнение по аптекам 2025 vs 2026 · нед. {cur['week']} (LFL) · РОЗНИЦА</h2>
 {legend([('выручка 2025', C['gold']), ('выручка 2026', C['blue'])])}
 {ch_rose}
 <div class="scroll" style="max-height:none;margin-top:10px">
 <table>
-<tr><th class=l>Аптека</th><th>Недели</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
+<tr><th class=l>Аптека</th><th>Неделя</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
 {rows_rose}
 </table>
 </div>
 </div>
 
 <div class="card">
-<h2>Сравнение по аптекам 2025 vs 2026 · ИЗ</h2>
+<h2>Сравнение по аптекам 2025 vs 2026 · нед. {cur['week']} (LFL) · ИЗ</h2>
 {legend([('выручка 2025', C['gold']), ('выручка 2026', C['blue'])])}
 {ch_iz}
 <div class="scroll" style="max-height:none;margin-top:10px">
 <table>
-<tr><th class=l>Аптека</th><th>Недели</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
+<tr><th class=l>Аптека</th><th>Неделя</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
 {rows_iz}
 </table>
 </div>
 </div>
 
 <div class="card">
-<h2>Сравнение по аптекам 2025 vs 2026 · РОЗНИЦА + ИЗ</h2>
+<h2>Сравнение по аптекам 2025 vs 2026 · нед. {cur['week']} (LFL) · РОЗНИЦА + ИЗ</h2>
 {legend([('выручка 2025', C['gold']), ('выручка 2026', C['blue'])])}
 {ch_all}
 <div class="scroll" style="max-height:none;margin-top:10px">
 <table>
-<tr><th class=l>Аптека</th><th>Недели</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
+<tr><th class=l>Аптека</th><th>Неделя</th><th>Выр. 2025 ₽</th><th>Выр. 2026 ₽</th><th>Δ</th><th>Приб. 2025 ₽</th><th>Приб. 2026 ₽</th><th>Δ</th><th>Чеков 2025</th><th>Чеков 2026</th><th>Δ</th><th>Ср. чек Δ</th><th>Нац. 2025</th><th>Нац. 2026</th><th>Δ п.п.</th></tr>
 {rows_all}
 </table>
 </div>
-<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34. «Аптека» (Ленин) — только нед. 41: в 2025 она выгружена лишь за эту неделю, поэтому год-к-году по ней считается по одной неделе.</div>
+<div class="note">LFL: сравнивается одна и та же неделя №{cmp_weeks[-1] if cmp_weeks else '—'} обоих годов (05.10–11.10.2025 vs 05.10–11.10.2026). В 2025 «Аптека» (Ленин) выгружена только за нед. 41 — сравнение по ней пока за одну неделю. Данные 2025 по остальным неделям (для графиков) — с нед. 31, Маяковская — с нед. 34.</div>
 </div>
 
 <div class="card">
 <h2>Все недели 2026</h2>
 <div class="scroll">
 <table>
-<tr><th>№</th><th class=l>Период</th><th>Выручка ₽</th><th>розница ₽</th><th>ИЗ ₽</th><th>Прибыль ₽</th><th>Наценка</th><th>Чеков</th><th>Ср. чек ₽</th><th>к пред. нед.</th><th>к 2025</th><th>накопительно ₽</th></tr>
+<tr><th>№</th><th class=l>Период</th><th>Выручка ₽</th><th>розница ₽</th><th>ИЗ ₽</th><th>Прибыль ₽</th><th>Наценка</th><th>Чеков</th><th>Ср. чек ₽</th><th>к пред. нед.</th><th>к 2025</th><th>Выручка нак. ₽</th><th>Приб. нак. ₽</th></tr>
 {''.join(wrows)}
 </table>
 </div>
