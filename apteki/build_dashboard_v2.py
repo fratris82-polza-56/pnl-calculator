@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """Дашборд v2: недели 1–40 2026. Полностью статичный HTML+SVG.
 Без JS, без CDN, без CSS-переменных — открывается где угодно (вложения, офлайн).
-Данные: weeks_all.json (копия таблицы) + week37/38/39/40/41.json (выгрузки FastReport).
+Данные: weeks_all.json (копия таблицы) + week37/38/39/40/41.json (выгрузки FastReport);
+week41_2025.json — полная нед. 41 2025 с 6-й точкой (Аптека/Ленин) для сравнения по аптекам.
 Запуск: python3 build_dashboard_v2.py  ->  dashboard_v2.html
 """
 import json
@@ -58,6 +59,14 @@ def load_prev_year():
     for w in ws:
         if w['to'].endswith('.2025') and w.get('all') and w['all'].get('выручка') is not None:
             out[w['week']] = w['all']
+    # нед. 41 2025: база YoY из полной выгрузки (6 точек, включая Аптеку/Ленин),
+    # иначе нед. 41 2026 (6 точек) сравнивается с 5-точечной таблицей.
+    try:
+        w41 = json.load(open(HERE / 'week41_2025.json', encoding='utf-8'))
+    except FileNotFoundError:
+        w41 = None
+    if w41:
+        out[w41['week']] = w41['totals']['all']
     return out
 
 
@@ -68,6 +77,20 @@ def load_prev_year_full():
     for w in ws:
         if w['to'].endswith('.2025') and w.get('depts'):
             out[w['week']] = w
+    # нед. 41 2025: полная выгрузка («41 2025.xls» + «Ленин 41 2025.xls») с 6-й точкой.
+    # Верхнеуровневые итоги (rose/iz/all) не заменяем — год-к-году считается по 5 точкам,
+    # добавляем только отделы для блока «Сравнение по аптекам».
+    try:
+        w41 = json.load(open(HERE / 'week41_2025.json', encoding='utf-8'))
+    except FileNotFoundError:
+        w41 = None
+    if w41:
+        base = out.get(w41['week']) or {
+            'from': w41['from'], 'to': w41['to'], 'year': 2025, 'week': w41['week'],
+            'depts': {}, 'izdepts': {}}
+        base['depts'] = {**(base.get('depts') or {}), **w41['rose']}
+        base['izdepts'] = {**(base.get('izdepts') or {}), **w41['iz']}
+        out[w41['week']] = base
     return out
 
 
@@ -576,7 +599,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 <div class="grid kpis">{kpis}</div>
 
 <div class="card">
-<h2>Год в цифрах (01.01–13.09.2026)</h2>
+<h2>Год в цифрах (01.01–{cur['to']})</h2>
 <div class="ysum">
 <div><div class="mut">Выручка YTD</div><div class="v">{mln(ytd_rev)} млн ₽</div></div>
 <div><div class="mut">Прибыль YTD</div><div class="v">{mln(ytd_pr)} млн ₽</div></div>
@@ -585,7 +608,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 <div><div class="mut">Лучшая неделя</div><div class="v">№{best['week']} · {mln(best['all']['выручка'])} млн</div></div>
 <div><div class="mut">Худшая неделя*</div><div class="v">№{worst['week']} · {mln(worst['all']['выручка'])} млн</div></div>
 </div>
-<div class="note">* неделя 1 (01–04.01, 4 рабочих дня) в сравнении не участвует.</div>
+<div class="note">* неделя 1 (01–04.01, 4 рабочих дня) в сравнении не участвует. С нед. 41 выгрузки включают 6-ю точку (Аптека/Ленин); база год-к-году нед. 41 — полная выгрузка 2025 (6 точек), остальные недели сравниваются с таблицей (5 точек).</div>
 </div>
 
 <div class="card">
@@ -659,7 +682,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 {rows_all}
 </table>
 </div>
-<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34. «Аптека» (Ленин) в выгрузках 2025 отсутствует и в сравнение не входит.</div>
+<div class="note">Суммарно за недели, которые есть в обоих годах (данные 2025 — с недели 31): Азовская, Пр. Мира, Пятницкое, Юбилейный — нед. {cmp_weeks[0] if cmp_weeks else '—'}–{cmp_weeks[-1] if cmp_weeks else '—'}; Маяковская — с нед. 34. «Аптека» (Ленин) — только нед. 41: в 2025 она выгружена лишь за эту неделю, поэтому год-к-году по ней считается по одной неделе.</div>
 </div>
 
 <div class="card">
@@ -670,7 +693,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 {''.join(wrows)}
 </table>
 </div>
-<div class="note">«к 2025» — сравнение с той же ISO-неделей 2025 (данные в таблице есть с недели 31). * неделя 1: 01–04.01.2026, 4 дня.</div>
+<div class="note">«к 2025» — сравнение с той же ISO-неделей 2025 (данные в таблице есть с недели 31; нед. 41 — по полной выгрузке 2025, 6 точек). * неделя 1: 01–04.01.2026, 4 дня.</div>
 </div>
 
 <div class="note" style="text-align:center;margin-top:4px">Источник: копия таблицы «Еженедельный Показатели Аптеки» (недели 1–36) + выгрузки FastReport из Drive «Данные для заполнения» (недели 37–41, вкл. «Ленин»). Файл автономный: графики — статичный SVG, работает без интернета.</div>
