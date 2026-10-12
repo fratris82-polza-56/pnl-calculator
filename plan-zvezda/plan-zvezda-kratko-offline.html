@@ -15281,6 +15281,7 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .tile-purple{background:#ebe3f7;color:#4a3377}.tile-purple .t{color:#5b3f8f}
 .tile-amber{background:#fdeeda;color:#7a5009}.tile-amber .t{color:#92610f}
 .tile-rose{background:#fbe3e7;color:#8c2f3e}.tile-rose .t{color:#a03a4a}
+.tile-green{background:#e0f3e6;color:#14532d}.tile-green .t{color:#166534}
 .pctb-n{background:#5d8dd4}
 @media (min-width:560px){ .hero .tiles{grid-template-columns:repeat(3,1fr)} }
 .chip{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700}
@@ -15861,7 +15862,8 @@ function render() {
     + "<div class=\"tile tile-teal\"><div class=\"t\">Средний чек</div><div class=\"v\">" + (avgCheck == null ? "—" : fmtRub(avgCheck)) + "</div>" + (avgTarget != null && avgCheck != null ? pctB(avgCheck / avgTarget * 100, "цели") : "") + "<div class=\"sub\">чеков " + checks + (planChecks ? "/" + planChecks : "") + "</div></div>"
     + "<div class=\"tile tile-purple\"><div class=\"t\">Наценка</div><div class=\"v\">" + Math.round(mkPct) + "%</div><div class=\"sub\">маржа " + Math.round(mgPct) + "%</div></div>"
     + "<div class=\"tile tile-amber\"><div class=\"t\">СТМ</div><div class=\"v\">" + fmtRub(stmVal) + "</div>" + (stmPlan != null ? pctB(stmVal / stmPlan * 100) + "<div class=\"sub\">план " + fmtRub(stmPlan) + "</div>" : (stmVal ? "<div class=\"sub\">" + stmPct.toFixed(1).replace(".", ",") + "% ТО</div>" : "")) + (stmFc != null ? "<div class=\"sub\">прогноз " + fmtRub(stmFc) + "</div>" : "") + "</div>"
-    + "<div class=\"tile tile-rose\"><div class=\"t\">Маркетинг</div><div class=\"v\">" + fmtRub(mktVal) + "</div>" + (mktPlan != null ? "<div class=\"pctb pctb-n\">" + (mktVal / mktPlan * 100).toFixed(1).replace(".", ",") + "%</div><div class=\"sub\">план " + fmtRub(mktPlan) + "</div>" : "") + (mktFc != null ? "<div class=\"sub\">прогноз " + fmtRub(mktFc) + "</div>" : "") + "</div>";
+    + "<div class=\"tile tile-rose\"><div class=\"t\">Маркетинг</div><div class=\"v\">" + fmtRub(mktVal) + "</div>" + (mktPlan != null ? "<div class=\"pctb pctb-n\">" + (mktVal / mktPlan * 100).toFixed(1).replace(".", ",") + "%</div><div class=\"sub\">план " + fmtRub(mktPlan) + "</div>" : "") + (mktFc != null ? "<div class=\"sub\">прогноз " + fmtRub(mktFc) + "</div>" : "") + "</div>"
+    + "<div class=\"tile tile-green\"><div class=\"t\">Доли от выручки</div><div class=\"v\">" + (fact > 0 ? stmPct.toFixed(1).replace(".", ",") + "% / " + (mktVal / fact * 100).toFixed(1).replace(".", ",") + "%" : "—") + "</div><div class=\"sub\">СТМ · план 12%</div><div class=\"sub\">маркетинг · план 30%</div></div>";
   document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>" + esc(emp ? "Личный план" : "План месяца") + " · " + MONTHS[rowKey(row)] + "</span><span class=\"days\">" + (isCur ? "осталось " + daysLeft + " дн." : "месяц закрыт") + "</span></div>\n    <div class=\"pct\">" + Math.round(fctPct) + "<small> %</small>" + (fctPct >= 100 ? STAR : fctPct >= 80 ? MASCOT_COIN : fctPct >= 50 ? MASCOT_HEART : "") + "</div>\n    <div class=\"bar\"><div class=\"fill\" style=\"width:" + Math.min(fctPct, 100) + "%;background:" + toneCol(fcPct) + "\"></div>" + (fcPct > 0.5 ? "<div class=\"tick\" style=\"left:" + Math.min(fcPct, 100) + "%\" title=\"прогноз\"></div>" : "") + "</div>\n    <div class=\"bar-legend\"><span>собрано " + fmtRub(fact) + "</span><span>план " + fmtRub(plan) + "</span></div>\n    <div class=\"tiles\">" + tiles + "</div>\n    <div class=\"chip " + toneCls(fcPct) + "\">" + (!isCur && fctPct === 0 ? "Данных за месяц нет" : db <= 2 && fctPct === 0 ? "Месяц только начался — данных пока мало" : "Прогноз: " + (fcPct >= 100 ? "план будет выполнен" : fcPct >= 85 ? "чуть-чуть до плана" : "риск невыполнения")) + "</div>";  document.getElementById('mVals').textContent = "".concat(fmtRub(margin), " \u0438\u0437 ").concat(fmtRub(planM));
   var mf = document.getElementById('mFill');
   mf.style.width = Math.min(mPct, 100) + '%';
@@ -15984,7 +15986,7 @@ function renderChart(row, emp) {
 var CROWN = '<span class="crown" title="Лидер месяца"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 17.1 3.45 8.7c-.09-.66.7-1.07 1.18-.6l4.02 3.4 2.72-5.32c.28-.55.99-.55 1.27 0l2.72 5.32 4.02-3.4c.48-.47 1.27-.06 1.18.6l-1.15 8.4c-.08.57-.55 1-1.12 1H5.72c-.57 0-1.04-.43-1.12-1Z" fill="#5D8DD4"/></svg></span>';
 function renderTeam(emps, me) {
   var box = document.getElementById('team');
-  document.getElementById('teamNote').textContent = emps.length + ' чел. · факт/план';
+  document.getElementById('teamNote').textContent = emps.length + ' чел. · факт/план · ВП — валовая прибыль';
   if (!emps.length) {
     box.innerHTML = '<div class="hint">Нет данных по сотрудникам.</div>';
     return;
@@ -16061,7 +16063,7 @@ function renderTeam(emps, me) {
     var _shrK = _ovT && _ovT.share != null ? _ovT.share : e.share || 0;
     var mkp = monthRow().plan_marketing != null ? monthRow().plan_marketing * _shrK : null;
     var mkpct = mkp ? Math.round(mk / mkp * 100) : null;
-    var kpiLine = !at && !chk && !st && !mk && mkp == null ? '' : "<div class=\"kpi\">\u0447\u0435\u043A\u0438 <b>".concat(chk, "</b>").concat(pch ? '/' + pch : '', " \xB7 \u0441\u0440. \u0447\u0435\u043A <b>").concat(ac ? Math.round(ac) : '—', "</b>").concat(at ? '/' + Math.round(at) : '', " \u20BD").concat(st ? " \xB7 \u0421\u0422\u041C <b>".concat(fmtRub(st), "</b>") : '').concat(mk || mkp != null ? " \xB7 \u043C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433 <b>".concat(fmtRub(mk), "</b>").concat(mkp != null ? " / ".concat(fmtRub(mkp), " \xB7 ").concat(mkpct, "%") : '') : '', "</div>");
+    var kpiLine = "<div class=\"kpi\">\u0412\u041F <b>".concat(fmtRub(e.margin || 0), "</b>").concat(!at && !chk && !st && !mk && mkp == null ? '' : " \xB7 \u0447\u0435\u043A\u0438 <b>".concat(chk, "</b>").concat(pch ? '/' + pch : '', " \xB7 \u0441\u0440. \u0447\u0435\u043A <b>").concat(ac ? Math.round(ac) : '—', "</b>").concat(at ? '/' + Math.round(at) : '', " \u20BD").concat(st ? " \xB7 \u0421\u0422\u041C <b>".concat(fmtRub(st), "</b>") : '').concat(mk || mkp != null ? " \xB7 \u043C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433 <b>".concat(fmtRub(mk), "</b>").concat(mkp != null ? " / ".concat(fmtRub(mkp), " \xB7 ").concat(mkpct, "%") : '') : ''), "</div>");
     return "<div class=\"emp".concat(me && e.employee_id === me.employee_id ? ' me' : '', "\">\n      <div><div class=\"fio\">").concat(esc(e.fio)).concat(bestTo && e.employee_id === bestTo.employee_id ? CROWN : '', "</div><div class=\"role\">").concat(fmtRub(e.revenue), " \xB7 ").concat(MONTHS[rowKey(monthRow())].toLowerCase(), "</div>").concat(kpiLine, "</div>\n      <div class=\"pv\" style=\"color:").concat(col, "\">").concat(Math.round(pct), "%</div>\n      <div class=\"mbar\"><div class=\"fill\" style=\"width:").concat(Math.min(pct, 100), "%;background:").concat(col, "\"></div></div>\n    </div>");
   }).join('');
 }
