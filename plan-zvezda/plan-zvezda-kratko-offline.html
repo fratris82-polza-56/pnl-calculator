@@ -16146,7 +16146,7 @@ function loadRecs() {
 }
 function _loadRecs() {
   _loadRecs = _asyncToGenerator(_regenerator().m(function _callee5() {
-    var box, note, mk, mname, row, items, _k, kr, gaps, so, phName, mine, t, rest, _t2, _t3, fm, pm, ac;
+    var box, note, mk, mname, row, items, _k, kr, _e, gaps, so, phName, mine, t, rest, _t2, _t3, fm, pm, ac;
     return _regenerator().w(function (_context5) {
       while (1) switch (_context5.p = _context5.n) {
         case 0:
@@ -16164,6 +16164,11 @@ function _loadRecs() {
           kr = (_k.rows || []).find(function (r) {
             return r.month === mname;
           });
+          if (empId && mname) {
+            _e = (SNAPSHOT.summary_by_month[mname].employees || []).find(function (x) {
+              return String(x.employee_id) === String(empId) && x.pharmacy_id === phId;
+            });
+          }
           if (kr) {
             if (row && row.fact_revenue > 0 && row.plan_revenue > 0) {
               fm = row.fact_margin / row.fact_revenue * 100;
@@ -16196,6 +16201,35 @@ function _loadRecs() {
             if (gaps.length) items.push({
               ico: ICO_GO,
               html: 'Цели месяца: ' + gaps.join(' · ') + '. Ближайший рычаг — предложить товар-спутник к частым покупкам.'
+            });
+          }
+          if (kr && row && _e) {
+            gaps = [];
+            var _ovT = epOverride(phId, _e.fio, row.month || mname);
+            var _shr = _ovT && _ovT.share != null ? _ovT.share : _e.share || 0;
+            var _spr = _ovT && _ovT.revenue != null ? _ovT.revenue : row.plan_revenue * _shr;
+            if (_spr > 0) {
+              var _pp = Math.round(_e.revenue / _spr * 100);
+              if (_pp < 100) gaps.push('<b>выручка:</b> ' + fmtRub(_e.revenue) + ' из ' + fmtRub(Math.round(_spr)) + ' (' + _pp + '%)');
+            }
+            var _spm = row.plan_margin * _shr;
+            if (_spm > 0) {
+              var _pm2 = Math.round(_e.margin / _spm * 100);
+              if (_pm2 < 100) gaps.push('<b>валовая прибыль:</b> ' + fmtRub(_e.margin || 0) + ' из ' + fmtRub(Math.round(_spm)) + ' (' + _pm2 + '%)');
+            }
+            var _mt = (SNAPSHOT.summary_by_month[mname].metric_targets || {})[mname] || {};
+            var _sps = row.plan_stm * _shr;
+            var _fst = (_e.stm || 0) + (_e.ustm || 0);
+            if (_sps > 0 && _fst < _sps) gaps.push('<b>СТМ:</b> ' + fmtRub(_fst) + ' из ' + fmtRub(Math.round(_sps)) + ' (' + Math.round(_fst / _sps * 100) + '%)');
+            var _spt = row.plan_marketing * _shr;
+            if (_spt > 0 && (_e.marketing || 0) < _spt) gaps.push('<b>маркетинг:</b> ' + fmtRub(_e.marketing || 0) + ' из ' + fmtRub(Math.round(_spt)) + ' (' + Math.round((_e.marketing || 0) / _spt * 100) + '%)');
+            if (kr.target_avg_check != null && _e.checks > 0) {
+              var _eac = Math.round(_e.revenue / _e.checks);
+              if (_eac < kr.target_avg_check * 0.9) gaps.push('<b>средний чек:</b> ' + _eac + ' \u20BD при цели ' + kr.target_avg_check + ' \u20BD');
+            }
+            if (gaps.length) items.push({
+              ico: ICO_GO,
+              html: '<b>Твои отставания за ' + mname.toLowerCase() + ':</b> ' + gaps.join(' · ') + '.'
             });
           }
           _context5.n = 4;
