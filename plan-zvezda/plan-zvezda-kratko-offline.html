@@ -16164,7 +16164,7 @@ function _loadRecs() {
           kr = (_k.rows || []).find(function (r) {
             return r.month === mname;
           });
-          if (kr && !empId) {
+          if (kr) {
             if (row && row.fact_revenue > 0 && row.plan_revenue > 0) {
               fm = row.fact_margin / row.fact_revenue * 100;
               pm = row.plan_margin / row.plan_revenue * 100;
