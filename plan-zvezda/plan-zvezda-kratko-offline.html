@@ -16008,7 +16008,8 @@ function renderTeam(emps, me) {
       ac: _chk ? e.revenue / _chk : -1,
       ch: _chk,
       mk: e.marketing || 0,
-      st: (e.stm || 0) + (e.ustm || 0)
+      st: (e.stm || 0) + (e.ustm || 0),
+      gp: e.margin || 0
     };
   };
   var bestDefs = [['ТО', function (m) {
@@ -16031,6 +16032,10 @@ function renderTeam(emps, me) {
     return m.st > 0;
   }, function (a, b) {
     return b.st - a.st;
+  }], ['ВП', function (m) {
+    return m.gp > 0;
+  }, function (a, b) {
+    return b.gp - a.gp;
   }]];
   var medals = [];
   bestDefs.forEach(function (d) {
