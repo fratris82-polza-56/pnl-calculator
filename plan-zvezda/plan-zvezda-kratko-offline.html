@@ -15304,6 +15304,7 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .team .crown{display:inline-block;vertical-align:-2px;margin-left:4px}
 .team .crown svg{width:13px;height:13px;display:block}
 .team .role{font-size:10.5px;color:var(--mut);font-weight:500}
+.team .role b{font-weight:800;color:var(--tx);font-size:11.5px}
 .team .kpi{font-size:10.5px;color:#3d4a5c;font-weight:600;margin-top:1px}
 .team .kpi b{color:var(--ink)}
 .team .pv{font-size:14px;font-weight:750;text-align:right}
@@ -16064,7 +16065,7 @@ function renderTeam(emps, me) {
     var mkp = monthRow().plan_marketing != null ? monthRow().plan_marketing * _shrK : null;
     var mkpct = mkp ? Math.round(mk / mkp * 100) : null;
     var kpiLine = "<div class=\"kpi\">\u0412\u041F <b>".concat(fmtRub(e.margin || 0), "</b>").concat(!at && !chk && !st && !mk && mkp == null ? '' : " \xB7 \u0447\u0435\u043A\u0438 <b>".concat(chk, "</b>").concat(pch ? '/' + pch : '', " \xB7 \u0441\u0440. \u0447\u0435\u043A <b>").concat(ac ? Math.round(ac) : '—', "</b>").concat(at ? '/' + Math.round(at) : '', " \u20BD").concat(st ? " \xB7 \u0421\u0422\u041C <b>".concat(fmtRub(st), "</b>") : '').concat(mk || mkp != null ? " \xB7 \u043C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433 <b>".concat(fmtRub(mk), "</b>").concat(mkp != null ? " / ".concat(fmtRub(mkp), " \xB7 ").concat(mkpct, "%") : '') : ''), "</div>");
-    return "<div class=\"emp".concat(me && e.employee_id === me.employee_id ? ' me' : '', "\">\n      <div><div class=\"fio\">").concat(esc(e.fio)).concat(bestTo && e.employee_id === bestTo.employee_id ? CROWN : '', "</div><div class=\"role\">").concat(fmtRub(e.revenue), " \u0432\u044B\u0440\u0443\u0447\u043A\u0430 \xB7 ").concat(MONTHS[rowKey(monthRow())].toLowerCase(), "</div>").concat(kpiLine, "</div>\n      <div class=\"pv\" style=\"color:").concat(col, "\">").concat(Math.round(pct), "%</div>\n      <div class=\"mbar\"><div class=\"fill\" style=\"width:").concat(Math.min(pct, 100), "%;background:").concat(col, "\"></div></div>\n    </div>");
+    return "<div class=\"emp".concat(me && e.employee_id === me.employee_id ? ' me' : '', "\">\n      <div><div class=\"fio\">").concat(esc(e.fio)).concat(bestTo && e.employee_id === bestTo.employee_id ? CROWN : '', "</div><div class=\"role\"><b>").concat(fmtRub(e.revenue), "</b> \u0432\u044B\u0440\u0443\u0447\u043A\u0430 \xB7 ").concat(MONTHS[rowKey(monthRow())].toLowerCase(), "</div>").concat(kpiLine, "</div>\n      <div class=\"pv\" style=\"color:").concat(col, "\">").concat(Math.round(pct), "%</div>\n      <div class=\"mbar\"><div class=\"fill\" style=\"width:").concat(Math.min(pct, 100), "%;background:").concat(col, "\"></div></div>\n    </div>");
   }).join('');
 }
 function initControls() {
