@@ -15247,7 +15247,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 .topbar{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .topbar .brand{height:28px;width:auto;flex:none}
 .topbar a{margin-left:auto}
-.topbar .sub{font-size:11.5px;color:var(--mut);width:100%;margin-top:-2px}
+.topbar .sub{font-size:11.5px;color:var(--tx);font-weight:700;width:100%;margin-top:-2px}
 .topbar h1{font-size:15px;font-weight:700;line-height:1.2}
 .topbar a{margin-left:auto;font-size:11.5px;color:var(--blue);text-decoration:none;white-space:nowrap}
 
@@ -15321,6 +15321,23 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 
 .foot{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:2px}
 .err{background:#fde8e8;color:#c0272d;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:none}
+.tbtn{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;color:#2f6bb0;background:#e8f1fb;border:none;border-radius:7px;padding:4px 9px;cursor:pointer;font-family:inherit}
+.tbtn:active{background:#d9e8f8}
+.mback{position:fixed;inset:0;background:rgba(19,32,51,.45);z-index:60;display:none;align-items:flex-end;justify-content:center}
+.mback.open{display:flex}
+.mwin{background:var(--card);width:100%;max-width:560px;max-height:82vh;overflow-y:auto;border-radius:16px 16px 0 0;padding:14px 12px calc(16px + env(safe-area-inset-bottom))}
+.mwin h3{font-size:13.5px;color:var(--navy);display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.mwin .mx{border:none;background:#eef2f7;color:var(--mut);border-radius:8px;width:26px;height:26px;font-size:15px;line-height:1;cursor:pointer;flex:none}
+.mwin .msub{font-size:11px;color:var(--mut);margin-bottom:10px}
+.mrow{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eef2f7}
+.mrow:last-child{border-bottom:none}
+.mrow.me{background:#f2f6fc;margin:0 -8px;padding:8px;border-radius:9px}
+.mpos{flex:none;width:22px;font-size:12px;font-weight:800;color:var(--mut);text-align:center}
+.mfio{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mdet{font-size:10px;color:var(--mut);font-weight:500;margin-top:1px}
+.mpct{flex:none;font-size:14px;font-weight:750;text-align:right}
+.mbar2{height:5px;border-radius:3px;background:#e8edf4;margin:6px 0 2px;overflow:hidden}
+.mbar2>div{height:100%;border-radius:3px}
 @media (min-width:560px){ .hero .pct{font-size:58px} }
 </style>
 </head>
@@ -15370,7 +15387,7 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
   </div>
 
   <div class="card team">
-    <h3>Команда <span class="r" id="teamNote"></span></h3>
+    <h3>Команда <span class="r" id="teamNote"></span><button class="tbtn" id="teamBtn">Сводный рейтинг ▸</button></h3>
     <div class="badges" id="teamBest"></div>
     <div id="team"></div>
     <div class="hint">Процент = личный факт к личному плану (план аптеки × доля).</div>
@@ -15379,6 +15396,14 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
   <div class="foot">
     <span>Данные: <span id="footDate">—</span></span>
     <span>сен–дек 2026</span>
+  </div>
+</div>
+
+<div class="mback" id="mback">
+  <div class="mwin">
+    <h3>Сводный рейтинг <button class="mx" id="mclose" aria-label="Закрыть">×</button></h3>
+    <div class="msub">Среднее % выполнения планов по KPI · <span id="mMonth"></span></div>
+    <div id="mlist"></div>
   </div>
 </div>
 
@@ -15854,7 +15879,7 @@ function render() {
   var mktVal = emp ? emp.marketing || 0 : row.fact_marketing || 0;
   var mktPlan = row.plan_marketing != null ? row.plan_marketing * _shrK : null;
   var mktFc = row.forecast_marketing != null ? row.forecast_marketing * _shrK : null;
-  document.getElementById('asOf').textContent = "".concat(emp ? 'Сотрудник: ' + emp.fio + ' · ' : '').concat(MONTHS[rowKey(row)]);
+  document.getElementById('asOf').innerHTML = emp ? '<b>Сотрудник:</b> ' + esc(emp.fio) + ' · ' + esc(MONTHS[rowKey(row)]) : esc(MONTHS[rowKey(row)]);
   document.getElementById('footDate').textContent = 'по ' + sum.asOf;
   var pctB = function (p, lbl) {
     return "<div class=\"pctb\" style=\"background:" + toneCol(p) + "\">" + Math.round(p) + "%" + (lbl ? " " + lbl : "") + "</div>";
@@ -16073,6 +16098,51 @@ function renderTeam(emps, me) {
     return "<div class=\"emp".concat(me && e.employee_id === me.employee_id ? ' me' : '', "\">\n      <div><div class=\"fio\">").concat(esc(e.fio)).concat(bestTo && e.employee_id === bestTo.employee_id ? CROWN : '', "</div><div class=\"role\"><b>").concat(fmtRub(e.revenue), "</b> \u0432\u044B\u0440\u0443\u0447\u043A\u0430 \xB7 ").concat(MONTHS[rowKey(monthRow())].toLowerCase(), "</div>").concat(kpiLine, "</div>\n      <div class=\"pv\" style=\"color:").concat(col, "\">").concat(Math.round(pct), "%</div>\n      <div class=\"mbar\"><div class=\"fill\" style=\"width:").concat(Math.min(pct, 100), "%;background:").concat(col, "\"></div></div>\n    </div>");
   }).join('');
 }
+function kpiAvg(e, row, krT) {
+  var _ovK = epOverride(e.pharmacy_id, e.fio, row ? row.month : null);
+  var sh = _ovK && _ovK.share != null ? _ovK.share : e.share || 0;
+  var parts = [];
+  if (row && row.plan_revenue > 0 && (e.revenue || 0) >= 0) parts.push(e.revenue / (row.plan_revenue * sh) * 100);
+  if (row && row.plan_margin > 0) parts.push((e.margin || 0) / (row.plan_margin * sh) * 100);
+  if (row && row.plan_stm > 0) parts.push(((e.stm || 0) + (e.ustm || 0)) / (row.plan_stm * sh) * 100);
+  if (row && row.plan_marketing > 0) parts.push((e.marketing || 0) / (row.plan_marketing * sh) * 100);
+  if (krT && krT.target_avg_check != null && e.checks > 0) parts.push(e.revenue / e.checks / krT.target_avg_check * 100);
+  if (krT && krT.target_checks_per_day != null && krT.fact_days > 0) parts.push((e.checks || 0) / krT.fact_days / krT.target_checks_per_day * 100);
+  if (!parts.length) return null;
+  var s = 0;
+  parts.forEach(function (p) {
+    s += Math.min(p, 130);
+  });
+  return Math.round(s / parts.length);
+}
+function openModal() {
+  var row = monthRow();
+  var krT = kpiRows.find(function (r) {
+    return r.month === MONTHS[rowKey(row)];
+  }) || null;
+  var emps = SNAPSHOT.summary_by_month[MONTHS[rowKey(row)]].employees.filter(function (x) {
+    return x.pharmacy_id === phId;
+  });
+  var me = empId ? emps.find(function (x) {
+    return String(x.employee_id) === String(empId);
+  }) : null;
+  var rows = emps.map(function (e) {
+    return { e: e, avg: kpiAvg(e, row, krT) };
+  }).sort(function (a, b) {
+    return (b.avg == null ? -1 : b.avg) - (a.avg == null ? -1 : a.avg);
+  });
+  document.getElementById('mMonth').textContent = MONTHS[rowKey(row)].toLowerCase();
+  document.getElementById('mlist').innerHTML = rows.map(function (r, i) {
+    var col = r.avg == null ? 'var(--mut)' : toneCol(r.avg);
+    var det = [];
+    if (row && row.plan_revenue > 0) det.push('ТО ' + Math.round(r.e.revenue / (row.plan_revenue * (r.e.share || 0)) * 100) + '%');
+    if (row && row.plan_margin > 0) det.push('ВП ' + Math.round((r.e.margin || 0) / (row.plan_margin * (r.e.share || 0)) * 100) + '%');
+    if (row && row.plan_stm > 0) det.push('СТМ ' + Math.round(((r.e.stm || 0) + (r.e.ustm || 0)) / (row.plan_stm * (r.e.share || 0)) * 100) + '%');
+    if (row && row.plan_marketing > 0) det.push('Мкг ' + Math.round((r.e.marketing || 0) / (row.plan_marketing * (r.e.share || 0)) * 100) + '%');
+    return '<div class="mrow' + (me && r.e.employee_id === me.employee_id ? ' me' : '') + '"><div class="mpos">' + (i + 1) + '</div><div class="mfio">' + esc(r.e.fio) + '<div class="mdet">' + det.join(' · ') + '</div></div><div class="mpct" style="color:' + col + '">' + (r.avg == null ? '—' : r.avg + '%') + '</div></div><div class="mbar2"><div style="width:' + Math.min(r.avg || 0, 100) + '%;background:' + col + '"></div></div>';
+  }).join('');
+  document.getElementById('mback').classList.add('open');
+}
 function initControls() {
   var selMonth = document.getElementById('selMonth');
   selMonth.innerHTML = Object.keys(MONTHS).map(function (k) {
@@ -16104,6 +16174,14 @@ function initControls() {
   };
   var selEmp = document.getElementById('selEmp');
   selEmp.value = empId;
+  var _mb = document.getElementById('mback');
+  document.getElementById('teamBtn').onclick = openModal;
+  document.getElementById('mclose').onclick = function () {
+    _mb.classList.remove('open');
+  };
+  _mb.onclick = function (ev) {
+    if (ev.target === _mb) _mb.classList.remove('open');
+  };
   selEmp.onchange = function () {
     empId = selEmp.value;
     loadPh();
