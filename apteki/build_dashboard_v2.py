@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Дашборд v2: недели 1–40 2026. Полностью статичный HTML+SVG.
 Без JS, без CDN, без CSS-переменных — открывается где угодно (вложения, офлайн).
-Данные: weeks_all.json (копия таблицы) + week37/38/39/40.json (выгрузки FastReport).
+Данные: weeks_all.json (копия таблицы) + week37/38/39/40/41.json (выгрузки FastReport).
 Запуск: python3 build_dashboard_v2.py  ->  dashboard_v2.html
 """
 import json
@@ -41,7 +41,7 @@ def pct(x, dec=1, sign=True):
 def load_weeks():
     weeks = [w for w in json.load(open(HERE / 'weeks_all.json', encoding='utf-8'))
              if w['to'].endswith('.2026') and w.get('all') and w['all'].get('выручка') is not None]
-    for name in ('week37.json', 'week38.json', 'week39.json', 'week40.json'):
+    for name in ('week37.json', 'week38.json', 'week39.json', 'week40.json', 'week41.json'):
         w = json.load(open(HERE / name, encoding='utf-8'))
         weeks.append({
             'from': w['from'], 'to': w['to'], 'year': 2026, 'week': w['week'],
@@ -536,7 +536,7 @@ def build():
     html_doc = f"""<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Аптека · недели 1–40 2026</title>
+<title>Аптека · недели 1–41 2026</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{background:{C['bg']};color:{C['tx']};font:14px/1.45 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;padding:20px;max-width:1040px;margin:0 auto}}
@@ -570,7 +570,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 .ysum .v{{font-size:18px;font-weight:700}}
 </style></head><body>
 
-<h1>Еженедельные показатели аптеки <span class="badge">2026 · недели 1–40</span></h1>
+<h1>Еженедельные показатели аптеки <span class="badge">2026 · недели 1–41</span></h1>
 <div class="sub">Свежая неделя: <strong>№{cur['week']}, {cur['from']}–{cur['to']}</strong> (из выгрузок FastReport) · история — из таблицы «Неделя к неделе без ИЗ» + выгрузки · {gen}</div>
 
 <div class="grid kpis">{kpis}</div>
@@ -673,7 +673,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 <div class="note">«к 2025» — сравнение с той же ISO-неделей 2025 (данные в таблице есть с недели 31). * неделя 1: 01–04.01.2026, 4 дня.</div>
 </div>
 
-<div class="note" style="text-align:center;margin-top:4px">Источник: копия таблицы «Еженедельный Показатели Аптеки» (недели 1–36) + выгрузки FastReport из Drive «Данные для заполнения» (недели 37–40, вкл. «Ленин»). Файл автономный: графики — статичный SVG, работает без интернета.</div>
+<div class="note" style="text-align:center;margin-top:4px">Источник: копия таблицы «Еженедельный Показатели Аптеки» (недели 1–36) + выгрузки FastReport из Drive «Данные для заполнения» (недели 37–41, вкл. «Ленин»). Файл автономный: графики — статичный SVG, работает без интернета.</div>
 </body></html>"""
     out = HERE / 'dashboard_v2.html'
     out.write_text(html_doc, encoding='utf-8')

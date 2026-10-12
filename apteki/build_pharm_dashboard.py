@@ -26,7 +26,7 @@ MONTHS = D['months']        # Сентябрь..Декабрь
 # --- Факт: недельные выгрузки ---
 weeks = [w for w in json.load(open(HERE / 'weeks_all.json', encoding='utf-8'))
          if w['to'].endswith('.2026') and w.get('all') and w['all'].get('выручка') is not None]
-for name in ('week37.json', 'week38.json', 'week39.json', 'week40.json'):
+for name in ('week37.json', 'week38.json', 'week39.json', 'week40.json', 'week41.json'):
     w = json.load(open(HERE / name, encoding='utf-8'))
     weeks.append({
         'from': w['from'], 'to': w['to'], 'year': 2026, 'week': w['week'],
