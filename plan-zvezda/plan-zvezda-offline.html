@@ -50625,11 +50625,13 @@ function mNav(id) {
   if (tblw) tblw.style.display = "none";
   var fr = document.getElementById("mframe");
   if (id === "pnl") {
+    fr.removeAttribute("srcdoc");
     if (fr.getAttribute("data-kind") !== "pnl") fr.src = "https://fratris82-polza-56.github.io/pnl-calculator/index.html";
     fr.setAttribute("data-kind", "pnl");
   } else {
-    if (fr.getAttribute("data-kind") === "pnl" || fr.getAttribute("data-kind") !== id) fr.src = "http://zvyagin-ai.polza.ru:8080/m/" + id + "/";
+    fr.removeAttribute("src");
     fr.setAttribute("data-kind", id);
+    fr.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f4ee;display:flex;align-items:center;justify-content:center;height:100vh"><div style="max-width:480px;background:#fff;border:1px solid #e3ded2;border-radius:14px;padding:24px 26px;box-shadow:0 6px 24px rgba(19,51,103,.10)"><div style="font-weight:800;font-size:16px;color:#133367;margin-bottom:8px">Раздел недоступен офлайн</div><div style="font-size:13.5px;color:#5b6472;line-height:1.55">Этот раздел работает только в рабочей версии дашборда: <a href="http://zvyagin-ai.polza.ru:8080/" style="color:#1f6fd4">zvyagin-ai.polza.ru:8080</a>.<br><br>В офлайн-версии доступны разделы «Главное меню» и «Калькулятор P&amp;L».</div></div></body></html>';
   }
   fr.classList.add("visible");
   document.querySelectorAll(".sbtn").forEach(function (b) {
