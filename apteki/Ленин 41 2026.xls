@@ -6,7 +6,7 @@
 <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
 <Title></Title>
 <Author></Author>
-<Created>12.10.2026 0:00:00T09:55:47.6060801Z</Created>
+<Created>12.10.2026 0:00:00T11:20:10.2304100Z</Created>
 <Version></Version>
 </DocumentProperties>
 <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
@@ -86,6 +86,12 @@ ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
 
 <Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
 <Borders>
+<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Bottom" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
+<Border ss:Position="Right" 
+ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
 </Borders>
 </Style>
 <Style ss:ID="s7">
@@ -93,12 +99,6 @@ ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
 
 <Alignment ss:Horizontal="Left" ss:Vertical="Center" ss:WrapText="1" />
 <Borders>
-<Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
-<Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
-<Border ss:Position="Bottom" 
-ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
-<Border ss:Position="Right" 
-ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
 </Borders>
 </Style>
 <Style ss:ID="s8">
@@ -186,102 +186,127 @@ ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#D3D3D3"/>
 </Style>
 </Styles>
 <Worksheet ss:Name="Page1">
-<Table ss:ExpandedColumnCount="16" ss:ExpandedRowCount="13" x:FullColumns="1" x:FullRows="1">
+<Table ss:ExpandedColumnCount="21" ss:ExpandedRowCount="13" x:FullColumns="1" x:FullRows="1">
 <Column ss:AutoFitWidth="0" ss:Width="42.59"/>
-<Column ss:AutoFitWidth="0" ss:Width="51"/>
-<Column ss:AutoFitWidth="0" ss:Width="42.39"/>
-<Column ss:AutoFitWidth="0" ss:Width="46.84"/>
-<Column ss:AutoFitWidth="0" ss:Width="29.45"/>
 <Column ss:AutoFitWidth="0" ss:Width="37.08"/>
-<Column ss:AutoFitWidth="0" ss:Width="35.63"/>
-<Column ss:AutoFitWidth="0" ss:Width="70.02"/>
-<Column ss:AutoFitWidth="0" ss:Width="70.32"/>
-<Column ss:AutoFitWidth="0" ss:Width="54.59"/>
-<Column ss:AutoFitWidth="0" ss:Width="74.47"/>
-<Column ss:AutoFitWidth="0" ss:Width="74.76"/>
-<Column ss:AutoFitWidth="0" ss:Width="10.94"/>
-<Column ss:AutoFitWidth="0" ss:Width="48.1"/>
-<Column ss:AutoFitWidth="0" ss:Width="72.78"/>
+<Column ss:AutoFitWidth="0" ss:Width="37.08"/>
+<Column ss:AutoFitWidth="0" ss:Width="37.61"/>
+<Column ss:AutoFitWidth="0" ss:Width="46.05"/>
+<Column ss:AutoFitWidth="0" ss:Width="33.26"/>
+<Column ss:AutoFitWidth="0" ss:Width="41.21"/>
+<Column ss:AutoFitWidth="0" ss:Width="41.48"/>
+<Column ss:AutoFitWidth="0" ss:Width="17.26"/>
+<Column ss:AutoFitWidth="0" ss:Width="38.02"/>
+<Column ss:AutoFitWidth="0" ss:Width="51.94"/>
+<Column ss:AutoFitWidth="0" ss:Width="36.88"/>
+<Column ss:AutoFitWidth="0" ss:Width="42.41"/>
+<Column ss:AutoFitWidth="0" ss:Width="42.01"/>
+<Column ss:AutoFitWidth="0" ss:Width="45.58"/>
+<Column ss:AutoFitWidth="0" ss:Width="40.89"/>
+<Column ss:AutoFitWidth="0" ss:Width="8.71"/>
+<Column ss:AutoFitWidth="0" ss:Width="32.18"/>
+<Column ss:AutoFitWidth="0" ss:Width="35.23"/>
+<Column ss:AutoFitWidth="0" ss:Width="53.46"/>
 <Row ss:Height="0.55">
-<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="17.01">
-<Cell ss:Index="1" ss:MergeAcross="14" ss:StyleID="s0">
-<Data ss:Type="String">Оборачиваемость [товаров в днях + ИЗаказ]</Data></Cell><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1" ss:MergeAcross="19" ss:StyleID="s0">
+<Data ss:Type="String">Оборачиваемость [общая + ИЗаказ]</Data></Cell><Cell ss:Index="21"/></Row>
 <Row ss:Height="2.29">
-<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="17.01">
-<Cell ss:Index="1" ss:MergeAcross="14" ss:StyleID="s0">
-<Data ss:Type="String">с 05.10.2026 по 11.10.2026</Data></Cell><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1" ss:MergeAcross="19" ss:StyleID="s0">
+<Data ss:Type="String">с 05.10.2026 по 11.10.2026</Data></Cell><Cell ss:Index="21"/></Row>
 <Row ss:Height="5.96">
-<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="11.58">
 <Cell ss:Index="1" ss:StyleID="s2">
 <Data ss:Type="String">Отдел</Data></Cell><Cell ss:Index="2" ss:StyleID="s2">
-<Data ss:Type="String">Кол позиций</Data></Cell><Cell ss:Index="3" ss:StyleID="s2">
-<Data ss:Type="String">Сумма опт</Data></Cell><Cell ss:Index="4" ss:StyleID="s2">
-<Data ss:Type="String">Сумма розн</Data></Cell><Cell ss:Index="5" ss:StyleID="s2">
-<Data ss:Type="String">Ср чек</Data></Cell><Cell ss:Index="6" ss:StyleID="s2">
-<Data ss:Type="String">Выручка</Data></Cell><Cell ss:Index="7" ss:StyleID="s2">
-<Data ss:Type="String">Наценка</Data></Cell><Cell ss:Index="8" ss:StyleID="s2">
-<Data ss:Type="String">Оборач дней(опт)</Data></Cell><Cell ss:Index="9" ss:StyleID="s2">
-<Data ss:Type="String">Коэф оборач(опт)</Data></Cell><Cell ss:Index="10" ss:StyleID="s2">
-<Data ss:Type="String">Ср запас(опт)</Data></Cell><Cell ss:Index="11" ss:StyleID="s2">
-<Data ss:Type="String">Оборач дней(розн)</Data></Cell><Cell ss:Index="12" ss:StyleID="s2">
-<Data ss:Type="String">Коэф оборач(розн)</Data></Cell><Cell ss:Index="13" ss:MergeAcross="1" ss:StyleID="s2">
-<Data ss:Type="String">Ср запас(розн)</Data></Cell><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Data ss:Type="String">Выручка</Data></Cell><Cell ss:Index="3" ss:StyleID="s2">
+<Data ss:Type="String">Опт</Data></Cell><Cell ss:Index="4" ss:StyleID="s2">
+<Data ss:Type="String">Прибыль</Data></Cell><Cell ss:Index="5" ss:StyleID="s2">
+<Data ss:Type="String">Наценка %</Data></Cell><Cell ss:Index="6" ss:StyleID="s2">
+<Data ss:Type="String">Скидка</Data></Cell><Cell ss:Index="7" ss:StyleID="s2">
+<Data ss:Type="String">Скидка %</Data></Cell><Cell ss:Index="8" ss:StyleID="s2">
+<Data ss:Type="String">Кол чеков</Data></Cell><Cell ss:Index="9" ss:StyleID="s2">
+<Data ss:Type="String">Арт</Data></Cell><Cell ss:Index="10" ss:StyleID="s2">
+<Data ss:Type="String">Кол дней</Data></Cell><Cell ss:Index="11" ss:StyleID="s2">
+<Data ss:Type="String">Чеков в день</Data></Cell><Cell ss:Index="12" ss:StyleID="s2">
+<Data ss:Type="String">Сред чек</Data></Cell><Cell ss:Index="13" ss:StyleID="s2">
+<Data ss:Type="String">Арт в чеке</Data></Cell><Cell ss:Index="14" ss:StyleID="s2">
+<Data ss:Type="String">Опт(прих)</Data></Cell><Cell ss:Index="15" ss:StyleID="s2">
+<Data ss:Type="String">Розн(прих)</Data></Cell><Cell ss:Index="16" ss:StyleID="s2">
+<Data ss:Type="String">Опт(ост)</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s2">
+<Data ss:Type="String">Розн(ост)</Data></Cell><Cell ss:Index="19" ss:StyleID="s2">
+<Data ss:Type="String">Арт(ост)</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="11.58">
 <Cell ss:Index="1" ss:StyleID="s3">
 <Data ss:Type="String">Аптека</Data></Cell><Cell ss:Index="2" ss:StyleID="s3">
-<Data ss:Type="String">2437</Data></Cell><Cell ss:Index="3" ss:StyleID="s3">
-<Data ss:Type="String">2539555,15</Data></Cell><Cell ss:Index="4" ss:StyleID="s3">
-<Data ss:Type="String">3021943,89</Data></Cell><Cell ss:Index="5" ss:StyleID="s3">
-<Data ss:Type="String">1236,93</Data></Cell><Cell ss:Index="6" ss:StyleID="s3">
-<Data ss:Type="String">426740,42</Data></Cell><Cell ss:Index="7" ss:StyleID="s3">
-<Data ss:Type="String">9,36</Data></Cell><Cell ss:Index="8" ss:StyleID="s3">
-<Data ss:Type="String">80</Data></Cell><Cell ss:Index="9" ss:StyleID="s3">
-<Data ss:Type="String">0,07</Data></Cell><Cell ss:Index="10" ss:StyleID="s3">
-<Data ss:Type="String">2602730,83</Data></Cell><Cell ss:Index="11" ss:StyleID="s3">
-<Data ss:Type="String">42</Data></Cell><Cell ss:Index="12" ss:StyleID="s3">
-<Data ss:Type="String">0,14</Data></Cell><Cell ss:Index="13" ss:MergeAcross="1" ss:StyleID="s3">
-<Data ss:Type="String">3091515,89</Data></Cell><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Data ss:Type="String">426740,42</Data></Cell><Cell ss:Index="3" ss:StyleID="s3">
+<Data ss:Type="String">390216,17</Data></Cell><Cell ss:Index="4" ss:StyleID="s3">
+<Data ss:Type="String">36524,25</Data></Cell><Cell ss:Index="5" ss:StyleID="s3">
+<Data ss:Type="String">9,36</Data></Cell><Cell ss:Index="6" ss:StyleID="s3">
+<Data ss:Type="String">19241,58</Data></Cell><Cell ss:Index="7" ss:StyleID="s3">
+<Data ss:Type="String">4,51</Data></Cell><Cell ss:Index="8" ss:StyleID="s3">
+<Data ss:Type="String">345</Data></Cell><Cell ss:Index="9" ss:StyleID="s3">
+<Data ss:Type="String">470</Data></Cell><Cell ss:Index="10" ss:StyleID="s3">
+<Data ss:Type="String">5</Data></Cell><Cell ss:Index="11" ss:StyleID="s3">
+<Data ss:Type="String">69,00</Data></Cell><Cell ss:Index="12" ss:StyleID="s3">
+<Data ss:Type="String">1236,93</Data></Cell><Cell ss:Index="13" ss:StyleID="s3">
+<Data ss:Type="String">3,61</Data></Cell><Cell ss:Index="14" ss:StyleID="s3">
+<Data ss:Type="String">273389,94</Data></Cell><Cell ss:Index="15" ss:StyleID="s3">
+<Data ss:Type="String">324036,00</Data></Cell><Cell ss:Index="16" ss:StyleID="s3">
+<Data ss:Type="String">2539555,15</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s3">
+<Data ss:Type="String">3021943,89</Data></Cell><Cell ss:Index="19" ss:StyleID="s3">
+<Data ss:Type="String">2437</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="11.58">
 <Cell ss:Index="1" ss:StyleID="s3">
 <Data ss:Type="String">Аптека (ИЗ)</Data></Cell><Cell ss:Index="2" ss:StyleID="s3">
-<Data ss:Type="String">29</Data></Cell><Cell ss:Index="3" ss:StyleID="s3">
-<Data ss:Type="String">42296,58</Data></Cell><Cell ss:Index="4" ss:StyleID="s3">
-<Data ss:Type="String">45228,00</Data></Cell><Cell ss:Index="5" ss:StyleID="s3">
-<Data ss:Type="String">3932,17</Data></Cell><Cell ss:Index="6" ss:StyleID="s3">
-<Data ss:Type="String">23593,00</Data></Cell><Cell ss:Index="7" ss:StyleID="s3">
-<Data ss:Type="String">7,52</Data></Cell><Cell ss:Index="8" ss:StyleID="s3">
-<Data ss:Type="String">21</Data></Cell><Cell ss:Index="9" ss:StyleID="s3">
-<Data ss:Type="String">0,29</Data></Cell><Cell ss:Index="10" ss:StyleID="s3">
-<Data ss:Type="String">37554,29</Data></Cell><Cell ss:Index="11" ss:StyleID="s3">
-<Data ss:Type="String">10</Data></Cell><Cell ss:Index="12" ss:StyleID="s3">
-<Data ss:Type="String">0,59</Data></Cell><Cell ss:Index="13" ss:MergeAcross="1" ss:StyleID="s3">
-<Data ss:Type="String">40305,50</Data></Cell><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Data ss:Type="String">23593,00</Data></Cell><Cell ss:Index="3" ss:StyleID="s3">
+<Data ss:Type="String">21942,95</Data></Cell><Cell ss:Index="4" ss:StyleID="s3">
+<Data ss:Type="String">1650,05</Data></Cell><Cell ss:Index="5" ss:StyleID="s3">
+<Data ss:Type="String">7,52</Data></Cell><Cell ss:Index="6" ss:StyleID="s3">
+<Data ss:Type="String">0,00</Data></Cell><Cell ss:Index="7" ss:StyleID="s3">
+<Data ss:Type="String">0,00</Data></Cell><Cell ss:Index="8" ss:StyleID="s3">
+<Data ss:Type="String">6</Data></Cell><Cell ss:Index="9" ss:StyleID="s3">
+<Data ss:Type="String">11</Data></Cell><Cell ss:Index="10" ss:StyleID="s3">
+<Data ss:Type="String">2</Data></Cell><Cell ss:Index="11" ss:StyleID="s3">
+<Data ss:Type="String">3,00</Data></Cell><Cell ss:Index="12" ss:StyleID="s3">
+<Data ss:Type="String">3932,17</Data></Cell><Cell ss:Index="13" ss:StyleID="s3">
+<Data ss:Type="String">6,67</Data></Cell><Cell ss:Index="14" ss:StyleID="s3">
+<Data ss:Type="String">31427,60</Data></Cell><Cell ss:Index="15" ss:StyleID="s3">
+<Data ss:Type="String">33438,00</Data></Cell><Cell ss:Index="16" ss:StyleID="s3">
+<Data ss:Type="String">42296,58</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s3">
+<Data ss:Type="String">45228,00</Data></Cell><Cell ss:Index="19" ss:StyleID="s3">
+<Data ss:Type="String">29</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="11.58">
-<Cell ss:Index="1" ss:MergeAcross="13" ss:StyleID="s4">
-<Data ss:Type="String">ИТОГО СУММА ПО ВСЕМ</Data></Cell><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1" ss:MergeAcross="18" ss:StyleID="s4">
+<Data ss:Type="String">ИТОГО СУММА ПО ВСЕМ</Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="10.25">
 <Cell ss:Index="1" ss:StyleID="s14">
-<Data ss:Type="String"></Data></Cell><Cell ss:Index="2" ss:StyleID="s15">
-<Data ss:Type="String"></Data></Cell><Cell ss:Index="3" ss:StyleID="s7">
-<Data ss:Type="String">2581851,73</Data></Cell><Cell ss:Index="4" ss:StyleID="s7">
-<Data ss:Type="String">3067171,89</Data></Cell><Cell ss:Index="5" ss:StyleID="s15">
-<Data ss:Type="String"></Data></Cell><Cell ss:Index="6" ss:StyleID="s7">
-<Data ss:Type="String">450333,42</Data></Cell><Cell ss:Index="7" ss:StyleID="s7">
-<Data ss:Type="String">16,88</Data></Cell><Cell ss:Index="8" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="2" ss:StyleID="s6">
+<Data ss:Type="String">450333,42</Data></Cell><Cell ss:Index="3" ss:StyleID="s6">
+<Data ss:Type="String">412159,12</Data></Cell><Cell ss:Index="4" ss:StyleID="s6">
+<Data ss:Type="String">38174,30</Data></Cell><Cell ss:Index="5" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="6" ss:StyleID="s6">
+<Data ss:Type="String">19241,58</Data></Cell><Cell ss:Index="7" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="8" ss:StyleID="s15">
 <Data ss:Type="String"></Data></Cell><Cell ss:Index="9" ss:StyleID="s15">
 <Data ss:Type="String"></Data></Cell><Cell ss:Index="10" ss:StyleID="s15">
 <Data ss:Type="String"></Data></Cell><Cell ss:Index="11" ss:StyleID="s15">
 <Data ss:Type="String"></Data></Cell><Cell ss:Index="12" ss:StyleID="s15">
-<Data ss:Type="String"></Data></Cell><Cell ss:Index="13" ss:MergeAcross="1" ss:StyleID="s16">
-<Data ss:Type="String"></Data></Cell><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="13" ss:StyleID="s15">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="14" ss:StyleID="s6">
+<Data ss:Type="String">304817,54</Data></Cell><Cell ss:Index="15" ss:StyleID="s6">
+<Data ss:Type="String">357474,00</Data></Cell><Cell ss:Index="16" ss:StyleID="s6">
+<Data ss:Type="String">2581851,73</Data></Cell><Cell ss:Index="17" ss:MergeAcross="1" ss:StyleID="s6">
+<Data ss:Type="String">3067171,89</Data></Cell><Cell ss:Index="19" ss:StyleID="s16">
+<Data ss:Type="String"></Data></Cell><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="8.51">
-<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1"/><Cell ss:Index="2"/><Cell ss:Index="3"/><Cell ss:Index="4"/><Cell ss:Index="5"/><Cell ss:Index="6"/><Cell ss:Index="7"/><Cell ss:Index="8"/><Cell ss:Index="9"/><Cell ss:Index="10"/><Cell ss:Index="11"/><Cell ss:Index="12"/><Cell ss:Index="13"/><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/><Cell ss:Index="17"/><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 <Row ss:Height="14.18">
-<Cell ss:Index="1" ss:MergeAcross="12" ss:StyleID="s12">
-<Data ss:Type="String">Всего записей 2 шт. на 1 страницах</Data></Cell><Cell ss:Index="14"/><Cell ss:Index="15"/><Cell ss:Index="16"/></Row>
+<Cell ss:Index="1" ss:MergeAcross="16" ss:StyleID="s12">
+<Data ss:Type="String">Всего записей 2 шт. на 1 страницах</Data></Cell><Cell ss:Index="18"/><Cell ss:Index="19"/><Cell ss:Index="20"/><Cell ss:Index="21"/></Row>
 </Table>
 <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
 <PageSetup>
