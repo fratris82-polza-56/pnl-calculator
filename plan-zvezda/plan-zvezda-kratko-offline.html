@@ -3158,9 +3158,10 @@ window.fetch = function () {
             });
           }
           _mkv = monthKey(fMo);
-          if (fMo && _mkv) _ser = _ser.filter(function (x) {
-            return x.d.startsWith(_mkv);
-          });
+          if (fMo && _mkv) {
+            var _alt = _ser.filter(function (x) { return x.d.startsWith(_mkv); });
+            if (_alt.length) _ser = _alt;
+          }
           return _context.a(2, mk({
             series: _ser
           }));
@@ -15378,6 +15379,10 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .rec .sub{color:#68737f;font-size:11.5px;margin-top:1px}
 
 .foot{display:flex;justify-content:space-between;font-size:11px;color:var(--mut);margin-top:2px}
+.hero-empty{text-align:center;padding:26px 12px}
+.hero-empty .big{font-size:17px;font-weight:700;margin-bottom:6px}
+.hero-empty .mut{font-size:13.5px;color:#5b6b7d;margin-bottom:14px}
+.hero-delta{margin-top:8px;font-size:14px;font-weight:700}
 .err{background:#fde8e8;color:#c0272d;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:none}
 .tbtn{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:var(--navy);background:#fcb424;border:none;border-radius:7px;padding:4px 9px;cursor:pointer;font-family:inherit}
 .tbtn:active{background:#eaa215}
@@ -15892,6 +15897,25 @@ function monthRow() {
     return norm(r) === currentMonthKey();
   }) || (sum.rows || [])[0] || null;
 }
+
+function heroDeltaTxt(ser, mkey) {
+  try {
+    var md = (ser || []).filter(function (x) { return String(x.d).slice(0, 7) === mkey; }).map(function (x) { return x.d; });
+    if (md.length < 8) return null;
+    md.sort();
+    var last = md[md.length - 1];
+    function dt(s) { return new Date(s + 'T00:00:00Z'); }
+    var w1s = new Date(dt(last).getTime() - 6 * 864e5), w0s = new Date(dt(last).getTime() - 13 * 864e5), w0e = new Date(dt(last).getTime() - 7 * 864e5);
+    var c1 = 0, c0 = 0;
+    (ser || []).forEach(function (x) {
+      var t = dt(x.d);
+      if (t >= w1s && t <= dt(last)) c1 += x.fact;
+      else if (t >= w0s && t < w0e) c0 += x.fact;
+    });
+    if (!c0) return null;
+    return { pct: (c1 - c0) / c0 * 100, c1: c1, c0: c0 };
+  } catch (e) { return null; }
+}
 function dayBase(row) {
   var cur = currentMonthKey();
   if (rowKey(row) === cur) return Math.max(new Date().getUTCDate(), 1);
@@ -15944,13 +15968,19 @@ function render() {
   var pctB = function (p, lbl) {
     return "<div class=\"pctb\" style=\"background:" + toneCol(p) + "\">" + Math.round(p) + "%" + (lbl ? " " + lbl : "") + "</div>";
   };
+  var _hd = heroDeltaTxt(series, rowKey(row));
+  var _deltaHtml = _hd ? '<div class="hero-delta" style="color:' + (_hd.pct >= 0 ? '#2c7a4b' : '#c0262e') + '">' + (_hd.pct >= 0 ? '▲ +' : '▼ ') + Math.abs(_hd.pct).toFixed(0) + '% выручки к прошлой неделе</div>' : '';
+  if (fctPct === 0) {
+    document.getElementById('hero').innerHTML = '<div class="hero-empty"><div class="big">' + esc(MONTHS[rowKey(row)]) + ': факта пока нет</div><div class="mut">Как только появится выгрузка 1С — цифры появятся здесь автоматически.</div></div>';
+    return;
+  }
   var tiles = "<div class=\"tile tile-blue\"><div class=\"t\">Прогноз выручки</div><div class=\"v\">" + fmtML(fcVal) + "</div>" + pctB(fcPct, "плана") + "</div>"
     + "<div class=\"tile tile-teal\"><div class=\"t\">Средний чек</div><div class=\"v\">" + (avgCheck == null ? "—" : fmtRub(avgCheck)) + "</div>" + (avgTarget != null && avgCheck != null ? pctB(avgCheck / avgTarget * 100, "цели") : "") + "<div class=\"sub\">чеков " + checks + (planChecks ? "/" + planChecks : "") + "</div></div>"
     + "<div class=\"tile tile-purple\"><div class=\"t\">Наценка</div><div class=\"v\">" + Math.round(mkPct) + "%</div><div class=\"sub\">маржа " + Math.round(mgPct) + "%</div></div>"
     + "<div class=\"tile tile-amber\"><div class=\"t\">СТМ</div><div class=\"v\">" + fmtRub(stmVal) + "</div>" + (stmPlan != null ? pctB(stmVal / stmPlan * 100) + "<div class=\"sub\">план " + fmtRub(stmPlan) + "</div>" : (stmVal ? "<div class=\"sub\">" + stmPct.toFixed(1).replace(".", ",") + "% ТО</div>" : "")) + (stmFc != null ? "<div class=\"sub\">прогноз " + fmtRub(stmFc) + "</div>" : "") + "</div>"
     + "<div class=\"tile tile-rose\"><div class=\"t\">Маркетинг</div><div class=\"v\">" + fmtRub(mktVal) + "</div>" + (mktPlan != null ? "<div class=\"pctb pctb-n\">" + (mktVal / mktPlan * 100).toFixed(1).replace(".", ",") + "%</div><div class=\"sub\">план " + fmtRub(mktPlan) + "</div>" : "") + (mktFc != null ? "<div class=\"sub\">прогноз " + fmtRub(mktFc) + "</div>" : "") + "</div>"
     + "<div class=\"tile tile-green\"><div class=\"t\">Доли от выручки</div><div class=\"v\">" + (fact > 0 ? stmPct.toFixed(1).replace(".", ",") + "% / " + (mktVal / fact * 100).toFixed(1).replace(".", ",") + "%" : "—") + "</div><div class=\"sub\">СТМ · план 12%</div><div class=\"sub\">маркетинг · план 30%</div></div>";
-  document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>" + esc(emp ? "Личный план (выручка)" : "План месяца (выручка)") + " · " + MONTHS[rowKey(row)] + "</span><span class=\"days\">" + (isCur ? "осталось " + daysLeft + " дн." : "месяц закрыт") + "</span></div>\n    <div class=\"pct\">" + Math.round(fctPct) + "<small> %</small>" + (fctPct >= 100 ? STAR : fctPct >= 80 ? MASCOT_COIN : fctPct >= 50 ? MASCOT_HEART : "") + "</div>\n    <div class=\"bar\"><div class=\"fill\" style=\"width:" + Math.min(fctPct, 100) + "%;background:" + toneCol(fcPct) + "\"></div>" + (fcPct > 0.5 ? "<div class=\"tick\" style=\"left:" + Math.min(fcPct, 100) + "%\" title=\"прогноз\"></div>" : "") + "</div>\n    <div class=\"bar-legend\"><span>выручка " + fmtRub(fact) + "</span><span>план " + fmtRub(plan) + "</span></div>\n    <div class=\"tiles\">" + tiles + "</div>\n    <div class=\"chip " + toneCls(fcPct) + "\">" + (!isCur && fctPct === 0 ? "Данных за месяц нет" : db <= 2 && fctPct === 0 ? "Месяц только начался — данных пока мало" : "Прогноз: " + (fcPct >= 100 ? "план будет выполнен" : fcPct >= 85 ? "чуть-чуть до плана" : "риск невыполнения")) + "</div>";  document.getElementById('mVals').textContent = "".concat(fmtRub(margin), " \u0438\u0437 ").concat(fmtRub(planM));
+  document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>" + esc(emp ? "Личный план (выручка)" : "План месяца (выручка)") + " · " + MONTHS[rowKey(row)] + "</span><span class=\"days\">" + (isCur ? "осталось " + daysLeft + " дн." : "месяц закрыт") + "</span></div>\n    <div class=\"pct\">" + Math.round(fctPct) + "<small> %</small>" + (fctPct >= 100 ? STAR : fctPct >= 80 ? MASCOT_COIN : fctPct >= 50 ? MASCOT_HEART : "") + "</div>\n    <div class=\"bar\"><div class=\"fill\" style=\"width:" + Math.min(fctPct, 100) + "%;background:" + toneCol(fcPct) + "\"></div>" + (fcPct > 0.5 ? "<div class=\"tick\" style=\"left:" + Math.min(fcPct, 100) + "%\" title=\"прогноз\"></div>" : "") + "</div>\n    <div class=\"bar-legend\"><span>выручка " + fmtRub(fact) + "</span><span>план " + fmtRub(plan) + "</span></div>\n    <div class=\"tiles\">" + tiles + "</div>\n    <div class=\"chip " + toneCls(fcPct) + "\">" + (!isCur && fctPct === 0 ? "Данных за месяц нет" : db <= 2 && fctPct === 0 ? "Месяц только начался — данных пока мало" : "Прогноз: " + (fcPct >= 100 ? "план будет выполнен" : fcPct >= 85 ? "чуть-чуть до плана" : "риск невыполнения")) + _deltaHtml + "</div>";  document.getElementById('mVals').textContent = "".concat(fmtRub(margin), " \u0438\u0437 ").concat(fmtRub(planM));
   var mf = document.getElementById('mFill');
   mf.style.width = Math.min(mPct, 100) + '%';
   mf.style.background = toneCol(mPct);
