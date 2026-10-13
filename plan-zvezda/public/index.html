@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
+<head><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#133367">
@@ -132,7 +132,12 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
+.hero-net{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.hero-net .hn-main{font-size:15px;font-weight:800}
+.hero-net .hn-fcst{color:#4169aa;font-weight:700}
+.hero-net .badge{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px}
+.hn-up{background:#e2f3e5;color:#2c7a4b}.hn-down{background:#fbe4e5;color:#c0262e}.hn-flat{background:#eef2f7;color:#5b6b7d}
+body{font-family:'Montserrat',-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}button,input,select,textarea{font-family:inherit}
 .wrap{max-width:1180px;margin:0 auto;padding:12px 10px calc(40px + env(safe-area-inset-bottom))}
 
 /* --- шапка: на мобиле колонкой, фильтры сеткой 2×1 --- */
@@ -153,7 +158,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 /* --- KPI: 2 колонки на телефоне, все видны без скролла --- */
 .kpis{grid-template-columns:repeat(2,1fr)}
 .kpi .t{font-size:10.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
-.kpi .v{font-size:clamp(16px,4.6vw,21px);font-weight:750;margin:3px 0 1px}
+.kpi .v{font-size:clamp(16px,4.6vw,21px);font-weight:800;margin:3px 0 1px}
 .kpi .s{font-size:11px;color:var(--mut)}
 .kpi .b{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
 .b-ok{background:#e5f9ec;color:#0a7d3c}.b-warn{background:#fdf1e2;color:#a05a00}.b-bad{background:#fde8e8;color:#c0272d}
@@ -364,11 +369,12 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
     </nav>
     <div class="sbl-foot">
       <a class="sbtn" href="/me.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.5 19.2c1-3.6 3.4-5.3 6.5-5.3s5.5 1.7 6.5 5.3"/></svg></span><span>Личный кабинет</span></a>
-      <a class="sbtn" href="/short.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.5 6.8 13.4h4.4l-1.6 7.1 7.6-9.9h-4.5z"/></svg></span><span>Краткая версия</span></a>
+      <a class="sbtn vswitch" data-alt="auto" href="/short.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.5 6.8 13.4h4.4l-1.6 7.1 7.6-9.9h-4.5z"/></svg></span><span>Краткая версия</span></a>
     </div>
   </aside>
   <iframe class="mframe" id="mframe" title="Модуль"></iframe>
 
+  <div class="card" id="heroNet" style="margin-bottom:12px"></div>
   <div class="grid kpis" id="kpis"></div>
 
   <div class="grid charts" id="charts">
@@ -1059,7 +1065,27 @@ function metricCell(fact, plan, pct, fcst, fpct) {
 function kpiBig(title, factVal, subHtml, barsHtml) {
   return "<div class=\"card kpi kpi-big\"><div class=\"t\">".concat(title, "</div><div class=\"v num\">").concat(factVal, "</div>").concat(subHtml || "").concat(barsHtml || "", "</div>");
 }
-function renderKpis(sum, phId, month) {
+function renderKpis(sum, phId, month, _x, weekDelta) {
+
+function heroDeltaTxt(ser, mkey) {
+  try {
+    var md = (ser || []).filter(function (x) { return String(x.d).slice(0, 7) === mkey; }).map(function (x) { return x.d; });
+    if (md.length < 8) return null;
+    md.sort();
+    var last = md[md.length - 1];
+    function dt(s) { return new Date(s + 'T00:00:00Z'); }
+    var w1s = new Date(dt(last).getTime() - 6 * 864e5), w0s = new Date(dt(last).getTime() - 13 * 864e5), w0e = new Date(dt(last).getTime() - 7 * 864e5);
+    var c1 = 0, c0 = 0;
+    (ser || []).forEach(function (x) {
+      var t = dt(x.d);
+      if (t >= w1s && t <= dt(last)) c1 += x.fact;
+      else if (t >= w0s && t < w0e) c0 += x.fact;
+    });
+    if (!c0) return null;
+    return { pct: (c1 - c0) / c0 * 100, c1: c1, c0: c0 };
+  } catch (e) { return null; }
+}
+
   var rows = sum.rows;
   var t = {
     plan: 0,
@@ -1109,6 +1135,20 @@ function renderKpis(sum, phId, month) {
     var x = n ? f / n : 0;
     return Math.max(2, Math.min(100, x * 100));
   };
+  var _hn = document.getElementById("heroNet");
+  if (_hn) {
+    var _emptyAll = t.fact === 0 && t.plan > 0;
+    var _badge = "";
+    if (weekDelta && typeof weekDelta.pct === "number") {
+      var _cls = weekDelta.pct > 1 ? "hn-up" : weekDelta.pct < -1 ? "hn-down" : "hn-flat";
+      _badge = '<span class="badge ' + _cls + '">' + (weekDelta.pct >= 0 ? "▲ +" : "▼ ") + Math.abs(weekDelta.pct).toFixed(0) + "% к прошлой неделе</span>";
+    }
+    _hn.innerHTML = _emptyAll
+      ? '<div class="hero-empty"><div class="big">' + _escHtml(mlab) + ': факта пока нет</div><div class="mut">Загрузите выгрузку 1С — цифры появятся здесь автоматически.</div><label class="btn" style="cursor:pointer">Загрузить выгрузку 1С<input type="file" id="epFileHero" accept=".xlsx,.xls" style="display:none"></label></div>'
+      : '<div class="hero-net"><span class="hn-main">' + _escHtml(mlab) + ' · ' + fmtM(t.fact) + ' из ' + fmtM(t.plan) + ' (' + pct.toFixed(0) + '%)</span><span class="hn-fcst">прогноз ' + fmtM(t.frc) + ' (' + fpct.toFixed(0) + '%)</span>' + _badge + '</div>';
+    var _fh = document.getElementById("epFileHero");
+    if (_fh) _fh.onchange = function (ev) { var b = document.getElementById("epFile"); if (b) { try { b.files = ev.target.files; b.onchange(ev); } catch (_e) {} } };
+  }
   $("#kpis").innerHTML = kpiBig("\u0412\u044B\u0440\u0443\u0447\u043A\u0430 \xB7 ".concat(mlab), fmtM(t.fact), "<div class=\"s\">".concat(scope, " \xB7 \u0412\u0414: ").concat(fmtM(t.fvd), " (").concat(vdPct.toFixed(0), "% \u043F\u043B\u0430\u043D\u0430) ").concat(deltaBadge(pct), "</div>"), kbars([{
     l: "План",
     v: sc(t.plan, t.plan),
@@ -2060,7 +2100,7 @@ $("#btnSim").onclick = function () {
 };
 function refresh() {
   return __async(this, null, _regenerator().m(function _callee14() {
-    var phId, sel, qs, q, mlab, sum;
+    var phId, sel, qs, q, mlab, sum, _sr, _wk;
     return _regenerator().w(function (_context14) {
       while (1) switch (_context14.n) {
         case 0:
@@ -2075,7 +2115,17 @@ function refresh() {
           return api("/api/summary?" + q);
         case 1:
           sum = _context14.v;
-          renderKpis(sum, phId, mlab);
+          _context14.n = 7;
+          return api("/api/s.series?" + new URLSearchParams(sel.length === 1 ? { pharmacy_id: phId || "", month: sel[0] } : { pharmacy_id: phId || "" }));
+        case 7:
+          _sr = _context14.v;
+          _wk = null;
+          try {
+            var _one = sel.length === 1 ? sel[0] : null;
+            var _mkey2 = { "Сентябрь": "2026-09", "Октябрь": "2026-10", "Ноябрь": "2026-11", "Декабрь": "2026-12" }[_one];
+            _wk = _mkey2 ? heroDeltaTxt(_sr.series || [], _mkey2) : null;
+          } catch (_e) {}
+          renderKpis(sum, phId, mlab, null, _wk);
           renderTable(sum);
           renderEmp(sum, phId);
           drawMonth(sum);
@@ -2498,5 +2548,30 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
+<script>
+/* Единый вход: клик по ссылке фиксирует выбор версии; пока выбора нет — автом по устройству (без циклов) */
+(function () {
+  try {
+    var links = document.querySelectorAll('a.vswitch[data-alt]');
+    if (!links.length) return;
+    var href = links[0].getAttribute('href') || '';
+    var toShort = /kratko|-short-offline|short\.html/.test(href) && !/plan-zvezda-offline\.html$/.test(href);
+    var here = toShort ? 'full' : 'short';
+    links.forEach(function (a) {
+      a.title = toShort ? 'Краткая версия — удобно с телефона' : 'Полная версия — все разрезы';
+      a.addEventListener('click', function () { try { localStorage.setItem('sz_pin', toShort ? 'short' : 'full'); } catch (e) {} });
+    });
+    var pin = null; try { pin = localStorage.getItem('sz_pin'); } catch (e) {}
+    if (pin === 'full' || pin === 'short') {
+      if (pin !== here) location.replace(href);
+      return;
+    }
+    var touch = (window.matchMedia && (matchMedia('(pointer:coarse)').matches || matchMedia('(max-width:560px)').matches)) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+    if (touch && here === 'full') location.replace(href);
+    else if (!touch && here === 'short') location.replace(href);
+  } catch (e) {}
+})();
+</script>
+
 </body>
 </html>

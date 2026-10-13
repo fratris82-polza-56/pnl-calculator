@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ru">
-<head>
+<head><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Мой план — polza.ru Аптеки</title>
@@ -12,7 +12,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+body{font:15px/1.45 'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}button,input,select,textarea{font-family:inherit}
 .wrap{max-width:520px;margin:0 auto;padding:14px 14px 40px}
 .h-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .h-top h1{font-size:17px;font-weight:700}
@@ -20,12 +20,12 @@ body{font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,san
 .linklike{background:none;border:none;color:var(--acc);font-size:13px;cursor:pointer;padding:6px 4px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(23,33,43,.04)}
 .card h2{font-size:13px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
-.big{font-size:26px;font-weight:750;letter-spacing:-.3px}
+.big{font-size:26px;font-weight:800;letter-spacing:-.3px}
 .big small{font-size:14px;color:var(--mut);font-weight:500}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .row>*{flex:1 1 140px}
 .kv{font-size:13.5px;color:var(--mut)}
-.kv b{color:var(--ink);font-weight:650}
+.kv b{color:var(--ink);font-weight:600}
 .bar{height:8px;border-radius:6px;background:#e9eef6;overflow:hidden;margin-top:8px}
 .bar i{display:block;height:100%;border-radius:6px;background:var(--acc);transition:width .5s}
 .bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.bad{background:var(--bad)}
@@ -33,6 +33,9 @@ body{font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,san
 .pct.ok{color:var(--ok)} .pct.warn{color:var(--warn)} .pct.bad{color:var(--bad)}
 .tip{background:#e2f3e5;border:1px solid #bfe2c6;border-radius:12px;padding:11px 12px;font-size:14px;line-height:1.45;color:#2c5e3f}
 .tip::before{content:'💡 ';}
+.delta{margin-top:8px;font-size:13px;font-weight:600}
+.act{padding:7px 0;border-bottom:1px dashed #e3e8ef;font-size:14px;line-height:1.4}
+.act:last-child{border-bottom:none}
 table.days{width:100%;border-collapse:collapse;font-size:13.5px}
 table.days td{padding:6px 4px;border-top:1px solid var(--line)}
 table.days td:last-child{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
@@ -40,7 +43,7 @@ table.days td:last-child{text-align:right;font-variant-numeric:tabular-nums;font
 form{display:flex;flex-direction:column;gap:10px}
 input,select,textarea{font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%}
 input:focus,select:focus{outline:2px solid #bfe2c6;border-color:var(--acc)}
-button.btn{font:inherit;font-weight:650;padding:12px;border:none;border-radius:10px;background:var(--acc);color:#fff;cursor:pointer}
+button.btn{font:inherit;font-weight:600;padding:12px;border:none;border-radius:10px;background:var(--acc);color:#fff;cursor:pointer}
 button.btn:active{opacity:.85}
 button.btn.gray{background:#eef2f8;color:var(--ink)}
 .err{color:var(--bad);font-size:13px;min-height:18px}
@@ -106,6 +109,7 @@ label{font-size:12.5px;color:var(--mut);font-weight:600}
         <div class="kv" id="mePlan">план —</div>
         <div class="pct" id="mePct">—</div>
         <div class="bar"><i id="meBar" style="width:0%"></i></div>
+      <div class="delta hidden" id="meDelta"></div>
       </div>
       <div>
         <div class="kv" style="margin-bottom:6px" id="meLeft">—</div>
@@ -129,6 +133,11 @@ label{font-size:12.5px;color:var(--mut);font-weight:600}
         <div class="bar"><i id="netBar" style="width:0%"></i></div>
       </div>
     </div>
+  </div>
+
+  <div class="card hidden" id="cardActs">
+    <h2>Сегодня в фокусе</h2>
+    <div id="actsList"></div>
   </div>
 
   <div class="card">
@@ -254,6 +263,10 @@ function render(d){
   $('phName').textContent=d.pharmacy.name+' · '+d.month
     +(d.days_left!=null?(' · осталось '+d.days_left+' дн.'):'');
   rolebar(d);
+    var de=document.getElementById('meDelta');
+    if(d.week!=null){de.classList.remove('hidden');de.innerHTML=(d.week>=0?'▲ +':'▼ ')+Math.abs(d.week).toFixed(0)+'% к прошлой неделе';de.style.color=d.week>=0?'#2c7a4b':'#c0262e';}else{de.classList.add('hidden');}
+    document.getElementById('cardActs').classList.toggle('hidden',!(d.actions&&d.actions.length));
+    document.getElementById('actsList').innerHTML=(d.actions||[]).map(function(a){return '<div class="act">☑ '+esc(a)+'</div>';}).join('');
   _loadModNav();
   $('tip').textContent=d.tip||me.tip;
   $('monName').textContent=d.month.toLowerCase();
