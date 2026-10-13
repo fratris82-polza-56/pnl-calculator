@@ -15330,24 +15330,25 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .hero .bar .tick{position:absolute;top:-2px;bottom:-2px;width:3px;border-radius:2px;background:var(--navy);opacity:.85}
 .bar-legend{display:flex;justify-content:space-between;font-size:11.5px;color:#68737f;margin-bottom:10px}
 .hero .tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--line);padding-top:9px}
-.tile{border-radius:12px;padding:9px 10px 8px;display:flex;flex-direction:column;gap:3px}
-.tile .t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;opacity:.72}
-.tile .v{font-size:17px;font-weight:800;line-height:1.15}
-.tile .sub{font-size:10.5px;font-weight:600;opacity:.78}
+.tile{position:relative;border-radius:12px;padding:9px 10px 8px;display:flex;flex-direction:column;gap:3px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.tile::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tile-accent,var(--blue))}
+.tile .t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--mut)}
+.tile .v{font-size:17px;font-weight:800;line-height:1.15;color:var(--tx)}
+.tile .sub{font-size:10.5px;font-weight:600;color:var(--mut)}
 .tile .pctb{align-self:flex-start;font-size:11px;font-weight:800;color:#fff;border-radius:99px;padding:2px 8px;margin-top:1px}
-.tile-blue{background:#e3ecfa;color:#1d3d6e}.tile-blue .t{color:#2b4f8c}
-.tile-teal{background:#dcf0ec;color:#155a52}.tile-teal .t{color:#1f6f66}
-.tile-purple{background:#ebe3f7;color:#4a3377}.tile-purple .t{color:#5b3f8f}
-.tile-amber{background:#fdeeda;color:#7a5009}.tile-amber .t{color:#92610f}
-.tile-rose{background:#fbe3e7;color:#8c2f3e}.tile-rose .t{color:#a03a4a}
-.tile-green{background:#e0f3e6;color:#14532d}.tile-green .t{color:#166534}
+.tile-blue{--tile-accent:#4169aa}
+.tile-teal{--tile-accent:#53a979}
+.tile-purple{--tile-accent:#7c5cbf}
+.tile-amber{--tile-accent:#f1974e}
+.tile-rose{--tile-accent:#e5484d}
+.tile-green{--tile-accent:#6dc47b}
 .pctb-n{background:#5d8dd4}
 @media (min-width:560px){ .hero .tiles{grid-template-columns:repeat(3,1fr)} }
 .chip{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:700}
 .c-ok{background:#e5f9ec;color:#0a7d3c}.c-warn{background:#fdf1e2;color:#a05a00}.c-bad{background:#fde8e8;color:#c0272d}
 
-.card h3{font-size:12.5px;color:var(--navy);margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
-.card h3 .r{font-size:12px;color:var(--mut);font-weight:600}
+.card h3{font-size:12.5px;color:var(--navy);margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card h3 .r{font-size:12px;color:var(--mut);font-weight:600;margin-left:auto;text-align:right}
 .mbar{height:9px;border-radius:99px;background:#e8edf4;position:relative;overflow:hidden;margin:6px 0 4px}
 .mbar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px}
 .mrow{display:flex;justify-content:space-between;font-size:12px;color:#68737f}
@@ -15384,7 +15385,7 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .hero-empty .mut{font-size:13.5px;color:#5b6b7d;margin-bottom:14px}
 .hero-delta{margin-top:8px;font-size:14px;font-weight:700}
 .err{background:#fde8e8;color:#c0272d;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:10px;display:none}
-.tbtn{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:var(--navy);background:#fcb424;border:none;border-radius:7px;padding:4px 9px;cursor:pointer;font-family:inherit}
+.tbtn{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:#fff;background:var(--navy);border:none;border-radius:7px;padding:4px 9px;cursor:pointer;font-family:inherit}
 .tbtn:active{background:#eaa215}
 .mback{position:fixed;inset:0;background:rgba(19,32,51,.45);z-index:60;display:none;align-items:center;justify-content:center;padding:16px}
 .mback.open{display:flex}
@@ -15745,7 +15746,7 @@ var toneCls = function toneCls(p) {
   return p >= 97 ? 'c-ok' : p >= 85 ? 'c-warn' : 'c-bad';
 };
 var toneCol = function toneCol(p) {
-  return p >= 97 ? 'var(--green)' : p >= 85 ? 'var(--orange)' : 'var(--red)';
+  return p >= 97 ? 'var(--green)' : p >= 85 ? '#e8a13a' : 'var(--red)';
 };
 var catalog = [],
   sum = null,
@@ -15978,9 +15979,28 @@ function render() {
     + "<div class=\"tile tile-teal\"><div class=\"t\">Средний чек</div><div class=\"v\">" + (avgCheck == null ? "—" : fmtRub(avgCheck)) + "</div>" + (avgTarget != null && avgCheck != null ? pctB(avgCheck / avgTarget * 100, "цели") : "") + "<div class=\"sub\">чеков " + checks + (planChecks ? "/" + planChecks : "") + "</div></div>"
     + "<div class=\"tile tile-purple\"><div class=\"t\">Наценка</div><div class=\"v\">" + Math.round(mkPct) + "%</div><div class=\"sub\">маржа " + Math.round(mgPct) + "%</div></div>"
     + "<div class=\"tile tile-amber\"><div class=\"t\">СТМ</div><div class=\"v\">" + fmtRub(stmVal) + "</div>" + (stmPlan != null ? pctB(stmVal / stmPlan * 100) + "<div class=\"sub\">план " + fmtRub(stmPlan) + "</div>" : (stmVal ? "<div class=\"sub\">" + stmPct.toFixed(1).replace(".", ",") + "% ТО</div>" : "")) + (stmFc != null ? "<div class=\"sub\">прогноз " + fmtRub(stmFc) + "</div>" : "") + "</div>"
-    + "<div class=\"tile tile-rose\"><div class=\"t\">Маркетинг</div><div class=\"v\">" + fmtRub(mktVal) + "</div>" + (mktPlan != null ? "<div class=\"pctb pctb-n\">" + (mktVal / mktPlan * 100).toFixed(1).replace(".", ",") + "%</div><div class=\"sub\">план " + fmtRub(mktPlan) + "</div>" : "") + (mktFc != null ? "<div class=\"sub\">прогноз " + fmtRub(mktFc) + "</div>" : "") + "</div>"
+    + "<div class=\"tile tile-rose\"><div class=\"t\">Маркетинг</div><div class=\"v\">" + fmtRub(mktVal) + "</div>" + (mktPlan != null ? "<div class=\"pctb\" style=\"background:" + toneCol(mktVal / mktPlan * 100) + "\">" + (mktVal / mktPlan * 100).toFixed(1).replace(".", ",") + "%</div><div class=\"sub\">план " + fmtRub(mktPlan) + "</div>" : "") + (mktFc != null ? "<div class=\"sub\">прогноз " + fmtRub(mktFc) + "</div>" : "") + "</div>"
     + "<div class=\"tile tile-green\"><div class=\"t\">Доли от выручки</div><div class=\"v\">" + (fact > 0 ? stmPct.toFixed(1).replace(".", ",") + "% / " + (mktVal / fact * 100).toFixed(1).replace(".", ",") + "%" : "—") + "</div><div class=\"sub\">СТМ · план 12%</div><div class=\"sub\">маркетинг · план 30%</div></div>";
-  document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>" + esc(emp ? "Личный план (выручка)" : "План месяца (выручка)") + " · " + MONTHS[rowKey(row)] + "</span><span class=\"days\">" + (isCur ? "осталось " + daysLeft + " дн." : "месяц закрыт") + "</span></div>\n    <div class=\"pct\">" + Math.round(fctPct) + "<small> %</small>" + (fctPct >= 100 ? STAR : fctPct >= 80 ? MASCOT_COIN : fctPct >= 50 ? MASCOT_HEART : "") + "</div>\n    <div class=\"bar\"><div class=\"fill\" style=\"width:" + Math.min(fctPct, 100) + "%;background:" + toneCol(fcPct) + "\"></div>" + (fcPct > 0.5 ? "<div class=\"tick\" style=\"left:" + Math.min(fcPct, 100) + "%\" title=\"прогноз\"></div>" : "") + "</div>\n    <div class=\"bar-legend\"><span>выручка " + fmtRub(fact) + "</span><span>план " + fmtRub(plan) + "</span></div>\n    <div class=\"tiles\">" + tiles + "</div>\n    <div class=\"chip " + toneCls(fcPct) + "\">" + (!isCur && fctPct === 0 ? "Данных за месяц нет" : db <= 2 && fctPct === 0 ? "Месяц только начался — данных пока мало" : "Прогноз: " + (fcPct >= 100 ? "план будет выполнен" : fcPct >= 85 ? "чуть-чуть до плана" : "риск невыполнения")) + _deltaHtml + "</div>";  document.getElementById('mVals').textContent = "".concat(fmtRub(margin), " \u0438\u0437 ").concat(fmtRub(planM));
+  document.getElementById('hero').innerHTML = "\n    <div class=\"ttl\"><span>" + esc(emp ? "Личный план (выручка)" : "План месяца (выручка)") + " · " + MONTHS[rowKey(row)] + "</span><span class=\"days\">" + (isCur ? "осталось " + daysLeft + " дн." : "месяц закрыт") + "</span></div>\n    <div class=\"pct\">" + Math.round(fctPct) + "<small> %</small>" + (fctPct >= 100 ? STAR : fctPct >= 80 ? MASCOT_COIN : fctPct >= 50 ? MASCOT_HEART : "") + "</div>\n    <div class=\"bar\"><div class=\"fill\" style=\"width:" + Math.min(fctPct, 100) + "%;background:" + toneCol(fcPct) + "\"></div>" + (fcPct > 0.5 ? "<div class=\"tick\" style=\"left:" + Math.min(fcPct, 100) + "%\" title=\"прогноз\"></div>" : "") + "</div>\n    <div class=\"bar-legend\"><span>выручка " + fmtRub(fact) + "</span><span>план " + fmtRub(plan) + "</span></div>\n    <div class=\"tiles\">" + tiles + "</div>\n    <div class=\"chip " + toneCls(fcPct) + "\">" + (!isCur && fctPct === 0 ? "Данных за месяц нет" : db <= 2 && fctPct === 0 ? "Месяц только начался — данных пока мало" : "Прогноз: " + (fcPct >= 100 ? "план будет выполнен" : fcPct >= 85 ? "чуть-чуть до плана" : "риск невыполнения")) + _deltaHtml + "</div>";
+  try {
+    var _tonePx = function _tonePx(p) {
+      return p >= 97 ? '#53a979' : p >= 85 ? '#e8a13a' : '#e5484d';
+    };
+    document.querySelectorAll('#hero .tile').forEach(function (tl) {
+      var pb = tl.querySelector('.pctb');
+      if (!pb) {
+        tl.style.setProperty('--tile-accent', '#c9d4e0');
+        return;
+      }
+      if (!pb._toneDone) {
+        var m2 = /([0-9]+(?:[.,][0-9]+)?)\s*%/.exec(pb.textContent);
+        if (m2) {
+          tl.style.setProperty('--tile-accent', _tonePx(parseFloat(m2[1].replace(',', '.'))));
+          pb._toneDone = 1;
+        }
+      }
+    });
+  } catch (e) {}  document.getElementById('mVals').textContent = "".concat(fmtRub(margin), " \u0438\u0437 ").concat(fmtRub(planM));
   var mf = document.getElementById('mFill');
   mf.style.width = Math.min(mPct, 100) + '%';
   mf.style.background = toneCol(mPct);
@@ -16032,7 +16052,9 @@ function renderChart(row, emp) {
       datasets: [{
         type: 'bar',
         data: shown,
-        backgroundColor: '#4169aa',
+        backgroundColor: function (c) {
+          return c.parsed && c.parsed.y != null && c.parsed.y < planPerDay ? 'rgba(229,72,77,.72)' : '#4169aa';
+        },
         borderRadius: 3,
         barPercentage: .72,
         categoryPercentage: .9
@@ -16091,7 +16113,7 @@ function renderChart(row, emp) {
             },
             color: '#7d8894',
             callback: function callback(v) {
-              return v >= 1000 ? v / 1000 + 'к' : v;
+              return v >= 1000 ? (v / 1000).toFixed(v % 1000 ? 0 : 0).replace('.', ',') + ' тыс' : v;
             }
           }
         }
