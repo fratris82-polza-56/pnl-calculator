@@ -1009,6 +1009,17 @@ var SNAPSHOT = {
       "stm": 4787,
       "ustm": 1621,
       "marketing": 3474
+    }, {
+      "pharmacy_id": 5,
+      "employee_id": 18,
+      "fio": "Администратор",
+      "share": 0,
+      "revenue": 0,
+      "margin": 0,
+      "checks": 0,
+      "stm": 0,
+      "ustm": 0,
+      "marketing": 0
     }],
     "asOf": "2026-10-09"
   },
@@ -1359,6 +1370,17 @@ var SNAPSHOT = {
         "stm": 4787,
         "ustm": 1621,
         "marketing": 3474
+      }, {
+        "pharmacy_id": 5,
+        "employee_id": 18,
+        "fio": "Администратор",
+        "share": 0,
+        "revenue": 0,
+        "margin": 0,
+        "checks": 0,
+        "stm": 0,
+        "ustm": 0,
+        "marketing": 0
       }],
       "asOf": "2026-10-09"
     },
@@ -1702,6 +1724,17 @@ var SNAPSHOT = {
         "employee_id": 14,
         "fio": "Смирнова Ирина Владимировна",
         "share": 0.3333,
+        "revenue": 0,
+        "margin": 0,
+        "checks": 0,
+        "stm": 0,
+        "ustm": 0,
+        "marketing": 0
+      }, {
+        "pharmacy_id": 5,
+        "employee_id": 18,
+        "fio": "Администратор",
+        "share": 0,
         "revenue": 0,
         "margin": 0,
         "checks": 0,
@@ -2057,6 +2090,17 @@ var SNAPSHOT = {
         "stm": 0,
         "ustm": 0,
         "marketing": 0
+      }, {
+        "pharmacy_id": 5,
+        "employee_id": 18,
+        "fio": "Администратор",
+        "share": 0,
+        "revenue": 0,
+        "margin": 0,
+        "checks": 0,
+        "stm": 0,
+        "ustm": 0,
+        "marketing": 0
       }],
       "asOf": "2026-10-09"
     },
@@ -2400,6 +2444,17 @@ var SNAPSHOT = {
         "employee_id": 14,
         "fio": "Смирнова Ирина Владимировна",
         "share": 0.3333,
+        "revenue": 0,
+        "margin": 0,
+        "checks": 0,
+        "stm": 0,
+        "ustm": 0,
+        "marketing": 0
+      }, {
+        "pharmacy_id": 5,
+        "employee_id": 18,
+        "fio": "Администратор",
+        "share": 0,
         "revenue": 0,
         "margin": 0,
         "checks": 0,
@@ -16099,7 +16154,7 @@ function renderTeam(emps, me) {
     var _shrK = _ovT && _ovT.share != null ? _ovT.share : e.share || 0;
     var mkp = monthRow().plan_marketing != null ? monthRow().plan_marketing * _shrK : null;
     var mkpct = mkp ? Math.round(mk / mkp * 100) : null;
-    var kpiLine = "<div class=\"kpi\">\u0412\u041F <b>".concat(fmtRub(e.margin || 0), "</b>").concat(!at && !chk && !st && !mk && mkp == null ? '' : " \xB7 \u0447\u0435\u043A\u0438 <b>".concat(chk, "</b>").concat(pch ? '/' + pch : '', " \xB7 \u0441\u0440. \u0447\u0435\u043A <b>").concat(ac ? Math.round(ac) : '—', "</b>").concat(at ? '/' + Math.round(at) : '', " \u20BD").concat(st ? " \xB7 \u0421\u0422\u041C <b>".concat(fmtRub(st), "</b>") : '').concat(mk || mkp != null ? " \xB7 \u043C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433 <b>".concat(fmtRub(mk), "</b>").concat(mkp != null ? " / ".concat(fmtRub(mkp), " \xB7 ").concat(mkpct, "%") : '') : ''), "</div>");
+    var kpiLine = "<div class=\"kpi\">\u0412\u041F <b>".concat(fmtRub(e.margin || 0), "</b>").concat(!at && !chk && !st && !mk && mkp == null ? '' : " \xB7 \u0447\u0435\u043A\u0438 <b>".concat(chk, "</b>").concat(pch ? '/' + pch : '', " \xB7 \u0441\u0440. \u0447\u0435\u043A <b>").concat(ac ? Math.round(ac) : '—', "</b>").concat(at ? '/' + Math.round(at) : '', " \u20BD").concat(st ? " \xB7 \u0421\u0422\u041C <b>".concat(fmtRub(st), "</b>") : '').concat(mk || mkp != null ? " \xB7 \u043C\u0430\u0440\u043A\u0435\u0442\u0438\u043D\u0433 <b>".concat(fmtRub(mk), "</b>").concat(mkp ? " / ".concat(fmtRub(mkp), " \xB7 ").concat(mkpct, "%") : '') : ''), "</div>");
     return "<div class=\"emp".concat(me && e.employee_id === me.employee_id ? ' me' : '', "\">\n      <div><div class=\"fio\">").concat(esc(e.fio)).concat(bestTo && e.employee_id === bestTo.employee_id ? CROWN : '', "</div><div class=\"role\"><b>").concat(fmtRub(e.revenue), "</b> \u0432\u044B\u0440\u0443\u0447\u043A\u0430 \xB7 ").concat(MONTHS[rowKey(monthRow())].toLowerCase(), "</div>").concat(kpiLine, "</div>\n      <div class=\"pv\" style=\"color:").concat(col, "\">").concat(Math.round(pct), "%</div>\n      <div class=\"mbar\"><div class=\"fill\" style=\"width:").concat(Math.min(pct, 100), "%;background:").concat(col, "\"></div></div>\n    </div>");
   }).join('');
 }
@@ -16107,10 +16162,10 @@ function kpiAvg(e, row, krT) {
   var _ovK = epOverride(e.pharmacy_id, e.fio, row ? row.month : null);
   var sh = _ovK && _ovK.share != null ? _ovK.share : e.share || 0;
   var parts = [];
-  if (row && row.plan_revenue > 0 && (e.revenue || 0) >= 0) parts.push(e.revenue / (row.plan_revenue * sh) * 100);
-  if (row && row.plan_margin > 0) parts.push((e.margin || 0) / (row.plan_margin * sh) * 100);
-  if (row && row.plan_stm > 0) parts.push(((e.stm || 0) + (e.ustm || 0)) / (row.plan_stm * sh) * 100);
-  if (row && row.plan_marketing > 0) parts.push((e.marketing || 0) / (row.plan_marketing * sh) * 100);
+  if (row && row.plan_revenue > 0 && (e.revenue || 0) >= 0 && row.plan_revenue * sh > 0) parts.push(e.revenue / (row.plan_revenue * sh) * 100);
+  if (row && row.plan_margin > 0 && row.plan_margin * sh > 0) parts.push((e.margin || 0) / (row.plan_margin * sh) * 100);
+  if (row && row.plan_stm > 0 && row.plan_stm * sh > 0) parts.push(((e.stm || 0) + (e.ustm || 0)) / (row.plan_stm * sh) * 100);
+  if (row && row.plan_marketing > 0 && row.plan_marketing * sh > 0) parts.push((e.marketing || 0) / (row.plan_marketing * sh) * 100);
   if (krT && krT.target_avg_check != null && e.checks > 0) parts.push(e.revenue / e.checks / krT.target_avg_check * 100);
   if (krT && krT.target_checks_per_day != null && krT.fact_days > 0) parts.push((e.checks || 0) / krT.fact_days / krT.target_checks_per_day * 100);
   if (!parts.length) return null;
@@ -16140,10 +16195,15 @@ function openModal() {
   document.getElementById('mlist').innerHTML = rows.map(function (r, i) {
     var col = r.avg == null ? 'var(--mut)' : toneCol(r.avg);
     var det = [];
-    if (row && row.plan_revenue > 0) det.push('ТО ' + Math.round(r.e.revenue / (row.plan_revenue * (r.e.share || 0)) * 100) + '%');
-    if (row && row.plan_margin > 0) det.push('ВП ' + Math.round((r.e.margin || 0) / (row.plan_margin * (r.e.share || 0)) * 100) + '%');
-    if (row && row.plan_stm > 0) det.push('СТМ ' + Math.round(((r.e.stm || 0) + (r.e.ustm || 0)) / (row.plan_stm * (r.e.share || 0)) * 100) + '%');
-    if (row && row.plan_marketing > 0) det.push('Мкг ' + Math.round((r.e.marketing || 0) / (row.plan_marketing * (r.e.share || 0)) * 100) + '%');
+    var _shD = function _shD(e) {
+      var _ovD = epOverride(e.pharmacy_id, e.fio, row ? row.month : null);
+      return _ovD && _ovD.share != null ? _ovD.share : e.share || 0;
+    };
+    var _sh = _shD(r.e);
+    if (row && row.plan_revenue > 0 && row.plan_revenue * _sh > 0) det.push('ТО ' + Math.round(r.e.revenue / (row.plan_revenue * _sh) * 100) + '%');
+    if (row && row.plan_margin > 0 && row.plan_margin * _sh > 0) det.push('ВП ' + Math.round((r.e.margin || 0) / (row.plan_margin * _sh) * 100) + '%');
+    if (row && row.plan_stm > 0 && row.plan_stm * _sh > 0) det.push('СТМ ' + Math.round(((r.e.stm || 0) + (r.e.ustm || 0)) / (row.plan_stm * _sh) * 100) + '%');
+    if (row && row.plan_marketing > 0 && row.plan_marketing * _sh > 0) det.push('Мкг ' + Math.round((r.e.marketing || 0) / (row.plan_marketing * _sh) * 100) + '%');
     return '<div class="mrow' + (me && r.e.employee_id === me.employee_id ? ' me' : '') + '"><div class="mpos">' + (i + 1) + '</div><div class="mfio">' + esc(r.e.fio) + (r.avg != null && i === 0 ? CROWN : '') + '<div class="mdet">' + det.join(' · ') + '</div></div><div class="mpct"' + (r.avg == null ? ' style="color:var(--mut)"' : '') + '>' + (r.avg == null ? '—' : r.avg + '%') + '</div></div><div class="mbar2"><div style="width:' + Math.min(r.avg || 0, 100) + '%;background:' + col + '"></div></div>';
   }).join('');
   document.getElementById('mback').classList.add('open');
