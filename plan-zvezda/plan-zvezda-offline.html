@@ -48567,7 +48567,7 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
     </nav>
     <div class="sbl-foot">
       <a class="sbtn" href="/me.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.5 19.2c1-3.6 3.4-5.3 6.5-5.3s5.5 1.7 6.5 5.3"/></svg></span><span>Личный кабинет</span></a>
-      <a class="sbtn" href="plan-zvezda-kratko-offline.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.5 6.8 13.4h4.4l-1.6 7.1 7.6-9.9h-4.5z"/></svg></span><span>Краткая версия</span></a>
+      <a class="sbtn vswitch" href="plan-zvezda-kratko-offline.html" data-alt="auto" title="Краткая версия — удобно с телефона"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.5 6.8 13.4h4.4l-1.6 7.1 7.6-9.9h-4.5z"/></svg></span><span>Краткая версия</span></a>
     </div>
   </aside>
   <iframe class="mframe" id="mframe" title="Модуль"></iframe>
@@ -49985,7 +49985,7 @@ function renderKpi(k) {
     var fac = isFuture ? "—" : r.fact_avg_check != null ? fmt(r.fact_avg_check) : "—";
     var pcpd = pc(r.fact_checks_per_day, r.target_checks_per_day, isFuture || !r.fact_days);
     var pac = pc(r.fact_avg_check, r.target_avg_check, isFuture || !r.fact_days);
-    var pcp = r.target_coupons_per_week ? "".concat(r.fact_coupons, " / ").concat(Math.round(r.target_coupons_per_week * 4.3), " ").concat(pc(r.fact_coupons, r.target_coupons_per_week * 4.3, !r.fact_coupons)) : "—";
+    var pcp = r.target_coupons_per_week ? "".concat(r.fact_coupons ? "пришло " + r.fact_coupons + " · " : "", "~").concat(Math.round(r.target_coupons_per_week * 4.3), " за месяц") : "—";
     h += "<tr><td class=\"l stick\">".concat(r.month, "</td><td class=\"num\">").concat(fcpd, " <span class=\"mut\">/ ").concat(r.target_checks_per_day != null ? r.target_checks_per_day : "—", "</span> ").concat(pcpd, "</td><td class=\"num\">").concat(fac, " <span class=\"mut\">/ ").concat(r.target_avg_check ? fmt(r.target_avg_check) : "—", "</span> ").concat(pac, "</td><td class=\"num m-hide mut\">").concat(r.target_multi_share != null ? "цель +" + Math.round(r.target_multi_share * 100) + " п.п." : "—", "</td><td class=\"num m-hide\">").concat(pcp, "</td></tr>");
   });
   $("#tblKpi").innerHTML = h + "</tbody>";
@@ -50839,5 +50839,32 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
+<script>
+/* Единый вход: клик по ссылке фиксирует выбор версии; пока выбора нет — автом по устройству (без циклов) */
+(function () {
+  try {
+    var links = document.querySelectorAll('a.vswitch[data-alt]');
+    if (!links.length) return;
+    var href = links[0].getAttribute('href') || '';
+    var toShort = /kratko|-short-offline/.test(href);
+    var here = toShort ? 'full' : 'short';
+    var target = toShort ? 'short' : 'full';
+    var hint = toShort ? 'Полная версия — все разрезы' : 'Краткая версия — удобно с телефона';
+    links.forEach(function (a) {
+      a.title = hint;
+      a.addEventListener('click', function () { try { localStorage.setItem('sz_pin', target); } catch (e) {} });
+    });
+    var pin = null; try { pin = localStorage.getItem('sz_pin'); } catch (e) {}
+    if (pin === 'full' || pin === 'short') {
+      if (pin !== here) location.replace(href);
+      return;
+    }
+    var touch = (window.matchMedia && (matchMedia('(pointer:coarse)').matches || matchMedia('(max-width:560px)').matches)) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+    if (touch && here === 'full') location.replace(href);
+    else if (!touch && here === 'short') location.replace(href);
+  } catch (e) {}
+})();
+</script>
+
 </body>
 </html>

@@ -15416,7 +15416,7 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 <path d="M31.9986 24.0001C31.9986 26.2121 31.1018 28.2149 29.6531 29.6656C28.2024 31.1164 26.1997 32.0131 23.9876 32.0131H15.989V15.9891H23.9876C28.4137 15.9891 31.9986 19.576 31.9986 24.0001Z" fill="#eef2f7"/>
 <path d="M15.9891 15.9891V32.0131H8.013C3.58687 32.0131 0 28.4242 0 24.0001C0 19.576 3.58687 15.9891 8.013 15.9891H15.9891Z" fill="#5D8DD4"/>
 </svg>
-    <a href="plan-zvezda-offline.html">Полная версия</a>
+    <a href="plan-zvezda-offline.html" class="vswitch" data-alt="auto" title="Полная версия — все разрезы">Полная версия</a>
     <div class="sub" id="asOf">…</div>
   </div>
 
@@ -16430,5 +16430,32 @@ loadAll().then(function () {
   return initControls();
 });
 </script>
+<script>
+/* Единый вход: клик по ссылке фиксирует выбор версии; пока выбора нет — автом по устройству (без циклов) */
+(function () {
+  try {
+    var links = document.querySelectorAll('a.vswitch[data-alt]');
+    if (!links.length) return;
+    var href = links[0].getAttribute('href') || '';
+    var toShort = /kratko|-short-offline/.test(href);
+    var here = toShort ? 'full' : 'short';
+    var target = toShort ? 'short' : 'full';
+    var hint = toShort ? 'Полная версия — все разрезы' : 'Краткая версия — удобно с телефона';
+    links.forEach(function (a) {
+      a.title = hint;
+      a.addEventListener('click', function () { try { localStorage.setItem('sz_pin', target); } catch (e) {} });
+    });
+    var pin = null; try { pin = localStorage.getItem('sz_pin'); } catch (e) {}
+    if (pin === 'full' || pin === 'short') {
+      if (pin !== here) location.replace(href);
+      return;
+    }
+    var touch = (window.matchMedia && (matchMedia('(pointer:coarse)').matches || matchMedia('(max-width:560px)').matches)) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+    if (touch && here === 'full') location.replace(href);
+    else if (!touch && here === 'short') location.replace(href);
+  } catch (e) {}
+})();
+</script>
+
 </body>
 </html>
