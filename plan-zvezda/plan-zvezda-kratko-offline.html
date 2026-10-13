@@ -16258,7 +16258,7 @@ function openModal() {
   });
   document.getElementById('mMonth').textContent = MONTHS[rowKey(row)].toLowerCase();
   document.getElementById('mlist').innerHTML = rows.map(function (r, i) {
-    var col = r.avg == null ? 'var(--mut)' : toneCol(r.avg);
+    var col = r.avg == null ? 'var(--mut)' : r.avg >= 100 ? 'var(--green)' : 'var(--red)';
     var det = [];
     var _shD = function _shD(e) {
       var _ovD = epOverride(e.pharmacy_id, e.fio, row ? row.month : null);
@@ -16269,7 +16269,7 @@ function openModal() {
     if (row && row.plan_margin > 0 && row.plan_margin * _sh > 0) det.push('ВП ' + Math.round((r.e.margin || 0) / (row.plan_margin * _sh) * 100) + '%');
     if (row && row.plan_stm > 0 && row.plan_stm * _sh > 0) det.push('СТМ ' + Math.round(((r.e.stm || 0) + (r.e.ustm || 0)) / (row.plan_stm * _sh) * 100) + '%');
     if (row && row.plan_marketing > 0 && row.plan_marketing * _sh > 0) det.push('Мкг ' + Math.round((r.e.marketing || 0) / (row.plan_marketing * _sh) * 100) + '%');
-    return '<div class="mrow' + (me && r.e.employee_id === me.employee_id ? ' me' : '') + '"><div class="mpos">' + (i + 1) + '</div><div class="mfio">' + esc(r.e.fio) + (r.avg != null && i === 0 ? CROWN : '') + '<div class="mdet">' + det.join(' · ') + '</div></div><div class="mpct"' + (r.avg == null ? ' style="color:var(--mut)"' : '') + '>' + (r.avg == null ? '—' : r.avg + '%') + '</div></div><div class="mbar2"><div style="width:' + Math.min(r.avg || 0, 100) + '%;background:' + col + '"></div></div>';
+    return '<div class="mrow' + (me && r.e.employee_id === me.employee_id ? ' me' : '') + '"><div class="mpos">' + (i + 1) + '</div><div class="mfio">' + esc(r.e.fio) + (r.avg != null && i === 0 ? CROWN : '') + '<div class="mdet">' + det.join(' · ') + '</div></div><div class="mpct" style="color:' + (r.avg == null ? 'var(--mut)' : col) + '">' + (r.avg == null ? '—' : r.avg + '%') + '</div></div><div class="mbar2"><div style="width:' + Math.min(r.avg || 0, 100) + '%;background:' + col + '"></div></div>';
   }).join('');
   document.getElementById('mback').classList.add('open');
 }
