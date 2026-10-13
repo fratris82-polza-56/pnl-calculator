@@ -15337,8 +15337,10 @@ select:disabled{color:var(--mut);background-color:#f6f8fb}
 .mrow.me{background:#f2f6fc;margin:0 -8px;padding:8px;border-radius:9px}
 .mpos{flex:none;width:22px;font-size:12px;font-weight:800;color:var(--mut);text-align:center}
 .mfio{flex:1;min-width:0;font-size:13.5px;font-weight:800;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mdet{font-size:10px;color:var(--mut);font-weight:500;margin-top:1px}
-.mpct{flex:none;font-size:14px;font-weight:750;text-align:right}
+.mdet{font-size:10px;color:var(--tx);font-weight:500;margin-top:1px}
+.mpct{flex:none;font-size:14px;font-weight:750;text-align:right;color:var(--tx)}
+.mwin .crown{display:inline-block;vertical-align:-2px;margin-left:4px}
+.mwin .crown svg{width:13px;height:13px;display:block}
 .mbar2{height:5px;border-radius:3px;background:#e8edf4;margin:6px 0 2px;overflow:hidden}
 .mbar2>div{height:100%;border-radius:3px}
 @media (min-width:560px){ .hero .pct{font-size:58px} }
@@ -16142,7 +16144,7 @@ function openModal() {
     if (row && row.plan_margin > 0) det.push('ВП ' + Math.round((r.e.margin || 0) / (row.plan_margin * (r.e.share || 0)) * 100) + '%');
     if (row && row.plan_stm > 0) det.push('СТМ ' + Math.round(((r.e.stm || 0) + (r.e.ustm || 0)) / (row.plan_stm * (r.e.share || 0)) * 100) + '%');
     if (row && row.plan_marketing > 0) det.push('Мкг ' + Math.round((r.e.marketing || 0) / (row.plan_marketing * (r.e.share || 0)) * 100) + '%');
-    return '<div class="mrow' + (me && r.e.employee_id === me.employee_id ? ' me' : '') + '"><div class="mpos">' + (i + 1) + '</div><div class="mfio">' + esc(r.e.fio) + '<div class="mdet">' + det.join(' · ') + '</div></div><div class="mpct" style="color:' + col + '">' + (r.avg == null ? '—' : r.avg + '%') + '</div></div><div class="mbar2"><div style="width:' + Math.min(r.avg || 0, 100) + '%;background:' + col + '"></div></div>';
+    return '<div class="mrow' + (me && r.e.employee_id === me.employee_id ? ' me' : '') + '"><div class="mpos">' + (i + 1) + '</div><div class="mfio">' + esc(r.e.fio) + (r.avg != null && i === 0 ? CROWN : '') + '<div class="mdet">' + det.join(' · ') + '</div></div><div class="mpct"' + (r.avg == null ? ' style="color:var(--mut)"' : '') + '>' + (r.avg == null ? '—' : r.avg + '%') + '</div></div><div class="mbar2"><div style="width:' + Math.min(r.avg || 0, 100) + '%;background:' + col + '"></div></div>';
   }).join('');
   document.getElementById('mback').classList.add('open');
 }
