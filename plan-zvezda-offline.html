@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
+<head><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script>
+"use strict";
+
 function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
@@ -205,9 +207,9 @@ var SNAPSHOT = {
     }, {
       "id": 10,
       "pharmacy_id": 4,
-      "fio": "Вакансия 1 (провизор)",
-      "role": "вакансия",
-      "share": 0
+      "fio": "Щеглова Наталья",
+      "role": "провизор",
+      "share": 0.25
     }, {
       "id": 11,
       "pharmacy_id": 5,
@@ -235,9 +237,9 @@ var SNAPSHOT = {
     }, {
       "id": 15,
       "pharmacy_id": 4,
-      "fio": "Вакансия 2 (провизор)",
-      "role": "вакансия",
-      "share": 0
+      "fio": "Курбанова Хадича",
+      "role": "провизор",
+      "share": 0.25
     }, {
       "id": 16,
       "pharmacy_id": 2,
@@ -952,7 +954,7 @@ var SNAPSHOT = {
     }, {
       "pharmacy_id": 4,
       "employee_id": 10,
-      "fio": "Вакансия 1 (провизор)",
+      "fio": "Щеглова Наталья",
       "share": 0,
       "revenue": 310242,
       "margin": 68808,
@@ -963,7 +965,7 @@ var SNAPSHOT = {
     }, {
       "pharmacy_id": 4,
       "employee_id": 15,
-      "fio": "Вакансия 2 (провизор)",
+      "fio": "Курбанова Хадича",
       "share": 0,
       "revenue": 0,
       "margin": 0,
@@ -1005,7 +1007,7 @@ var SNAPSHOT = {
       "ustm": 1621,
       "marketing": 3474
     }],
-    "asOf": "2026-10-07"
+    "asOf": "2026-10-09"
   },
   "sseries": {
     "series": [{
@@ -1698,8 +1700,8 @@ var SNAPSHOT = {
       "pharmacy_id": 4,
       "ym": "2026-02",
       "channel": "retail",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 5,
@@ -1733,7 +1735,7 @@ var SNAPSHOT = {
       "pharmacy_id": 2,
       "ym": "2026-03",
       "channel": "ecom",
-      "revenue": 985968.0,
+      "revenue": 985968,
       "margin": 42844.36,
       "checks": 305
     }, {
@@ -1761,15 +1763,15 @@ var SNAPSHOT = {
       "pharmacy_id": 4,
       "ym": "2026-03",
       "channel": "ecom",
-      "revenue": 1032011.0,
+      "revenue": 1032011,
       "margin": 191578.51,
       "checks": 357
     }, {
       "pharmacy_id": 4,
       "ym": "2026-03",
       "channel": "retail",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 5,
@@ -1831,29 +1833,29 @@ var SNAPSHOT = {
       "pharmacy_id": 4,
       "ym": "2026-04",
       "channel": "ecom",
-      "revenue": 300170.0,
-      "margin": 52461.0,
+      "revenue": 300170,
+      "margin": 52461,
       "checks": 117
     }, {
       "pharmacy_id": 4,
       "ym": "2026-04",
       "channel": "retail",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 5,
       "ym": "2026-04",
       "channel": "ecom",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 5,
       "ym": "2026-04",
       "channel": "retail",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 1,
@@ -1901,15 +1903,15 @@ var SNAPSHOT = {
       "pharmacy_id": 4,
       "ym": "2026-05",
       "channel": "ecom",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 4,
       "ym": "2026-05",
       "channel": "retail",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 5,
@@ -1971,15 +1973,15 @@ var SNAPSHOT = {
       "pharmacy_id": 4,
       "ym": "2026-06",
       "channel": "ecom",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 4,
       "ym": "2026-06",
       "channel": "retail",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 5,
@@ -2041,15 +2043,15 @@ var SNAPSHOT = {
       "pharmacy_id": 4,
       "ym": "2026-07",
       "channel": "ecom",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 4,
       "ym": "2026-07",
       "channel": "retail",
-      "revenue": 0.0,
-      "margin": 0.0,
+      "revenue": 0,
+      "margin": 0,
       "checks": 0
     }, {
       "pharmacy_id": 5,
@@ -2111,14 +2113,14 @@ var SNAPSHOT = {
       "pharmacy_id": 4,
       "ym": "2026-08",
       "channel": "ecom",
-      "revenue": 24965.0,
+      "revenue": 24965,
       "margin": 1221.7,
       "checks": 14
     }, {
       "pharmacy_id": 4,
       "ym": "2026-08",
       "channel": "retail",
-      "revenue": 112250.0,
+      "revenue": 112250,
       "margin": 23436.25,
       "checks": 173
     }, {
@@ -2223,7 +2225,7 @@ var SNAPSHOT = {
       "pharmacy_id": 2,
       "ym": "2026-10",
       "channel": "ecom",
-      "revenue": 76089.0,
+      "revenue": 76089,
       "margin": 3731.21,
       "checks": 37
     }, {
@@ -2231,7 +2233,7 @@ var SNAPSHOT = {
       "ym": "2026-10",
       "channel": "retail",
       "revenue": 636473.4,
-      "margin": 136176.0,
+      "margin": 136176,
       "checks": 595
     }, {
       "pharmacy_id": 3,
@@ -2265,7 +2267,7 @@ var SNAPSHOT = {
       "pharmacy_id": 5,
       "ym": "2026-10",
       "channel": "ecom",
-      "revenue": 86212.0,
+      "revenue": 86212,
       "margin": 3991.07,
       "checks": 35
     }, {
@@ -2275,6 +2277,327 @@ var SNAPSHOT = {
       "revenue": 334888.13,
       "margin": 76900.21,
       "checks": 404
+    }]
+  },
+  "zalezalka": {
+    "asOf": "2026-10-09",
+    "period": "с 01.01.2020 по 30.09.2026",
+    "threshold": 600,
+    "records": 21443,
+    "total": {
+      "items": 21443,
+      "opt": 14924703.94,
+      "roz": 19604975.29,
+      "kol": 122815,
+      "oldItems": 977,
+      "oldOpt": 729143.01,
+      "oldRozn": 1169458.8,
+      "oldKol": 79888,
+      "pctOldOpt": 4.89,
+      "pctOldRozn": 5.97,
+      "pctOldKol": 65.05
+    },
+    "buckets": [{
+      "key": "d1201-1800",
+      "n": 36,
+      "opt": 30647.89,
+      "kol": 39
+    }, {
+      "key": "d601-700",
+      "n": 425,
+      "opt": 260909.96,
+      "kol": 4258
+    }, {
+      "key": "d701-900",
+      "n": 343,
+      "opt": 187910.73,
+      "kol": 1395
+    }, {
+      "key": "d901-1200",
+      "n": 173,
+      "opt": 249674.43,
+      "kol": 74196
+    }],
+    "pharmacies": [{
+      "name": "Маяковская",
+      "items": 2875,
+      "opt": 1675915.16,
+      "roz": 2176755.46,
+      "kol": 40098,
+      "oldItems": 344,
+      "oldOpt": 237409.68,
+      "oldRozn": 395136.8,
+      "oldKol": 36140,
+      "shareOpt": 11.23,
+      "shareOldOpt": 1.59,
+      "pctOldInSelf": 14.17,
+      "pctOldKol": 90.13,
+      "maxDays": 1527,
+      "top": [{
+        "name": "Пакет майка АПТЕКА ФОРТЕ",
+        "opt": 69640,
+        "days": 1042,
+        "kol": 34820
+      }, {
+        "name": "Ингал-р ОМРОН NE-C24 компрессорн",
+        "opt": 4362,
+        "days": 814,
+        "kol": 1
+      }, {
+        "name": "Ингал-р ОМРОН NE-C17 компрессорн",
+        "opt": 2870,
+        "days": 661,
+        "kol": 1
+      }, {
+        "name": "Тонометр A&D UA-888AC авт",
+        "opt": 2862.38,
+        "days": 740,
+        "kol": 1
+      }, {
+        "name": "Бронхо-мунал П 30 капс. 3.5мг",
+        "opt": 2764.6,
+        "days": 978,
+        "kol": 1
+      }, {
+        "name": "Ингал-р A&D CN-233 компрессорн компакт",
+        "opt": 2702.13,
+        "days": 919,
+        "kol": 1
+      }, {
+        "name": "Лоцерил лак д/ногт 5% 5мл",
+        "opt": 2442.14,
+        "days": 661,
+        "kol": 1
+      }, {
+        "name": "Ингал-р AMNB-503 Формула здоровья компр детск",
+        "opt": 2317.12,
+        "days": 1527,
+        "kol": 1
+      }]
+    }, {
+      "name": "Азовская",
+      "items": 5622,
+      "opt": 4563003.25,
+      "roz": 6004505.24,
+      "kol": 51124,
+      "oldItems": 115,
+      "oldOpt": 169066.61,
+      "oldRozn": 317910,
+      "oldKol": 39822,
+      "shareOpt": 30.57,
+      "shareOldOpt": 1.13,
+      "pctOldInSelf": 3.71,
+      "pctOldKol": 77.89,
+      "maxDays": 1526,
+      "top": [{
+        "name": "Пакет майка АПТЕКА ФОРТЕ",
+        "opt": 77684,
+        "days": 1042,
+        "kol": 38842
+      }, {
+        "name": "Визанна N28 табл. 2мг",
+        "opt": 9118.06,
+        "days": 609,
+        "kol": 2
+      }, {
+        "name": "Ингал-р A&D CN-231 компрессорн",
+        "opt": 3732.86,
+        "days": 1522,
+        "kol": 1
+      }, {
+        "name": "Бимоптик Ромфарм капли 0.3мг/мл 3мл",
+        "opt": 3253.1,
+        "days": 658,
+        "kol": 5
+      }, {
+        "name": "Ирригатор полости рта CS Medica AquaPulsar CS-32 FAMILY",
+        "opt": 3172,
+        "days": 1102,
+        "kol": 1
+      }, {
+        "name": "Ингал-р A&D CN-231 компрессорн",
+        "opt": 3166.46,
+        "days": 1526,
+        "kol": 1
+      }, {
+        "name": "Тиберал N10 табл. 500мг",
+        "opt": 2985.75,
+        "days": 651,
+        "kol": 3
+      }, {
+        "name": "Подгуз. СЕНИ Супер плюс 30 XL",
+        "opt": 2966.49,
+        "days": 973,
+        "kol": 1
+      }]
+    }, {
+      "name": "Юбилейный",
+      "items": 5233,
+      "opt": 3658297.07,
+      "roz": 4740323.08,
+      "kol": 11376,
+      "oldItems": 235,
+      "oldOpt": 139653.55,
+      "oldRozn": 191357,
+      "oldKol": 824,
+      "shareOpt": 24.51,
+      "shareOldOpt": 0.94,
+      "pctOldInSelf": 3.82,
+      "pctOldKol": 7.24,
+      "maxDays": 1535,
+      "top": [{
+        "name": "Бимоптик Ромфарм капли 0.3мг/мл 3мл",
+        "opt": 3903.72,
+        "days": 658,
+        "kol": 6
+      }, {
+        "name": "Ранекса N60 табл. 1000мг",
+        "opt": 3837.1,
+        "days": 601,
+        "kol": 1
+      }, {
+        "name": "Бронхо-мунал П 30 капс. 3.5мг",
+        "opt": 2764.6,
+        "days": 978,
+        "kol": 1
+      }, {
+        "name": "Кветиапин 60 табл. 200мг",
+        "opt": 2763.98,
+        "days": 657,
+        "kol": 2
+      }, {
+        "name": "Церебролизин 5 р-р 20мл",
+        "opt": 2711.56,
+        "days": 775,
+        "kol": 1
+      }, {
+        "name": "Ингал-р A&D CN-233 компрессорн компакт",
+        "opt": 2646.7,
+        "days": 834,
+        "kol": 1
+      }, {
+        "name": "Ингал-р AMNB-503 Формула здоровья д/дет компр детск",
+        "opt": 2568.6,
+        "days": 995,
+        "kol": 1
+      }, {
+        "name": "Подгуз. СЕНИ Супер плюс 30 M",
+        "opt": 2352.42,
+        "days": 1326,
+        "kol": 1
+      }]
+    }, {
+      "name": "Проспект Мира",
+      "items": 4749,
+      "opt": 3188751.19,
+      "roz": 4252564.56,
+      "kol": 11659,
+      "oldItems": 199,
+      "oldOpt": 139201.45,
+      "oldRozn": 192065,
+      "oldKol": 1359,
+      "shareOpt": 21.37,
+      "shareOldOpt": 0.93,
+      "pctOldInSelf": 4.37,
+      "pctOldKol": 11.66,
+      "maxDays": 1437,
+      "top": [{
+        "name": "Редуксин 90 капс. 15мг+153.5мг",
+        "opt": 8692.37,
+        "days": 813,
+        "kol": 1
+      }, {
+        "name": "Редуксин 60 капс. 15мг+153.5мг",
+        "opt": 6739.59,
+        "days": 813,
+        "kol": 1
+      }, {
+        "name": "Ингал-р ОМРОН NE-C25 компрессорн 2в1",
+        "opt": 5460.32,
+        "days": 1002,
+        "kol": 1
+      }, {
+        "name": "Зилаксера 28 табл. 15мг",
+        "opt": 4743,
+        "days": 993,
+        "kol": 1
+      }, {
+        "name": "Венарус N60 табл. 50+450мг",
+        "opt": 4426.98,
+        "days": 652,
+        "kol": 3
+      }, {
+        "name": "Медрол 50 табл. 16мг",
+        "opt": 3680.11,
+        "days": 861,
+        "kol": 7
+      }, {
+        "name": "Прадакса 60 капс. 150мг",
+        "opt": 3193.62,
+        "days": 618,
+        "kol": 1
+      }, {
+        "name": "Ингал-р AMNB-502 Паровозик д/дет компрессорн",
+        "opt": 2921.73,
+        "days": 990,
+        "kol": 1
+      }]
+    }, {
+      "name": "Пятницкое",
+      "items": 2964,
+      "opt": 1838737.27,
+      "roz": 2430826.95,
+      "kol": 8558,
+      "oldItems": 84,
+      "oldOpt": 43811.72,
+      "oldRozn": 72990,
+      "oldKol": 1743,
+      "shareOpt": 12.32,
+      "shareOldOpt": 0.29,
+      "pctOldInSelf": 2.38,
+      "pctOldKol": 20.37,
+      "maxDays": 1526,
+      "top": [{
+        "name": "Диовенгес 60 табл. 100+900мг",
+        "opt": 2310.74,
+        "days": 611,
+        "kol": 1
+      }, {
+        "name": "СотаГЕКСАЛ N20 табл. 160мг",
+        "opt": 1677.39,
+        "days": 861,
+        "kol": 13
+      }, {
+        "name": "Кетоконазол 5 супп. 400мг",
+        "opt": 1457.04,
+        "days": 611,
+        "kol": 3
+      }, {
+        "name": "Овестин 30 табл. 2мг",
+        "opt": 1418.51,
+        "days": 1360,
+        "kol": 1
+      }, {
+        "name": "Бинт 3.5мх8см эласт ВР",
+        "opt": 1368.52,
+        "days": 845,
+        "kol": 2
+      }, {
+        "name": "Диафлекс Ромфарм N30 капс. 50мг",
+        "opt": 1265.44,
+        "days": 722,
+        "kol": 1
+      }, {
+        "name": "Дифферин крем 0.1% 30г",
+        "opt": 1264.18,
+        "days": 654,
+        "kol": 1
+      }, {
+        "name": "Дифферин гель 0.1% 30г",
+        "opt": 1248.56,
+        "days": 730,
+        "kol": 1
+      }]
     }]
   }
 };
@@ -2579,31 +2902,39 @@ window.fetch = function () {
             rows: []
           }));
         case 12:
-          if (!u.includes('/api/stockout/top')) {
+          if (!u.includes('/api/zalezalka')) {
             _context.n = 13;
+            break;
+          }
+          return _context.a(2, mk(SNAPSHOT.zalezalka || {
+            available: false
+          }));
+        case 13:
+          if (!u.includes('/api/stockout/top')) {
+            _context.n = 14;
             break;
           }
           return _context.a(2, mk({
             rows: []
           }));
-        case 13:
+        case 14:
           if (!u.includes('/api/stockout')) {
-            _context.n = 14;
+            _context.n = 15;
             break;
           }
           return _context.a(2, mk({
             rows: [],
             days: 14
           }));
-        case 14:
+        case 15:
           if (!u.includes('/api/coupon')) {
-            _context.n = 15;
+            _context.n = 16;
             break;
           }
           return _context.a(2, mk({
             rows: []
           }));
-        case 15:
+        case 16:
           return _context.a(2, __origFetch ? __origFetch.apply(this, _args) : Promise.reject(new Error('offline')));
       }
     }, _callee, this);
@@ -2616,7 +2947,8 @@ window.fetch = function () {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#133367">
-<title>План «Звезда» · аптеки сен–дек 2026</title>
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiNlZGVhZTIiLz4KPHBhdGggZD0iTTEyMCA2MEMxMjAgNjUuNTMwMSAxMTcuNzU4IDcwLjUzNjkgMTE0LjEzMSA3NC4xNjM4QzExMC41MSA3Ny43OTA3IDEwNS41MDMgODAuMDMyNSA5OS45NzI3IDgwLjAzMjVIODAuMDI3NFY5OS45NzI2QzgwLjAyNzQgMTExLjAzMyA3MS4wNjUzIDEyMCA2MCAxMjBDNDguOTM0NyAxMjAgMzkuOTcyNyAxMTEuMDMzIDM5Ljk3MjcgOTkuOTcyNlY4MC4wMzI1SDU5Ljk2OTJDNjUuNDk5MyA4MC4wMzI1IDcwLjUwNjIgNzcuNzkwNyA3NC4xMzMxIDc0LjE2MzhDNzcuNzU0OCA3MC41MzY5IDc5Ljk5NjYgNjUuNTMwMSA3OS45OTY2IDYwQzc5Ljk5NjYgNDguOTM5OCA3MS4wMzQ2IDM5Ljk3MjYgNTkuOTY5MiAzOS45NzI2SDM5Ljk3MjdWMjAuMDI3NEMzOS45NzI3IDguOTY3MTcgNDguOTM5OCAwIDYwIDBDNjUuNTMwMSAwIDcwLjUzNyAyLjI0MTc5IDc0LjE2MzggNS44Njg2N0M3Ny43ODU2IDkuNDkwNDIgODAuMDI3NCAxNC40OTczIDgwLjAyNzQgMjAuMDI3NFYzOS45NzI2SDk5Ljk3MjdDMTExLjAzMyAzOS45NzI2IDEyMCA0OC45Mzk4IDEyMCA2MFoiIGZpbGw9IiM1RDhERDQiLz4KPHBhdGggZD0iTTc5Ljk5NjYgNjBDNzkuOTk2NiA2NS41MzAxIDc3Ljc1NDggNzAuNTM3IDc0LjEzMzEgNzQuMTYzOEM3MC41MDYyIDc3Ljc5MDcgNjUuNDk5MyA4MC4wMzI1IDU5Ljk2OTIgODAuMDMyNUgzOS45NzI3VjM5Ljk3MjdINTkuOTY5MkM3MS4wMzQ2IDM5Ljk3MjcgNzkuOTk2NiA0OC45Mzk4IDc5Ljk5NjYgNjBaIiBmaWxsPSIjZWRlYWUyIi8+CjxwYXRoIGQ9Ik0zOS45NzI2IDM5Ljk3MjdWODAuMDMyNUgyMC4wMzI1QzguOTY3MTcgODAuMDMyNSAwIDcxLjA2MDIgMCA2MEMwIDQ4LjkzOTggOC45NjcxNyAzOS45NzI3IDIwLjAzMjUgMzkuOTcyN0gzOS45NzI2WiIgZmlsbD0iIzVEOERENCIvPgo8L3N2Zz4=">
+<title>polza.ru Аптеки</title>
 <script>
 (function() {
   "use strict";
@@ -2720,7 +3052,7 @@ window.fetch = function () {
     try {
       var el = document.createElement("div");
       el.style.cssText = "color:#8a93a6;font-size:10.5px;text-align:right;padding:2px 8px 6px";
-      el.textContent = "сборка 2026-10-08 16:05 · es2015";
+      el.textContent = "сборка 2026-10-09 13:47 · окупаемость-и-калькулятор-в-разделы";
       (document.body || document.documentElement).appendChild(el);
       var cv = document.createElement("canvas");
       var ok2d = !!(cv.getContext && cv.getContext("2d"));
@@ -2733,6 +3065,8 @@ window.fetch = function () {
 
 </script>
 <script>
+"use strict";
+
 function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
 function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
 function _superPropGet(t, o, e, r) { var p = _get2(_getPrototypeOf(1 & r ? t.prototype : t), o, e); return 2 & r && "function" == typeof p ? function (t) { return p.apply(e, t); } : p; }
@@ -2765,7 +3099,7 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 !function (t, e) {
   "object" == (typeof exports === "undefined" ? "undefined" : _typeof(exports)) && "undefined" != typeof module ? module.exports = e() : "function" == typeof define && define.amd ? define(e) : (t = "undefined" != typeof globalThis ? globalThis : t || self).Chart = e();
-}(this, function () {
+}(void 0, function () {
   "use strict";
 
   var _Class, _Class2, _Class3, _Class4, _Class5, _Class6, _Class7, _Class8, _Class9, _Class0, _Class1;
@@ -14714,6 +15048,8 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 });
 </script>
 <script>
+"use strict";
+
 function _typeof(o) {
   "@babel/helpers - typeof";
 
@@ -17478,7 +17814,7 @@ if (typeof module !== "undefined" && module.exports && typeof DO_NOT_EXPORT_CODE
       if (typeof module !== "undefined" && module.exports && typeof DO_NOT_EXPORT_CODEPAGE === "undefined") module.exports = r(t);else e.cptable = r(t);
     } else throw new Error("cptable not found");
   } else cptable = r(cptable);
-})(this, function (e) {
+})(void 0, function (e) {
   "use strict";
 
   var r = {
@@ -48000,7 +48336,7 @@ if (typeof window !== "undefined" && !window.XLSX) try {
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
-body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}
+body{font-family:'Montserrat',-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--tx);font-size:14px}button,input,select,textarea{font-family:inherit}
 .wrap{max-width:1180px;margin:0 auto;padding:12px 10px calc(40px + env(safe-area-inset-bottom))}
 
 /* --- шапка: на мобиле колонкой, фильтры сеткой 2×1 --- */
@@ -48008,24 +48344,8 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 /* шапка-бренд убрана: фильтры — выпадающие списки */
 .fbar select{appearance:none;-webkit-appearance:none;flex:none;border:1px solid var(--line);background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 12px center/10px 6px;color:var(--navy);border-radius:99px;padding:7px 30px 7px 14px;font-size:12.5px;font-weight:600;min-height:34px;cursor:pointer;font-family:inherit}
 .fbar select:focus{outline:none;border-color:var(--blue)}
-/* Мультиселект месяцев и кнопка кварталов */
-.ms{position:relative;flex:none}
-.ms-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:99px;padding:7px 14px;font-size:12.5px;font-weight:600;min-height:34px;cursor:pointer;font-family:inherit}
-.ms-btn:focus{outline:none;border-color:var(--blue)}
-.ms-car{width:10px;height:6px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23133367' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain;transition:transform .15s ease}
-.ms.open .ms-car{transform:rotate(180deg)}
-.ms-pop{display:none;position:absolute;z-index:50;top:calc(100% + 6px);left:0;min-width:190px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 28px rgba(19,51,103,.14);padding:6px}
-.ms.open .ms-pop{display:block}
-.ms-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--navy);cursor:pointer;white-space:nowrap}
-.ms-opt:hover{background:#eef3fa}
-.ms-ck{width:14px;height:14px;flex:none;border:1.5px solid #b8c4d4;border-radius:4px;position:relative}
-.ms-opt.on .ms-ck{background:var(--navy);border-color:var(--navy)}
-.ms-opt.on .ms-ck::after{content:'';position:absolute;left:3.5px;top:1px;width:4px;height:7px;border:solid #fff;border-width:0 1.8px 1.8px 0;transform:rotate(40deg)}
-.ms-opt.all.on .ms-ck{background:var(--blue);border-color:var(--blue)}
-.ms-foot{display:flex;gap:6px;border-top:1px solid var(--line);margin-top:5px;padding:6px 4px 2px}
-.ms-foot button{flex:1;border:1px solid var(--line);background:#fff;color:var(--navy);font-size:11px;font-weight:600;border-radius:8px;padding:4px 6px;cursor:pointer;font-family:inherit}
-.ms-foot button:hover{background:#eef3fa}
-.ms-foot #msClr{color:var(--mut)}
+/* Месяц/квартал — нативные <select>: старые браузеры (IE11) не умеют
+   самодельные popup-списки. Стили общие с «Аптеками» (.fbar select). */
 .fbar{display:flex;gap:10px;align-items:center;overflow-x:auto;padding:2px;margin-left:54px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fbar::-webkit-scrollbar{display:none}
 /* чипы-фильтры заменены на выпадающие списки */
@@ -48037,7 +48357,7 @@ body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg)
 /* --- KPI: 2 колонки на телефоне, все видны без скролла --- */
 .kpis{grid-template-columns:repeat(2,1fr)}
 .kpi .t{font-size:10.5px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
-.kpi .v{font-size:clamp(16px,4.6vw,21px);font-weight:750;margin:3px 0 1px}
+.kpi .v{font-size:clamp(16px,4.6vw,21px);font-weight:800;margin:3px 0 1px}
 .kpi .s{font-size:11px;color:var(--mut)}
 .kpi .b{display:inline-block;margin-top:5px;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700}
 .b-ok{background:#e5f9ec;color:#0a7d3c}.b-warn{background:#fdf1e2;color:#a05a00}.b-bad{background:#fde8e8;color:#c0272d}
@@ -48072,11 +48392,11 @@ table{width:100%;min-width:560px;border-collapse:collapse;font-size:12px}
 #tbl tr.ph-row:hover td{background:#f0f4fa}
 #tbl tr.sub td{color:#4a5560;padding-top:5px;padding-bottom:5px}
 #tbl tr.sub td:first-child{border-left:3px solid #d7e0ec}
-th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:#4a5560;text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th.l,td.l{text-align:left}
 td{padding:7px 8px;text-align:right;border-bottom:1px solid #eef2f7;white-space:nowrap}
 tr:last-child td{border-bottom:none}
-th.stick,td.stick{position:sticky;left:0;background:var(--card);z-index:1;box-shadow:2px 0 4px -2px rgba(0,0,0,.06)}
+th.stick,td.stick{position:sticky;left:0;z-index:1;box-shadow:2px 0 4px -2px rgba(0,0,0,.06)}th.stick{background:#4a5560}td.stick{background:var(--card)}
 .num{font-variant-numeric:tabular-nums}
 .pos{color:#0a7d3c;font-weight:700}.neg{color:#c0272d;font-weight:700}
 .mut{color:var(--mut)}
@@ -48184,7 +48504,7 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
 <body>
 <div class="gate" id="gate">
   <div class="gate-card">
-    <div class="glogo"><span class="gmark">З</span><b>План «Звезда»</b></div>
+    <div class="glogo"><span class="gmark"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiNlZGVhZTIiLz4KPHBhdGggZD0iTTEyMCA2MEMxMjAgNjUuNTMwMSAxMTcuNzU4IDcwLjUzNjkgMTE0LjEzMSA3NC4xNjM4QzExMC41MSA3Ny43OTA3IDEwNS41MDMgODAuMDMyNSA5OS45NzI3IDgwLjAzMjVIODAuMDI3NFY5OS45NzI2QzgwLjAyNzQgMTExLjAzMyA3MS4wNjUzIDEyMCA2MCAxMjBDNDguOTM0NyAxMjAgMzkuOTcyNyAxMTEuMDMzIDM5Ljk3MjcgOTkuOTcyNlY4MC4wMzI1SDU5Ljk2OTJDNjUuNDk5MyA4MC4wMzI1IDcwLjUwNjIgNzcuNzkwNyA3NC4xMzMxIDc0LjE2MzhDNzcuNzU0OCA3MC41MzY5IDc5Ljk5NjYgNjUuNTMwMSA3OS45OTY2IDYwQzc5Ljk5NjYgNDguOTM5OCA3MS4wMzQ2IDM5Ljk3MjYgNTkuOTY5MiAzOS45NzI2SDM5Ljk3MjdWMjAuMDI3NEMzOS45NzI3IDguOTY3MTcgNDguOTM5OCAwIDYwIDBDNjUuNTMwMSAwIDcwLjUzNyAyLjI0MTc5IDc0LjE2MzggNS44Njg2N0M3Ny43ODU2IDkuNDkwNDIgODAuMDI3NCAxNC40OTczIDgwLjAyNzQgMjAuMDI3NFYzOS45NzI2SDk5Ljk3MjdDMTExLjAzMyAzOS45NzI2IDEyMCA0OC45Mzk4IDEyMCA2MFoiIGZpbGw9IiM1RDhERDQiLz4KPHBhdGggZD0iTTc5Ljk5NjYgNjBDNzkuOTk2NiA2NS41MzAxIDc3Ljc1NDggNzAuNTM3IDc0LjEzMzEgNzQuMTYzOEM3MC41MDYyIDc3Ljc5MDcgNjUuNDk5MyA4MC4wMzI1IDU5Ljk2OTIgODAuMDMyNUgzOS45NzI3VjM5Ljk3MjdINTkuOTY5MkM3MS4wMzQ2IDM5Ljk3MjcgNzkuOTk2NiA0OC45Mzk4IDc5Ljk5NjYgNjBaIiBmaWxsPSIjZWRlYWUyIi8+CjxwYXRoIGQ9Ik0zOS45NzI2IDM5Ljk3MjdWODAuMDMyNUgyMC4wMzI1QzguOTY3MTcgODAuMDMyNSAwIDcxLjA2MDIgMCA2MEMwIDQ4LjkzOTggOC45NjcxNyAzOS45NzI3IDIwLjAzMjUgMzkuOTcyN0gzOS45NzI2WiIgZmlsbD0iIzVEOERENCIvPgo8L3N2Zz4=" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></span><b>polza.ru Аптеки</b></div>
     <div class="gsub">Вход по коду руководителя</div>
     <input id="gCode" type="text" placeholder="Код доступа" autocomplete="off">
     <button id="gGo">Войти</button>
@@ -48195,34 +48515,20 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
 <div class="wrap">
   <div class="topbar">
     <div class="fbar" id="fbar" aria-label="Фильтры">
-      <div class="ms" id="msMonth">
-        <button type="button" class="ms-btn" id="msBtn" aria-haspopup="listbox" aria-expanded="false">
-          <span id="msLabel">Все месяцы</span><span class="ms-car"></span>
-        </button>
-        <div class="ms-pop" id="msPop">
-          <div class="ms-opt all" data-v=""><span class="ms-ck"></span>Все месяцы</div>
-          <div class="ms-opt" data-v="Сентябрь"><span class="ms-ck"></span>Сентябрь</div>
-          <div class="ms-opt" data-v="Октябрь"><span class="ms-ck"></span>Октябрь</div>
-          <div class="ms-opt" data-v="Ноябрь"><span class="ms-ck"></span>Ноябрь</div>
-          <div class="ms-opt" data-v="Декабрь"><span class="ms-ck"></span>Декабрь</div>
-          <div class="ms-foot">
-            <button type="button" id="msClr">Снять</button>
-            <button type="button" id="msAll">Все</button>
-          </div>
-        </div>
-      </div>
-      <div class="ms" id="msQuarter">
-        <button type="button" class="ms-btn" id="msQBtn" aria-haspopup="listbox" aria-expanded="false" title="Разрез по кварталам">
-          <span id="msQLabel">Все кварталы</span><span class="ms-car"></span>
-        </button>
-        <div class="ms-pop" id="msQPop">
-          <div class="ms-opt all" data-v=""><span class="ms-ck"></span>Все кварталы</div>
-          <div class="ms-opt" data-v="1"><span class="ms-ck"></span>1 квартал</div>
-          <div class="ms-opt" data-v="2"><span class="ms-ck"></span>2 квартал</div>
-          <div class="ms-opt" data-v="3"><span class="ms-ck"></span>3 квартал</div>
-          <div class="ms-opt" data-v="4"><span class="ms-ck"></span>4 квартал</div>
-        </div>
-      </div>
+      <select id="selMonth" aria-label="Месяц">
+        <option value="">Все месяцы</option>
+        <option value="Сентябрь">Сентябрь</option>
+        <option value="Октябрь">Октябрь</option>
+        <option value="Ноябрь">Ноябрь</option>
+        <option value="Декабрь">Декабрь</option>
+      </select>
+      <select id="selQuarter" aria-label="Квартал" title="Разрез по кварталам">
+        <option value="">Все кварталы</option>
+        <option value="1">1 квартал</option>
+        <option value="2">2 квартал</option>
+        <option value="3">3 квартал</option>
+        <option value="4">4 квартал</option>
+      </select>
       <select id="fPh" aria-label="Аптека"><option value="">Все аптеки</option></select>
     </div>
   </div>
@@ -48245,19 +48551,23 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
 </svg>
     </div>
     <nav class="sbl-nav" id="mnav">
-      <button class="sbtn active" id="mbtn-dashboard" onclick="mNav('dashboard');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20h17M5.5 20v-7M12 20V5.5M18.5 20v-10"/></svg></span><span>Дашборд</span></button>
-      <div class="sgrp">Разделы дашборда</div>
+      <button class="sbtn active" id="mbtn-dashboard" onclick="mNav('dashboard');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20h17M5.5 20v-7M12 20V5.5M18.5 20v-10"/></svg></span><span>Главное меню</span></button>
+      <div class="sgrp">Разделы</div>
+      <button class="sbtn" id="mbtn-payback" onclick="mNav('payback');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.4" r="7.2"/><path d="M12 9.6v3.8l2.6 1.8M9.4 3.6h5.2"/></svg></span><span>Окупаемость</span></button>
+      <button class="sbtn" id="mbtn-marketing" onclick="mNav('marketing');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3.5 10.7 17-4.9v12.4l-17-4.7z"/><path d="M11.7 16.8a3 3 0 1 1-5.9-1.7"/></svg></span><span>Маркетинг</span></button>
+      <button class="sbtn" id="mbtn-stm" onclick="mNav('stm');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 3.5h7.9v7.9l-8.6 8.6a2 2 0 0 1-2.8 0l-5.1-5.1a2 2 0 0 1 0-2.8z"/><circle cx="16.1" cy="7.9" r="1.2"/></svg></span><span>СТМ</span></button>
       <button class="sbtn" onclick="sblGo('kpis')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="6.2" width="18.4" height="11.6" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6.2 12h.01M17.8 12h.01"/></svg></span><span>Показатели</span></button>
       <button class="sbtn" onclick="sblGo('charts')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5h17M4.5 16l4.8-5.3 3.4 3L19 7.5M15.5 7.5H19V11"/></svg></span><span>Графики</span></button>
       <button class="sbtn" onclick="sblGo('sec-tbl')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="4.8" width="17.6" height="14.4" rx="2"/><path d="M3.2 9.8h17.6M9.8 9.8v9.4M15.4 9.8v9.4"/></svg></span><span>Сводная таблица</span></button>
       <button class="sbtn" onclick="sblGo('sec-emp')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.2" r="3.1"/><path d="M3.6 19c.8-3.1 2.8-4.7 5.4-4.7s4.6 1.6 5.4 4.7"/><circle cx="16.9" cy="9.3" r="2.5"/><path d="M16.2 14.7c2.2.3 3.8 1.7 4.5 4.3"/></svg></span><span>Сотрудники</span></button>
       <button class="sbtn" onclick="sblGo('sec-kpi')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg></span><span>KPI квартала</span></button>
-      <button class="sbtn" onclick="sblGo('sec-mkt')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.2c0-.9.7-1.7 1.7-1.7h13.6c1 0 1.7.8 1.7 1.7v1.5a2.3 2.3 0 0 0 0 4.6v1.5c0 .9-.7 1.7-1.7 1.7H5.2c-1 0-1.7-.8-1.7-1.7v-1.5a2.3 2.3 0 0 0 0-4.6z"/><path d="M14.6 7v10" stroke-dasharray="2.2 2.4"/></svg></span><span>Отказы и купоны</span></button>
+      <button class="sbtn" onclick="sblGo('sec-ob')"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5h17M4.5 16l4.8-5.3 3.4 3L19 7.5M15.5 7.5H19V11"/></svg></span><span>Обороты по месяцам</span></button>
+      <button class="sbtn" id="mbtn-zalezalka" onclick="mNav('zalezalka');sblToggle(false)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 8.4 12 3.6l8.8 4.8v7.2L12 20.4l-8.8-4.8z"/><path d="M3.2 8.4 12 13.2l8.8-4.8M12 13.2v7.2"/></svg></span><span>Залежалка</span></button>
       <button class="sbtn" onclick="sblSettings(this)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.6h8.6M17.4 7.6H20M4 16.4h2.6M11.4 16.4H20"/><circle cx="15" cy="7.6" r="2.1"/><circle cx="9" cy="16.4" r="2.1"/></svg></span><span>Обмен и рассылки</span></button>
     </nav>
     <div class="sbl-foot">
       <a class="sbtn" href="/me.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.4" r="3.4"/><path d="M5.5 19.2c1-3.6 3.4-5.3 6.5-5.3s5.5 1.7 6.5 5.3"/></svg></span><span>Личный кабинет</span></a>
-      <a class="sbtn" href="/short.html"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.5 6.8 13.4h4.4l-1.6 7.1 7.6-9.9h-4.5z"/></svg></span><span>Краткая версия</span></a>
+      <a class="sbtn vswitch" href="plan-zvezda-kratko-offline.html" data-alt="auto" title="Краткая версия — удобно с телефона"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3.5 6.8 13.4h4.4l-1.6 7.1 7.6-9.9h-4.5z"/></svg></span><span>Краткая версия</span></a>
     </div>
   </aside>
   <iframe class="mframe" id="mframe" title="Модуль"></iframe>
@@ -48278,13 +48588,14 @@ button.btn-q.on{background:var(--navy);border-color:var(--navy);color:#fff}
   <div class="h2row" id="sec-kpi"><h2>KPI квартала</h2><span class="note">чеков/день и ср.чек — из факта; купоны — возвраты по промо</span></div>
   <div class="card tbl-wrap no-fade"><table id="tblKpi"></table></div>
 
-  <div class="h2row" id="sec-ob"><h2>Обороты по месяцам</h2><span class="note">выручка и ВД по бухгалтерским данным · январь–октябрь 2026</span></div>
+  <div class="h2row" id="sec-ob"><h2>Обороты по месяцам</h2></div>
   <div class="grid charts" id="chartsOb">
     <div class="card chart-card" id="cardObRev"><h3>Выручка по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObRev"></canvas></div></div>
     <div class="card chart-card" id="cardObMar"><h3>Валовая доходность, млн ₽</h3><div class="chart-box"><canvas id="chObMar"></canvas></div></div>
     <div class="card chart-card" id="cardObNet" style="grid-column:1/-1"><h3 id="hObNet">Сеть: выручка (ТО) и ВД по месяцам, млн ₽</h3><div class="chart-box"><canvas id="chObNet"></canvas></div></div>
   </div>
   <div class="card tbl-wrap"><table id="tblOb"></table></div>
+
 
   <div class="h2row" style="margin-top:20px"><button class="btn btn-gear" id="btnSettings"><svg class="gear-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M21.2 12h-2.6M5.4 12H2.8M18.5 5.5l-1.9 1.9M7.4 16.6l-1.9 1.9M18.5 18.5l-1.9-1.9M7.4 7.4L5.5 5.5"/></svg><span>Настройки</span></button></div>
   <div class="api" id="apiSettings" style="display:none">
@@ -48377,7 +48688,9 @@ curl -X POST http://&lt;host&gt;:8080/api/integration/sales \
   </div>
 </div>
 <script>
-var _this2 = this;
+"use strict";
+
+var _this2 = void 0;
 function _createForOfIteratorHelper(r, e) {
   var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
   if (!t) {
@@ -48648,6 +48961,18 @@ function obPhName(id) {
   });
   return p ? p.name : "Аптека " + id;
 }
+function uniqArr(a) {
+  var out = [],
+    seen = {};
+  for (var i = 0; i < a.length; i++) {
+    var k = a[i];
+    if (!Object.prototype.hasOwnProperty.call(seen, k)) {
+      seen[k] = 1;
+      out.push(k);
+    }
+  }
+  return out;
+}
 function loadOb() {
   return __async(this, null, _regenerator().m(function _callee() {
     var hide, ob, rows, yms, MN, labels, phId, shown, phIds, hasEcom, val, valT, palette, one, mkSeries, net, pc, h, netRow, tr, tm, tc, _t;
@@ -48680,9 +49005,18 @@ function loadOb() {
           hide();
           return _context.a(2);
         case 5:
-          yms = _toConsumableArray(new Set(rows.map(function (r) {
+          yms = uniqArr(rows.map(function (r) {
             return r.ym;
-          }))).sort();
+          }));
+          uniqArr(yms.map(function (ym) {
+            return ym.slice(0, 4);
+          })).forEach(function (yy) {
+            for (var mm = 1; mm <= 12; mm++) {
+              var full = yy + "-" + (mm < 10 ? "0" : "") + mm;
+              if (yms.indexOf(full) < 0) yms.push(full);
+            }
+          });
+          yms.sort();
           MN = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
           labels = yms.map(function (ym) {
             var _ym$split = ym.split("-"),
@@ -48695,9 +49029,9 @@ function loadOb() {
           shown = phId ? rows.filter(function (r) {
             return String(r.pharmacy_id) === phId;
           }) : rows;
-          phIds = _toConsumableArray(new Set(shown.map(function (r) {
+          phIds = uniqArr(shown.map(function (r) {
             return r.pharmacy_id;
-          }))).sort(function (a, b) {
+          })).sort(function (a, b) {
             return a - b;
           });
           hasEcom = shown.some(function (r) {
@@ -48705,7 +49039,7 @@ function loadOb() {
           });
           val = function val(pid, ym, k, ch) {
             var r = rows.find(function (x) {
-              return x.pharmacy_id == pid && x.ym === ym && (x.channel || "retail") === ch;
+              return x.pharmacy_id == pid && x.ym === ym && (ch === undefined || (x.channel || "retail") === ch);
             });
             return r ? r[k] || 0 : 0;
           };
@@ -49354,9 +49688,9 @@ function drawMonth(sum) {
     return r.q > 0;
   });
   if (qrows.length) {
-    var labels = _toConsumableArray(new Set(qrows.map(function (r) {
+    var labels = uniqArr(qrows.map(function (r) {
       return r.month;
-    })));
+    }));
     var phId = $("#fPh").value;
     var agg = function agg(lab) {
       return qrows.filter(function (r) {
@@ -49651,7 +49985,7 @@ function renderKpi(k) {
     var fac = isFuture ? "—" : r.fact_avg_check != null ? fmt(r.fact_avg_check) : "—";
     var pcpd = pc(r.fact_checks_per_day, r.target_checks_per_day, isFuture || !r.fact_days);
     var pac = pc(r.fact_avg_check, r.target_avg_check, isFuture || !r.fact_days);
-    var pcp = r.target_coupons_per_week ? "".concat(r.fact_coupons, " / ").concat(Math.round(r.target_coupons_per_week * 4.3), " ").concat(pc(r.fact_coupons, r.target_coupons_per_week * 4.3, !r.fact_coupons)) : "—";
+    var pcp = r.target_coupons_per_week ? "".concat(r.fact_coupons ? "пришло " + r.fact_coupons + " · " : "", "~").concat(Math.round(r.target_coupons_per_week * 4.3), " за месяц") : "—";
     h += "<tr><td class=\"l stick\">".concat(r.month, "</td><td class=\"num\">").concat(fcpd, " <span class=\"mut\">/ ").concat(r.target_checks_per_day != null ? r.target_checks_per_day : "—", "</span> ").concat(pcpd, "</td><td class=\"num\">").concat(fac, " <span class=\"mut\">/ ").concat(r.target_avg_check ? fmt(r.target_avg_check) : "—", "</span> ").concat(pac, "</td><td class=\"num m-hide mut\">").concat(r.target_multi_share != null ? "цель +" + Math.round(r.target_multi_share * 100) + " п.п." : "—", "</td><td class=\"num m-hide\">").concat(pcp, "</td></tr>");
   });
   $("#tblKpi").innerHTML = h + "</tbody>";
@@ -50232,6 +50566,7 @@ function _loadModNav() {
           nav = document.getElementById("mnav");
           grps = {};
           mods.forEach(function (m) {
+            if (document.getElementById("mbtn-" + m.id)) return;
             var g = m.group || "";
             if (!grps[g]) grps[g] = [];
             grps[g].push(m);
@@ -50259,6 +50594,8 @@ function _loadModNav() {
 function mNav(id) {
   if (id === "dashboard") {
     document.getElementById("mframe").classList.remove("visible");
+    var mf = document.getElementById("mframe");
+    mf.setAttribute("data-kind", "");
     document.querySelectorAll(".mbtn").forEach(function (b) {
       b.classList.remove("active");
     });
@@ -50286,7 +50623,15 @@ function mNav(id) {
   var tblw = document.querySelector(".tbl-wrap");
   if (tblw) tblw.style.display = "none";
   var fr = document.getElementById("mframe");
-  fr.src = "/m/" + id + "/";
+  if (false) { // P&L убран из офлайна по решению владельца (2026-10-12): внешняя страница на GitHub пустая
+    fr.removeAttribute("srcdoc");
+    if (fr.getAttribute("data-kind") !== "pnl") fr.src = "https://fratris82-polza-56.github.io/pnl-calculator/index.html";
+    fr.setAttribute("data-kind", "pnl");
+  } else {
+    fr.removeAttribute("src");
+    fr.setAttribute("data-kind", id);
+    fr.srcdoc = '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f6f4ee;display:flex;align-items:center;justify-content:center;height:100vh"><div style="max-width:480px;background:#fff;border:1px solid #e3ded2;border-radius:14px;padding:24px 26px;box-shadow:0 6px 24px rgba(19,51,103,.10)"><div style="font-weight:800;font-size:16px;color:#133367;margin-bottom:8px">Раздел недоступен офлайн</div><div style="font-size:13.5px;color:#5b6472;line-height:1.55">Этот раздел работает только в рабочей версии дашборда: <a href="http://zvyagin-ai.polza.ru:8080/" style="color:#1f6fd4">zvyagin-ai.polza.ru:8080</a>.<br><br>В офлайн-версии доступно «Главное меню».</div></div></body></html>';
+  }
   fr.classList.add("visible");
   document.querySelectorAll(".sbtn").forEach(function (b) {
     b.classList.remove("active");
@@ -50346,121 +50691,29 @@ function msGet() {
 function qGet() {
   return qSel;
 }
-function msLabel() {
-  if (!msSel.length) return "Все месяцы";
-  if (msSel.length === 1) return msSel[0];
-  return msSel.length + " мес.";
-}
 function msSync() {
-  var lbl = $("#msLabel");
-  if (lbl) lbl.textContent = msLabel();
-  document.querySelectorAll("#msPop .ms-opt").forEach(function (el) {
-    var v = el.dataset.v;
-    el.classList.toggle("on", msSel.includes(v));
-    el.setAttribute("aria-selected", msSel.includes(v) ? "true" : "false");
-  });
-  var ql = $("#msQLabel");
-  if (ql) ql.textContent = qSel ? qSel + " кв." : "Все кварталы";
-  document.querySelectorAll("#msQPop .ms-opt").forEach(function (el) {
-    el.classList.toggle("on", el.dataset.v === qSel);
-    el.setAttribute("aria-selected", el.dataset.v === qSel ? "true" : "false");
-  });
-  var box = $("#msMonth");
-  if (box) box.classList.toggle("open", box.classList.contains("open"));
+  var sm = $("#selMonth");
+  if (sm && sm.value !== (msSel[0] || "")) sm.value = msSel[0] || "";
+  var sq = $("#selQuarter");
+  if (sq && sq.value !== (qSel || "")) sq.value = qSel || "";
 }
 function msApply() {
   msSync();
   refresh();
 }
 function initMonthFilter() {
-  var box = $("#msMonth"),
-    btn = $("#msBtn"),
-    pop = $("#msPop");
-  if (!box || !btn || !pop) return;
-  btn.onclick = function (e) {
-    e.stopPropagation();
-    var open = !box.classList.contains("open");
-    box.classList.toggle("open", open);
-    btn.setAttribute("aria-expanded", open ? "true" : "false");
-  };
-  pop.addEventListener("click", function (e) {
-    return e.stopPropagation();
-  });
-  document.addEventListener("click", function () {
-    box.classList.remove("open");
-    btn.setAttribute("aria-expanded", "false");
-  });
-  pop.querySelectorAll(".ms-opt").forEach(function (el) {
-    el.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var v = el.dataset.v;
-      if (!v) {
-        msSel = [];
-        box.classList.remove("open");
-        btn.setAttribute("aria-expanded", "false");
-        msApply();
-        return;
-      }
-      if (e.ctrlKey || e.metaKey) {
-        var i = msSel.indexOf(v);
-        if (i >= 0) msSel.splice(i, 1);else {
-          msSel.push(v);
-          msSel.sort(function (a, b) {
-            return MONTHS.indexOf(a) - MONTHS.indexOf(b);
-          });
-        }
-      } else {
-        msSel = [v];
-        box.classList.remove("open");
-        btn.setAttribute("aria-expanded", "false");
-      }
-      msApply();
-    });
-  });
-  var clr = $("#msClr"),
-    all = $("#msAll");
-  if (clr) clr.onclick = function (e) {
-    e.stopPropagation();
-    msSel = [];
-    box.classList.remove("open");
-    btn.setAttribute("aria-expanded", "false");
+  var sm = $("#selMonth");
+  var sq = $("#selQuarter");
+  if (!sm || !sq) return;
+  sm.onchange = function () {
+    msSel = sm.value ? [sm.value] : [];
     msApply();
   };
-  if (all) all.onclick = function (e) {
-    e.stopPropagation();
-    msSel = [];
-    box.classList.remove("open");
-    btn.setAttribute("aria-expanded", "false");
-    msApply();
+  sq.onchange = function () {
+    qSel = sq.value || "";
+    msSync();
+    refresh();
   };
-  var qbox = $("#msQuarter"),
-    qbtn = $("#msQBtn"),
-    qpop = $("#msQPop");
-  if (qbox && qbtn && qpop) {
-    qbtn.onclick = function (e) {
-      e.stopPropagation();
-      var open = !qbox.classList.contains("open");
-      qbox.classList.toggle("open", open);
-      qbtn.setAttribute("aria-expanded", open ? "true" : "false");
-    };
-    qpop.addEventListener("click", function (e) {
-      return e.stopPropagation();
-    });
-    qpop.querySelectorAll(".ms-opt").forEach(function (el) {
-      el.addEventListener("click", function (e) {
-        e.stopPropagation();
-        qSel = el.dataset.v || "";
-        qbox.classList.remove("open");
-        qbtn.setAttribute("aria-expanded", "false");
-        msSync();
-        refresh();
-      });
-    });
-    document.addEventListener("click", function () {
-      qbox.classList.remove("open");
-      qbtn.setAttribute("aria-expanded", "false");
-    });
-  }
   msSync();
 }
 (function boot() {
@@ -50504,11 +50757,12 @@ function main() {
           _context19.n = 6;
           return loadOb();
         case 6:
+        case 7:
           phOptions($("#soPh"));
           phOptions($("#cpPh"));
-          _context19.n = 7;
+          _context19.n = 8;
           return loadSoTop();
-        case 7:
+        case 8:
           $("#btnSo").onclick = addSo;
           $("#btnCp").onclick = addCp;
           $("#btnSoTop").onclick = loadSoTop;
@@ -50570,7 +50824,7 @@ function main() {
           };
           setInterval(loadLog, 15e3);
           _loadModNav();
-        case 8:
+        case 9:
           return _context19.a(2);
       }
     }, _callee19);
@@ -50585,5 +50839,32 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 });
 </script>
+<script>
+/* Единый вход: клик по ссылке фиксирует выбор версии; пока выбора нет — автом по устройству (без циклов) */
+(function () {
+  try {
+    var links = document.querySelectorAll('a.vswitch[data-alt]');
+    if (!links.length) return;
+    var href = links[0].getAttribute('href') || '';
+    var toShort = /kratko|-short-offline/.test(href);
+    var here = toShort ? 'full' : 'short';
+    var target = toShort ? 'short' : 'full';
+    var hint = toShort ? 'Полная версия — все разрезы' : 'Краткая версия — удобно с телефона';
+    links.forEach(function (a) {
+      a.title = hint;
+      a.addEventListener('click', function () { try { localStorage.setItem('sz_pin', target); } catch (e) {} });
+    });
+    var pin = null; try { pin = localStorage.getItem('sz_pin'); } catch (e) {}
+    if (pin === 'full' || pin === 'short') {
+      if (pin !== here) location.replace(href);
+      return;
+    }
+    var touch = (window.matchMedia && (matchMedia('(pointer:coarse)').matches || matchMedia('(max-width:560px)').matches)) || /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+    if (touch && here === 'full') location.replace(href);
+    else if (!touch && here === 'short') location.replace(href);
+  } catch (e) {}
+})();
+</script>
+
 </body>
 </html>
