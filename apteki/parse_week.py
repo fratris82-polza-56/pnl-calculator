@@ -52,6 +52,19 @@ def parse_file(path):
     """-> (период (от, до), {отдел: {показатель: значение}})"""
     rows = load_rows(path)
     period, header_i, header = None, None, {}
+    # карта «показатель -> колонка» по именам шапки: формат выгрузок
+    # менялся (в новом нет Скидка/Скидка %/Кол дней), жёсткие индексы
+    # съезжают — привязываемся к заголовкам, фолбэк на старые позиции.
+    NAME_MAP = {
+        'выручка': 'выручка', 'опт': 'опт', 'прибыль': 'прибыль',
+        'наценка %': 'наценка', 'кол чеков': 'чеков', 'арт': 'арт',
+        'чеков в день': 'чеков_в_день', 'сред чек': 'ср_чек',
+        'арт в чеке': 'арт_в_чеке', 'опт(ост)': 'опт_ост',
+        'розн(ост)': 'розн_ост', 'арт(ост)': 'арт_ост',
+    }
+    FALLBACK = {'выручка': 2, 'опт': 3, 'прибыль': 4, 'наценка': 5,
+                'чеков': 8, 'арт': 9, 'чеков_в_день': 11, 'ср_чек': 12,
+                'арт_в_чеке': 13, 'опт_ост': 16, 'розн_ост': 18, 'арт_ост': 19}
     for i, r in enumerate(rows):
         a = (r.get(1) or '').strip()
         m = PERIOD_RE.search(a)
@@ -59,31 +72,34 @@ def parse_file(path):
             period = (m.group(1), m.group(2))
         if a == 'Отдел':
             header_i = i
-            # шапка по именам: у выгрузок колонки 16/17/18 могут съезжать
-            # (Опт(ост)/Розн(ост)/Арт(ост)); привязываемся к заголовкам.
             for col, txt in r.items():
                 t = (txt or '').strip().lower()
-                if t == 'опт(ост)':
-                    header['опт_ост'] = col
-                elif t == 'розн(ост)':
-                    header['розн_ост'] = col
-                elif t == 'арт(ост)':
-                    header['арт_ост'] = col
+                if t in NAME_MAP:
+                    header[NAME_MAP[t]] = col
     if not period or header_i is None:
         raise SystemExit(f'{path}: не найден период или шапка «Отдел»')
-    if not header.get('розн_ост'):
-        header = {'опт_ост': 16, 'розн_ост': 18, 'арт_ост': 19}
+    for k, col in FALLBACK.items():
+        header.setdefault(k, col)
     depts = {}
     for r in rows[header_i + 1:]:
         name = (r.get(1) or '').strip()
-        if not name or name.startswith('ИТОГО'):
+        if not name or name in ('Розница', 'ИЗ'):
             break
+        if name.startswith('ИТОГО'):
+            continue  # новый формат: ИЗ-отделы идут после строки «ИТОГО СУММА ПО ВСЕМ»
         depts[name] = {
-            'выручка': num(r.get(2)), 'опт': num(r.get(3)), 'прибыль': num(r.get(4)),
-            'наценка': num(r.get(5)), 'чеков': num(r.get(8)), 'арт': num(r.get(9)),
-            'чеков_в_день': num(r.get(11)), 'ср_чек': num(r.get(12)),
-            'арт_в_чеке': num(r.get(13)), 'опт_ост': num(r.get(header['опт_ост'])),
-            'розн_ост': num(r.get(header['розн_ост'])), 'арт_ост': num(r.get(header['арт_ост'])),
+            'выручка': num(r.get(header['выручка'])),
+            'опт': num(r.get(header['опт'])),
+            'прибыль': num(r.get(header['прибыль'])),
+            'наценка': num(r.get(header['наценка'])),
+            'чеков': num(r.get(header['чеков'])),
+            'арт': num(r.get(header['арт'])),
+            'чеков_в_день': num(r.get(header['чеков_в_день'])),
+            'ср_чек': num(r.get(header['ср_чек'])),
+            'арт_в_чеке': num(r.get(header['арт_в_чеке'])),
+            'опт_ост': num(r.get(header['опт_ост'])),
+            'розн_ост': num(r.get(header['розн_ост'])),
+            'арт_ост': num(r.get(header['арт_ост'])),
         }
     return period, depts
 

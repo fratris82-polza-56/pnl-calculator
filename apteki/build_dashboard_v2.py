@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """Дашборд v2: недели 1–40 2026. Полностью статичный HTML+SVG.
 Без JS, без CDN, без CSS-переменных — открывается где угодно (вложения, офлайн).
-Данные: weeks_all.json (копия таблицы) + week37/38/39/40/41.json (выгрузки FastReport);
-week41_2025.json — полная нед. 41 2025 с 6-й точкой (Аптека/Ленин) для сравнения по аптекам.
+Данные: weeks_all.json (копия таблицы) + week37/38/39/40/41/42.json (выгрузки FastReport);
+week41/42_2025.json — полные нед. 41/42 2025 с 6-й точкой (Аптека/Ленин) для сравнения по аптекам.
 Запуск: python3 build_dashboard_v2.py  ->  dashboard_v2.html
 """
 import json
@@ -42,7 +42,7 @@ def pct(x, dec=1, sign=True):
 def load_weeks():
     weeks = [w for w in json.load(open(HERE / 'weeks_all.json', encoding='utf-8'))
              if w['to'].endswith('.2026') and w.get('all') and w['all'].get('выручка') is not None]
-    for name in ('week37.json', 'week38.json', 'week39.json', 'week40.json', 'week41.json'):
+    for name in ('week37.json', 'week38.json', 'week39.json', 'week40.json', 'week41.json', 'week42.json'):
         w = json.load(open(HERE / name, encoding='utf-8'))
         weeks.append({
             'from': w['from'], 'to': w['to'], 'year': 2026, 'week': w['week'],
@@ -59,14 +59,14 @@ def load_prev_year():
     for w in ws:
         if w['to'].endswith('.2025') and w.get('all') and w['all'].get('выручка') is not None:
             out[w['week']] = w['all']
-    # нед. 41 2025: база YoY из полной выгрузки (6 точек, включая Аптеку/Ленин),
-    # иначе нед. 41 2026 (6 точек) сравнивается с 5-точечной таблицей.
-    try:
-        w41 = json.load(open(HERE / 'week41_2025.json', encoding='utf-8'))
-    except FileNotFoundError:
-        w41 = None
-    if w41:
-        out[w41['week']] = w41['totals']['all']
+    # нед. 41+42 2025: база YoY из полной выгрузки (6 точек, включая Аптеку/Ленин),
+    # иначе нед. 41/42 2026 (6 точек) сравнивается с 5-точечной таблицей.
+    for w25 in ('week41_2025.json', 'week42_2025.json'):
+        try:
+            w25j = json.load(open(HERE / w25, encoding='utf-8'))
+        except FileNotFoundError:
+            continue
+        out[w25j['week']] = w25j['totals']['all']
     return out
 
 
@@ -77,20 +77,20 @@ def load_prev_year_full():
     for w in ws:
         if w['to'].endswith('.2025') and w.get('depts'):
             out[w['week']] = w
-    # нед. 41 2025: полная выгрузка («41 2025.xls» + «Ленин 41 2025.xls») с 6-й точкой.
+    # нед. 41+42 2025: полные выгрузки («NN 2025.xls» + «Ленин NN 2025.xls») с 6-й точкой.
     # Верхнеуровневые итоги (rose/iz/all) не заменяем — год-к-году считается по 5 точкам,
     # добавляем только отделы для блока «Сравнение по аптекам».
-    try:
-        w41 = json.load(open(HERE / 'week41_2025.json', encoding='utf-8'))
-    except FileNotFoundError:
-        w41 = None
-    if w41:
-        base = out.get(w41['week']) or {
-            'from': w41['from'], 'to': w41['to'], 'year': 2025, 'week': w41['week'],
+    for w25 in ('week41_2025.json', 'week42_2025.json'):
+        try:
+            w25j = json.load(open(HERE / w25, encoding='utf-8'))
+        except FileNotFoundError:
+            continue
+        base = out.get(w25j['week']) or {
+            'from': w25j['from'], 'to': w25j['to'], 'year': 2025, 'week': w25j['week'],
             'depts': {}, 'izdepts': {}}
-        base['depts'] = {**(base.get('depts') or {}), **w41['rose']}
-        base['izdepts'] = {**(base.get('izdepts') or {}), **w41['iz']}
-        out[w41['week']] = base
+        base['depts'] = {**(base.get('depts') or {}), **w25j['rose']}
+        base['izdepts'] = {**(base.get('izdepts') or {}), **w25j['iz']}
+        out[w25j['week']] = base
     return out
 
 
@@ -383,6 +383,9 @@ def build():
     SHORT = {'Проспект Мира': 'Пр. Мира', 'Аптека': 'Ленин'}
     w26 = {w['week']: w for w in weeks}
     cmp_weeks = sorted(set(prev_full) & set(w26))
+    cmp25 = prev_full.get(cmp_weeks[-1]) if cmp_weeks else None
+    cmp_from = cmp25['from'][:-5] if cmp25 else '—'
+    cmp_to = cmp25['to'][:-5] if cmp25 else '—'
 
     def _d_pct(a, b):
         return ((a / b - 1) * 100) if b else None
@@ -563,7 +566,7 @@ def build():
     html_doc = f"""<!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Аптека · недели 1–41 2026</title>
+<title>Аптека · недели 1–42 2026</title>
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
 body{{background:{C['bg']};color:{C['tx']};font:14px/1.45 -apple-system,'Segoe UI',Roboto,Arial,sans-serif;padding:20px;max-width:1040px;margin:0 auto}}
@@ -597,7 +600,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 .ysum .v{{font-size:18px;font-weight:700}}
 </style></head><body>
 
-<h1>Еженедельные показатели аптеки <span class="badge">2026 · недели 1–41</span></h1>
+<h1>Еженедельные показатели аптеки <span class="badge">2026 · недели 1–42</span></h1>
 <div class="sub">Свежая неделя: <strong>№{cur['week']}, {cur['from']}–{cur['to']}</strong> (из выгрузок FastReport) · история — из таблицы «Неделя к неделе без ИЗ» + выгрузки · {gen}</div>
 
 <div class="grid kpis">{kpis}</div>
@@ -612,7 +615,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 <div><div class="mut">Лучшая неделя</div><div class="v">№{best['week']} · {mln(best['all']['выручка'])} млн</div></div>
 <div><div class="mut">Худшая неделя*</div><div class="v">№{worst['week']} · {mln(worst['all']['выручка'])} млн</div></div>
 </div>
-<div class="note">* неделя 1 (01–04.01, 4 рабочих дня) в сравнении не участвует. С нед. 41 выгрузки включают 6-ю точку (Аптека/Ленин); база год-к-году нед. 41 — полная выгрузка 2025 (6 точек), остальные недели сравниваются с таблицей (5 точек).</div>
+<div class="note">* неделя 1 (01–04.01, 4 рабочих дня) в сравнении не участвует. С нед. 41 выгрузки включают 6-ю точку (Аптека/Ленин); база год-к-году нед. 41–42 — полные выгрузки 2025 (6 точек), остальные недели сравниваются с таблицей (5 точек).</div>
 </div>
 
 <div class="card">
@@ -686,7 +689,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 {rows_all}
 </table>
 </div>
-<div class="note">LFL: сравнивается одна и та же неделя №{cmp_weeks[-1] if cmp_weeks else '—'} обоих годов (05.10–11.10.2025 vs 05.10–11.10.2026). В 2025 «Аптека» (Ленин) выгружена только за нед. 41 — сравнение по ней пока за одну неделю. Данные 2025 по остальным неделям (для графиков) — с нед. 31, Маяковская — с нед. 34.</div>
+<div class="note">LFL: сравнивается одна и та же неделя №{cmp_weeks[-1] if cmp_weeks else '—'} обоих годов ({cmp_from}–{cmp_to} 2025 vs {cur['from']}–{cur['to']} 2026). В 2025 «Аптека» (Ленин) выгружена пока за нед. 41–42 — сравнение по ней за эти недели. Данные 2025 по остальным неделям (для графиков) — с нед. 31, Маяковская — с нед. 34.</div>
 </div>
 
 <div class="card">
@@ -697,7 +700,7 @@ tr.tot td{{font-weight:700;border-top:2px solid {C['line']}}}
 {''.join(wrows)}
 </table>
 </div>
-<div class="note">«к 2025» — сравнение с той же ISO-неделей 2025 (данные в таблице есть с недели 31; нед. 41 — по полной выгрузке 2025, 6 точек). * неделя 1: 01–04.01.2026, 4 дня.</div>
+<div class="note">«к 2025» — сравнение с той же ISO-неделей 2025 (данные в таблице есть с недели 31; нед. 41–42 — по полным выгрузкам 2025, 6 точек). * неделя 1: 01–04.01.2026, 4 дня.</div>
 </div>
 
 <div class="note" style="text-align:center;margin-top:4px">Источник: копия таблицы «Еженедельный Показатели Аптеки» (недели 1–36) + выгрузки FastReport из Drive «Данные для заполнения» (недели 37–41, вкл. «Ленин»). Файл автономный: графики — статичный SVG, работает без интернета.</div>
